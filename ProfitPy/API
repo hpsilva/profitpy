@@ -3,17 +3,6 @@ ProfitPy - API Documentation
 This document provides a brief tour of the various ways to write programs with
 the ProfitPy toolkit.
 
-This file is separated into five sections:
-
-    Library Modules
-    Session Configuration
-    GUI Configuration
-    GUI Scripting
-    Strategy Objects
-
-Each section builds on the previous, so even if you're only interested in 
-writing custom trading strategies, you should read the entire document.
-
 
 Library Modules
 ------------------------------------------------------------------------------

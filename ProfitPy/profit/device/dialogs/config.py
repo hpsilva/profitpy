@@ -100,7 +100,7 @@ class FontLabel(qt.QLineEdit):
 
 
 class ConfigurationDialog(KDialogBase):
-    """ ConfigurationDialog(...) -> Configuration dialog box with multiple pages
+    """ ConfigurationDialog(...) -> Config dialog box with multiple pages
 
     """
     title = 'Settings'
