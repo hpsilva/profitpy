@@ -18,8 +18,11 @@
 ##~ along with ProfitPy; if not, write to the Free Software
 ##~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##~
-"""
-bring in symbols from this package for easier location
+""" The profit.examples initialization script
+
+This module brings in symbols from the package for easier location.  This 
+stands out against the normal import semantics in this package, and that's 
+because these names are so often typed at the command prompt.
 
 """
 from profit.examples.simple import connection_id_from_database
@@ -28,4 +31,7 @@ from profit.examples.simple import small_tickers_listing
 
 from profit.examples.braindeadness import braindead_strategy_factory
 braindead_strategy = braindead_strategy_factory
+
+from profit.examples.slightlybetter import slightly_better_factory
+slightly_better = slightly_better_factory
 

@@ -43,8 +43,7 @@ OpenCloseLookup = {
     Reverse : 'C',
 }
 
-
-def braindead_strategy_factory(tickers, strategy_keys=[base.PriceTypes.Bid, ], **session):
+def slightly_better_factory(tickers, strategy_keys=[base.PriceTypes.Bid, ], **session):
     """ the purpose of the strategy builder is to add a strategy object to 
         each ticker.  each ticker is modified to include technical indicators
         as well.
@@ -79,14 +78,17 @@ def make_series_indexes(ser, set_index, set_plot):
     kama_macd = set_index('KAMA-Signal MACD', series.Convergence, kama_sig, kama)
     set_plot(kama_macd, color='#ffffff', axis='osc left', curve_style='stick')
 
+    ser.trend = trend = \
+        set_index('Trend', VerticalOrderFilter, kama, ser, kama_sig)
+    set_plot(trend, color='#b3b3b3', axis='main right', curve_type='trend')
+
     ser.strategy = strategy = \
-       set_index('Strategy', BrainDeadRandomStrategy, series=ser, size=100)
+       set_index('Strategy', SligntlyBetterThanRandomStrategy, series=ser, size=100)
     set_plot(strategy, color='#b3b3b3', axis='main right', curve_type='strategy')
 
 
-class BrainDeadRandomStrategy(strategy.StrategyIndex):
-    """ BrainDeadRandomStrategy -> works as well as you might expect, or worse
-
+class SligntlyBetterThanRandomStrategy(strategy.StrategyIndex):
+    """ SligntlyBetterThanRandomStrategy -> really, it's only slightly better       (than nothing :)
 
     """
     def __init__(self, series, size):
@@ -97,3 +99,22 @@ class BrainDeadRandomStrategy(strategy.StrategyIndex):
     def query(self):
         signal = random.choice(self.signals)
         return signal
+
+
+class VerticalOrderFilter(strategy.TrendIndex):
+    def __init__(self, a, b, c):
+        strategy.TrendIndex.__init__(self, None)
+        self.a, self.b, self.c = a, b, c
+
+    def reindex(self):
+        level = NoDirection
+
+        a, b, c = self.a[-1], self.b[-1], self.c[-1]
+        if a < b < c:
+             level = Short
+        elif a > b > c:
+             level = Long
+
+        self.append(level)
+
+
