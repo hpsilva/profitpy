@@ -24,6 +24,14 @@ profit.examples.braindeadness -> defines a strategy that won't make moeny
 
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import random   ## this is not a good sign!
 
 import profit.lib.base as base

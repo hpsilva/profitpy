@@ -30,6 +30,14 @@ child process is finished, the interleaved output is written to stdout (for
 cron to pick up) and the dialog exits.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import sys
 import time
 

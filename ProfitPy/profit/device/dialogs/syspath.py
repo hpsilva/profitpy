@@ -23,6 +23,14 @@
 This module defines a widget for browsing sys.path.  
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import os
 import pyclbr
 import sys

@@ -21,6 +21,14 @@
 """ Defines the OrderSupervisor and related types.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import threading
 import time
 

@@ -25,6 +25,14 @@ already done that.  The replacements are MultiCast instances, which supports
 writing to multiple file handles.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import Ib.Message
 import Ib.Socket
 import Ib.Type

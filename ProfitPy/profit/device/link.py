@@ -52,6 +52,14 @@ these messages.  The client simply defines one or more methods with well-known
 names, then passes instances of these widgets to the link.connect function.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import qt
 
 import Ib.Message

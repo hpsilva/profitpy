@@ -25,6 +25,14 @@ stands out against the normal import semantics in this package, and that's
 because these names are so often typed at the command prompt.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 from profit.examples.simple import connection_id_from_database
 from profit.examples.simple import modified_account_object
 from profit.examples.simple import small_tickers_listing

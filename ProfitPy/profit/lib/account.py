@@ -24,6 +24,14 @@
     authoritative data updates from the broker.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import time
 
 import profit.lib.base as base

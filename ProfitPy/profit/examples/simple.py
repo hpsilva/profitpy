@@ -26,6 +26,14 @@ arguments
 
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import Ib.Socket as ibsocket
 import profit.lib.account as account
 import profit.lib.policies as policies

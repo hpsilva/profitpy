@@ -28,6 +28,14 @@ Also, opened objects might not have all of the state necessary to participate in
 session trading operations.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import inspect
 
 import qt

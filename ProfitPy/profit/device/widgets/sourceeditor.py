@@ -28,6 +28,14 @@ The Editor.Editor class in the eric3 package reads in the user's preferences,
 and the subclasses here are no exception.  The debug client and server is 
 currently broken.
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import inspect
 import os
 import sys

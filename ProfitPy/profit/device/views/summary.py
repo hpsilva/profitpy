@@ -21,6 +21,14 @@
 """ Widget to display a summary of an account by way of lcds
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import qt
 
 import kdecore

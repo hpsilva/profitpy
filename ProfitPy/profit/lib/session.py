@@ -44,6 +44,14 @@ All callables, either passed explicitly or imported, must be callable with
 only keyword parameters.  The keywords passed are the session contents and 
 the keywords to the constructor.
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import inspect
 import sys
 

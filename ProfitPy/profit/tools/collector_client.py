@@ -26,6 +26,14 @@ the 'background_thread' option is set (it's not set by default).  This means
 that the main interpreter thread executes the collector thread 'run' method
 directly and not as a background thread.
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import atexit
 import cPickle
 import optparse

@@ -25,6 +25,14 @@ Based on Eric3, Copyright (c) 2003 - 2004 Detlev Offenbach <detlev@die-offenbach
 
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import cgitb
 import os
 import sys

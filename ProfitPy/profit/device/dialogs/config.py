@@ -23,6 +23,14 @@
 This module defines the Profit Device application configuration dialog.
 
 """
+__about__ = {
+    'author' : 'Troy Melhase, troy@gci.net',
+    'date' : '$Date$',
+    'file' : '$Id$',
+    'tag' : '$Name$',
+    'revision' : '$Revision$',
+}
+
 import qt
 import kdecore
 import kdeui
