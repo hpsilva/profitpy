@@ -1,15 +1,7 @@
 all
     *   docs
+    *   Fix up the readme
     *   one final walk-thru
-
-./device
-
-    *   final refactoring of _ in attribute names and method bodies
-
-./tools
-    plot_app.py
-    plot_shell.py
-        *   integration with strategy builder (??)
 
 
 Release

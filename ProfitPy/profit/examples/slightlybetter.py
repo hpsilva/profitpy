@@ -43,7 +43,9 @@ OpenCloseLookup = {
     Reverse : 'C',
 }
 
-def slightly_better_factory(tickers, strategy_keys=[base.PriceTypes.Bid, ], **session):
+
+def slightly_better_factory(tickers, strategy_keys=[base.PriceTypes.Bid, ], 
+                            **session):
     """ the purpose of the strategy builder is to add a strategy object to 
         each ticker.  each ticker is modified to include technical indicators
         as well.
@@ -78,8 +80,28 @@ def make_series_indexes(ser, set_index, set_plot):
     kama_macd = set_index('KAMA-Signal MACD', series.Convergence, kama_sig, kama)
     set_plot(kama_macd, color='#ffffff', axis='osc left', curve_style='stick')
 
+    if 0: 
+        bb_upper = set_index('Bollinger Band Upper', series.BollingerBand, 
+                                        series=ser, period=30, dev_factor=10)
+        set_plot(bb_upper, color='#fa1800')
+    
+        bb_lower = set_index('Bollinger Band Lower', series.BollingerBand, 
+                                        series=ser, period=30, dev_factor=-10)
+        set_plot(bb_lower, color='#0af800')
+
+    if 0:
+        cog = set_index('Center of Gravity', series.CenterOfGravity, series=ser, periods=30)
+        set_plot(cog, '#6633CC', axis='osc right')
+
+    gap = \
+        set_index('KAMA-Sig MACD Gap', GapSizeFilter, kama_macd, bounds=(-0.03, 0.03))
+
+    vof = \
+        set_index('Vertical Order Filter', VerticalOrderFilter, ser, kama, kama_sig)
+
     ser.trend = trend = \
-        set_index('Trend', VerticalOrderFilter, ser, kama, kama_sig)
+        set_index('Trend', CombinerTrend, vof, gap)
+
     set_plot(trend, color='#b3b3b3', axis='main right', curve_type='trend')
 
     ser.strategy = strategy = \
@@ -91,20 +113,65 @@ class SligntlyBetterThanRandomStrategy(strategy.StrategyIndex):
     """ SligntlyBetterThanRandomStrategy -> really, it's only slightly better       (than nothing :)
 
     """
-    def __init__(self, series, trend, size):
+    def __init__(self, series, trend, size, snooze=50):
         strategy.StrategyIndex.__init__(self, series, size)
         self.trend = trend
+        self.snooze = snooze
         self.last = None
+        self.silence_marker = [0, ] * 20
 
     def query(self):
-        ## we filter out repeated signals after the first one
         signal = self.trend.query()
+
+        if len(self) < self.snooze:
+            return NoDirection
+
+        ## filter out repeated signals after the first one
         if signal:
             if self.last == signal:
                 signal = NoDirection
             else:
                 self.last = signal
+        else:
+            ## no signal, maybe too long w/o one?
+            if (self.trend[-len(self.silence_marker):] == self.silence_marker) and self.last:
+                signal = self.last * -1
+                self.last = NoDirection
         return signal
+
+
+class CombinerTrend(strategy.TrendIndex):
+    def __init__(self, *trends):
+        strategy.TrendIndex.__init__(self, None)
+        self.trends = trends
+        self.all_long = [Long, ] * len(trends)
+        self.all_short = [Short, ] * len(trends)
+
+    def query(self):
+        results = [trend.query() for trend in self.trends]
+        if self.all_long == results:
+            return Long
+        elif self.all_short == results:
+            return Short
+        else:
+            return NoDirection
+
+class GapSizeFilter(strategy.TrendIndex):
+    def __init__(self, ser, bounds):
+        strategy.TrendIndex.__init__(self, None)
+        self.series = ser
+        self.bounds = bounds
+
+    def query(self):
+        current = self.series[-1]
+        lowerbound, upperbound = self.bounds
+
+        if current > upperbound:
+            return Long
+        elif current < lowerbound:
+            return Short
+        else:
+            return NoDirection
 
 
 class VerticalOrderFilter(strategy.TrendIndex):
@@ -112,6 +179,7 @@ class VerticalOrderFilter(strategy.TrendIndex):
         strategy.TrendIndex.__init__(self, None)
         self.a, self.b, self.c = a, b, c
 
+        
     def query(self):
         level = NoDirection
         a, b, c = self.a[-1], self.b[-1], self.c[-1]
@@ -120,5 +188,3 @@ class VerticalOrderFilter(strategy.TrendIndex):
         elif a > b > c:
              level = Long
         return level
-
-

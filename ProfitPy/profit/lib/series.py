@@ -138,7 +138,7 @@ class CenterOfGravity(MovingAverageIndex):
             # bah - these adjustments are for plotting
             # need a way to identify plot axis
             #cg += 50.5
-            cg += 5.5
+            cg += 15.5
         except (TypeError, IndexError, ZeroDivisionError, ):
             cg = None
         self.append(cg)
@@ -629,19 +629,19 @@ class WilliamsR(MovingAverageIndex):
 
 
 class BollingerBand(SeriesIndex):
-    def __init__(self, series, dev_factor):
+    def __init__(self, series, period, dev_factor):
         SeriesIndex.__init__(self, series)
+        self.period = period # allows for periods != periods of series
         self.dev_factor = dev_factor
 
     def reindex(self):
-        periods = self.series.periods
-        period = self.series[-periods:]
+        period = self.series[-self.period:]
         last = self.series[-1]
         try:
             dev = std(period)
             dev *= self.dev_factor
             dev += last
-        except (TypeError, ):
+        except (TypeError, ZeroDivisionError, ):
             dev = None
         self.append(dev)
 

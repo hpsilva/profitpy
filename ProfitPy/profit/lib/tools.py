@@ -74,19 +74,29 @@ def ticker_rebuild(source_ticker, strategy_builder, ltrim=0):
     """ ticker_rebuild(...) -> rebuilds a ticker object
 
     """
-    src_id, src_sym = source_ticker.id, source_ticker.symbol
-    #temp_supervisor = tickers.build([(src_id, src_sym), ])
+    src_id = source_ticker.id
+    src_sym = source_ticker.symbol
 
-    def tmapcall(**kwds):
+    def as_ticker_mapping(**kwds):
         return [(src_id, src_sym), ]
 
-    sess = session.Session(tickers_mapping_builder=tmapcall, strategy_builder=strategy_builder)
+    def account_factory(*a, **b):
+        class fakie_account(object):
+            positions = {}
+            orders = {}
+        return fakie_account()
+
+    def empty_factory(*a, **b):
+        return {}
+
+    sess = session.Session(tickers_mapping_builder=as_ticker_mapping, 
+                           strategy_builder=strategy_builder, 
+                           account_builder=account_factory, 
+                           order_builder=empty_factory)
     temp_supervisor = sess.tickers
     rebuilt_ticker = temp_supervisor[src_sym]
 
-    ## fill in the ticker from its series data.  it's either the library 
-    ## strategies that get called during the build, or the ones specified 
-    ## in this call.
+    ## fill in the ticker from its series data
     fill_func = temp_supervisor.tick_message
     for ser_idx, series in source_ticker.series.items():
         for value in series[ltrim:]:

@@ -113,6 +113,8 @@ class PlotApp(plot_form.PlotForm):
                 print 'rebuilt ticker in %s seconds' % (secs, )
             except (Exception, ), ex:
                 print 'Exception rebuilding ticker: %r, %s' % (ex, ex, )
+                import traceback
+                traceback.print_exc()
                 ticker = None
 
         for skey in ticker.strategy_keys:

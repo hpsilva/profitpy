@@ -116,7 +116,8 @@ def strategy_report(strategy, supervisors, fh=None, print_headfoot=True,
     start = time.time()
     total_profit = 0
     total_trades = 0
-
+    report = {}
+    
     if print_headfoot:
         print >> fh, 'Strategy coverage run started at %s' % (time.ctime(), )
         print >> fh, altsep
@@ -127,7 +128,8 @@ def strategy_report(strategy, supervisors, fh=None, print_headfoot=True,
         source_tickers.sort(lambda a, b: cmp(a.symbol, b.symbol))
         file_profit = 0
         file_trades = 0
-
+        file_report = report[file_name] = {}
+        
         print >> fh, 'File %s' % (file_name, )
         print >> fh, 'Symbol\tTrades\t  Profit\tEffective'
         print >> fh, sep
@@ -161,6 +163,7 @@ def strategy_report(strategy, supervisors, fh=None, print_headfoot=True,
             file_profit += tick_profit
             tick_record = (symbol, tick_trades, tick_profit, tick_effective)
             print >> fh, '%4s\t%6s\t%8.2f\t%8.2f' % tick_record
+            file_report[symbol] = (tick_trades, tick_profit)
 
         if file_trades:
             rpt = (file_trades, file_profit, file_profit/file_trades)
@@ -188,6 +191,8 @@ def strategy_report(strategy, supervisors, fh=None, print_headfoot=True,
         rpt = 'Strategy coverage run completed in %2.2f seconds' 
         print >> fh, rpt % (time.time() - start, )
 
+    return (strategy, report)
+
 
 def print_usage(name):
     print 'Usage:'
@@ -203,30 +208,38 @@ def print_coverage_ex(err):
     print
 
 
-if __name__ == '__main__':
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
     try:
-        strat = sys.argv[1]
-        files = sys.argv[2:]
+        strat = args[0]
+        files = args[1:]
         files.sort(files_sorter)
         if not files:
             raise IndexError()
     except (IndexError, ):
         print_usage(name=sys.argv[0])
-        sys.exit(1)
+        return
 
     try:
         strat_session = session.Session(strategy_builder=strat)
     except (Exception, ), ex:
         msg = 'Exception loading strategy builder named "%s"' % (strat, )
         print_coverage_ex(msg)
-        sys.exit(2)
+        return
 
     try:
         supervisors = [(fn, tools.load_object(fn).values()) for fn in files]
-        strategy_report(strat, supervisors)
+        results = strategy_report(strat, supervisors)
     except (KeyboardInterrupt, ):
         print 'Keyboard interrupt'
     except (Exception, ), ex:
         msg = 'Exception executing strategy "%s"' % (ex, )
         print_coverage_ex(msg)
-        sys.exit(3)
+        return
+    return results
+
+
+if __name__ == '__main__':
+    data = main()
