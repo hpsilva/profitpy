@@ -1,0 +1,6 @@
+Bugs and Limitations
+------------------------------------------------------------------------------
+The KDE xml ui resource file is included in the source directory.  Toolbar 
+editing is broken when the file is moved to a better location, (e.g., 
+~/.kde/share/apps/profitdevice/profitdevice.rc).  There isn't a workaround
+for this yet.

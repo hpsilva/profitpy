@@ -1,0 +1,114 @@
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<class>DesignerForm</class>
+<widget class="QMainWindow">
+    <property name="name">
+        <cstring>DesignerForm</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>522</width>
+            <height>434</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Ticker Designer</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>mainControlsLayout</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QComboBox">
+                    <property name="name">
+                        <cstring>tickerCombo</cstring>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>showButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&amp;Show</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>resetButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&amp;Reset</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>openButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&amp;Open</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>130</width>
+                            <height>21</height>
+                        </size>
+                    </property>
+                </spacer>
+            </hbox>
+        </widget>
+        <widget class="QWidgetStack">
+            <property name="name">
+                <cstring>widgetStack</cstring>
+            </property>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>qt_dead_widget_page</cstring>
+                </property>
+                <attribute name="id">
+                    <number>0</number>
+                </attribute>
+            </widget>
+        </widget>
+    </vbox>
+</widget>
+<toolbars>
+</toolbars>
+<connections>
+    <connection>
+        <sender>openButton</sender>
+        <signal>clicked()</signal>
+        <receiver>DesignerForm</receiver>
+        <slot>openFile()</slot>
+    </connection>
+    <connection>
+        <sender>showButton</sender>
+        <signal>clicked()</signal>
+        <receiver>DesignerForm</receiver>
+        <slot>showTickerPage()</slot>
+    </connection>
+</connections>
+<slots>
+    <slot>showTickerPage()</slot>
+    <slot>openFile()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

@@ -1,0 +1,28 @@
+all
+    *   docs
+    *   one final walk-thru
+
+./device
+
+    *   final refactoring of _ in attribute names and method bodies
+
+./tools
+    ## USE ENV VAR
+    collector_client.py
+        *   integration with session builder names
+
+    plot_app.py
+    plot_shell.py
+        *   integration with strategy builder (??)
+
+
+Release
+        0.0 release IbPy-0.4
+        0.1 
+
+        1.0 sourceforge project
+        1.5 package release, ensure absent config works!
+        2.0  ANN:  comp.os.linux.announce, freshmeat, kde-announce, clp, clp.announce
+        2.1  ANN:  aklug, pykde, tws forums
+        2.2  melanie, patrick, dave, ibpy users
+        3.0  register w/ PyPi
