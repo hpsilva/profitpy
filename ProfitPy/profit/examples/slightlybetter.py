@@ -79,11 +79,11 @@ def make_series_indexes(ser, set_index, set_plot):
     set_plot(kama_macd, color='#ffffff', axis='osc left', curve_style='stick')
 
     ser.trend = trend = \
-        set_index('Trend', VerticalOrderFilter, kama, ser, kama_sig)
+        set_index('Trend', VerticalOrderFilter, ser, kama, kama_sig)
     set_plot(trend, color='#b3b3b3', axis='main right', curve_type='trend')
 
     ser.strategy = strategy = \
-       set_index('Strategy', SligntlyBetterThanRandomStrategy, series=ser, size=100)
+       set_index('Strategy', SligntlyBetterThanRandomStrategy, ser, trend, 100)
     set_plot(strategy, color='#b3b3b3', axis='main right', curve_type='strategy')
 
 
@@ -91,13 +91,19 @@ class SligntlyBetterThanRandomStrategy(strategy.StrategyIndex):
     """ SligntlyBetterThanRandomStrategy -> really, it's only slightly better       (than nothing :)
 
     """
-    def __init__(self, series, size):
+    def __init__(self, series, trend, size):
         strategy.StrategyIndex.__init__(self, series, size)
-        self.signals = [Short, Long, ] + [NoDirection ,] * 50
-        random.shuffle(self.signals)
+        self.trend = trend
+        self.last = None
 
     def query(self):
-        signal = random.choice(self.signals)
+        ## we filter out repeated signals after the first one
+        signal = self.trend.query()
+        if signal:
+            if self.last == signal:
+                signal = NoDirection
+            else:
+                self.last = signal
         return signal
 
 
@@ -106,15 +112,13 @@ class VerticalOrderFilter(strategy.TrendIndex):
         strategy.TrendIndex.__init__(self, None)
         self.a, self.b, self.c = a, b, c
 
-    def reindex(self):
+    def query(self):
         level = NoDirection
-
         a, b, c = self.a[-1], self.b[-1], self.c[-1]
         if a < b < c:
              level = Short
         elif a > b > c:
              level = Long
-
-        self.append(level)
+        return level
 
 

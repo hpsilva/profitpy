@@ -86,15 +86,42 @@ def profit_on_close(strat, records):
     return value + close
 
 
-def strategy_report(strategy, supervisors, fh=None):
+def simulate_final(aseries, astrategy):
+    tick_results = list(astrategy.gauge())
+    tick_trades = len(tick_results)
+    tick_profit = 0
+    if tick_trades:
+        ## last_trade looks something like this:
+        ## ((138, 8.06), (795., -100), <base.Order object at 0x431a3fec>)
+        last_trade = tick_results[-1]
+        last_size = last_trade[1][1]
+        if last_size:
+            ## the last trade left an open position; calculate it's closing 
+            ## price
+            tick_profit = profit_on_close(astrategy, tick_results)
+
+            ## now adjust the last history record in the strategy
+            last_index = len(aseries)
+            sig = (abs(last_size) / last_size) * -1
+            rev = base.Directions.Reverse
+            quan = astrategy.order_size
+            ## the history records look something like this:
+            ## (1200, 67.549999999999997, 0, 0, 0)]
+            astrategy.history[-1] = (last_index-1, aseries[-1], sig, rev, quan)
+            astrategy[-1] = sig
+
+
+def strategy_report(strategy, supervisors, fh=None, print_headfoot=True, 
+                    print_subtotal=True, print_grandtotal=True):
     start = time.time()
     total_profit = 0
     total_trades = 0
 
-    print >> fh, 'Strategy coverage run started at %s' % (time.ctime(), )
-    print >> fh, altsep
-    print >> fh, 'Using strategy name %s' % (strategy, )
-    print >> fh
+    if print_headfoot:
+        print >> fh, 'Strategy coverage run started at %s' % (time.ctime(), )
+        print >> fh, altsep
+        print >> fh, 'Using strategy name %s' % (strategy, )
+        print >> fh
 
     for file_name, source_tickers in supervisors:
         source_tickers.sort(lambda a, b: cmp(a.symbol, b.symbol))
@@ -118,7 +145,8 @@ def strategy_report(strategy, supervisors, fh=None):
                 pass
             tick_results = list(strat_obj.gauge())
             tick_trades = len(tick_results)
-            tick_profit = 0
+            tick_profit = 0.0
+            tick_effective = 0.0
 
             if tick_trades:
                 last_trade = tick_results[-1]
@@ -126,10 +154,13 @@ def strategy_report(strategy, supervisors, fh=None):
                     tick_profit = profit_on_close(strat_obj, tick_results)
                 else:
                     tick_profit = last_trade[1][0]
+                if tick_profit:
+                    tick_effective = tick_profit / tick_trades
 
             file_trades += tick_trades
             file_profit += tick_profit
-            print >> fh, '%4s\t%6s\t%8.2f' % (symbol, tick_trades, tick_profit)
+            tick_record = (symbol, tick_trades, tick_profit, tick_effective)
+            print >> fh, '%4s\t%6s\t%8.2f\t%8.2f' % tick_record
 
         if file_trades:
             rpt = (file_trades, file_profit, file_profit/file_trades)
@@ -137,22 +168,25 @@ def strategy_report(strategy, supervisors, fh=None):
             rpt = (file_trades, file_profit, 0)
         total_trades += file_trades
         total_profit += file_profit
-        print >> fh, 'Sub Total'
-        print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
-        print
+        if print_subtotal:
+            print >> fh, 'Sub Total'
+            print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
+            print
 
     if total_trades:
         rpt = (total_trades, total_profit, total_profit/total_trades)
     else:
         rpt = (total_trades, total_profit, 0)
 
-    print >> fh, 'Grand Total'
-    print >> fh, sep
-    print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
-    print >> fh
-    print >> fh, altsep
-    rpt = 'Strategy coverage run completed in %2.2f seconds' 
-    print >> fh, rpt % (time.time() - start, )
+    if print_grandtotal:
+        print >> fh, 'Grand Total'
+        print >> fh, sep
+        print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
+        print >> fh
+    if print_headfoot:
+        print >> fh, altsep
+        rpt = 'Strategy coverage run completed in %2.2f seconds' 
+        print >> fh, rpt % (time.time() - start, )
 
 
 def print_usage(name):

@@ -81,6 +81,7 @@ class PlotApp(plot_form.PlotForm):
             print 'Could not load a pickled tickers from %s' % (filename, )
             return
 
+        self.fileName = filename
         self.setCaption(self.title % filename)
         self.tickersListView.clear()
 
@@ -101,6 +102,8 @@ class PlotApp(plot_form.PlotForm):
     def showTicker(self, symbol):
         try:
             ticker = self.rebuiltTickers[symbol]
+            if not ticker:
+                return
         except (KeyError, ):
             try:
                 secs, count, ticker = \
@@ -112,15 +115,25 @@ class PlotApp(plot_form.PlotForm):
                 print 'Exception rebuilding ticker: %r, %s' % (ex, ex, )
                 ticker = None
 
-        if ticker:
-            coverage.ticker_report(ticker, sys.stdout)
-            plotwin = qt.QVBox(self)
-            PlotWidget(plotwin, ticker)
-            plotwin.setCaption('%s Test Plot' % (symbol, ))
-            plotwin.reparent(self, qt.Qt.WType_TopLevel, qt.QPoint(0,0), True)
-            plotwin.resize(qt.QSize(850, 600))
+        for skey in ticker.strategy_keys:
+            serobj = ticker.series[skey]
+            stratobj = serobj.strategy
+            coverage.simulate_final(serobj, stratobj)
 
-    def closeEvent(self, event):
+        coverage.ticker_report(ticker, sys.stdout)
+        supervisors = [(self.fileName, [ticker, ], ), ]
+        coverage.strategy_report(self.strategyName, supervisors, sys.stdout, 
+                                 print_headfoot=False, 
+                                 print_subtotal=False, 
+                                 print_grandtotal=False)
+
+        plotwin = qt.QVBox(self)
+        PlotWidget(plotwin, ticker)
+        plotwin.setCaption('%s Test Plot' % (symbol, ))
+        plotwin.reparent(self, qt.Qt.WType_TopLevel, qt.QPoint(0,0), True)
+        plotwin.resize(qt.QSize(850, 600))
+
+    def not__closeEvent(self, event):
         base.stdnotee(self, 'stdout', 'stderr')
         for child in self.children():
             child.deleteLater()

@@ -135,8 +135,6 @@ class TrendIndex(series.SeriesIndex):
         series.SeriesIndex.__init__(self, ser)
 
     def reindex(self):
-        self.append(NoDirection)
-
-
-
+        trend = self.query()
+        self.append(trend)
 

@@ -445,8 +445,13 @@ class MultiCast(list):
 import sys
 
 def stdinit():
+    """ stdinit() -> initialize sys.stdout and sys.stderr
+
+    """
     import __main__
-    if not hasattr(sys, 'ps1') and '__IP' not in dir(__main__):
+    isinteractive = hasattr(sys, 'ps1') 
+    isipython = '__IP' in dir(__main__)
+    if not isinteractive and not isipython:
         if not isinstance(sys.stdout, MultiCast):
             sys.stdout = MultiCast(sys.stdout)
         if not isinstance(sys.stderr, MultiCast):
