@@ -248,10 +248,6 @@ class SessionListView(qt.QListView):
         """ saveItemNode() -> save an items node to a file
 
         """
-        #filename = kfile.KFileDialog.getSaveFileName('', '*', None)
-        #filename = str(filename)
-        #if not filename:
-        #    return
         dlg = kfile.KFileDialog('', '*', None, 'Save As', True)
         if dlg.exec_loop() == kfile.KFileDialog.Accepted:
             filename = '%s' % dlg.selectedFile()
@@ -261,7 +257,6 @@ class SessionListView(qt.QListView):
         try:
             tools.save_object(self.context.node, filename)
         except (Exception, ), ex:
-            #self.displayException('Error saving item', ex)
             util.displayException(self, 'Error saving item', ex)
 
     def readItemNode(self):
@@ -293,15 +288,11 @@ class SessionListView(qt.QListView):
                 setattr(parentnodey, itemkey, graft_node)
                 parent.setOpen(False)
         elif isinstance(item, (tuple, list, )):
-            ## don't load items into lists and tuples
-            #self.displayException('Cannot read file into this item', '')
             util.displayException(self, 'Cannot read file into this item', '')
         else:
-            ## try to open and read the file into a key of the parent
             try:
                 parentnodey[itemkey] = tools.load_object(filename)
             except (Exception, ), ex:
-                #self.displayException('Error opening item', ex)
                 util.displayException(self, 'Error opening item', ex)
             else:
                 parent.setOpen(False)

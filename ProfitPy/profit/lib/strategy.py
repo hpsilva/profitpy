@@ -24,66 +24,113 @@
 import profit.lib.base as base
 import profit.lib.series as series
 
+
 Reverse = base.Directions.Reverse
 NoReverse = base.Directions.NoReverse
-NoSignal = base.Directions.NoSignal
 
 Short = base.Directions.Short
 Long = base.Directions.Long
 NoDirection = base.Directions.NoDirection
 
-OpenCloseLookup = {
-    NoReverse : 'O', 
-    Reverse : 'C',
-}
-
 
 class StrategyIndex(series.SeriesIndex):
+    """ StrategyIndex(...) -> a base type for user strategies
+
+        Clients should use this class as a base and reimplement the 'query' 
+        method, and return Short, Long, or NoDirection from that.
+    """
     def __init__(self, ser, trade_shares):
         series.SeriesIndex.__init__(self, ser)
         self.trade_shares = trade_shares
         self.indication = (NoDirection, NoReverse)
-        self.history = [] ## required for nice plots
+        self.history = []
         self.position = 0
 
+    def query(self):
+        """ query() -> this method must be implemented by clients
+
+        """
+        exmsg = "Class %s does not reimplement 'query' method'"
+        exmsg = exmsg % (self.__class__.__name__, )
+        raise NotImplementedError(exmsg)
+
     def reindex(self):
+        """ reindex() -> calculate a signal for this strategy
+
+            This implementation defers strategy calculation to the 'query' 
+            method then uses that result to determine the Reverse-NoReverse
+            value, then finally uses both values together to form an 
+            indication.
+        """
         signal = self.query()
         ser = self.series
         shares = self.trade_shares
         lastposition = self.position
-        reverse = 0
-        x = len(ser) - 1
-        y = ser[-1]
+        reverse = NoReverse
 
+        ## if there is an existing position, a new signal, and if the position
+        ## direction is different than the current signal, indicate a reverse
         if lastposition and signal:
             if (abs(lastposition) / lastposition) != signal:
                 reverse = 1
-
+        
+        ## formulate the current indication
         if signal:
             self.indication = (signal, reverse)
         else:
             self.indication = (NoDirection, NoReverse)
 
-        if lastposition and not reverse:
-            quan = shares * signal
-            self.position += quan
-        elif lastposition and reverse:
+        ## adjust the position according to the signal and reverse.  if there
+        ## is a previous position and no reverse, the position is furthered.
+        if lastposition and reverse:
             quan = -lastposition
             self.position = 0
         else:
             quan = shares * signal
             self.position += quan
 
-        open_close = OpenCloseLookup[reverse]
-        order = base.Order(quantity=quan, limit_price=y, 
-                           transmit=0, open_close=open_close)
-        record = (x, y, signal, reverse, shares, self.position, order)
+        x = len(ser) - 1
+        y = ser[-1]
 
-        self.history.append(record)
+        key = (x, y, signal, reverse, )
+        extras = (shares, self.position, quan, )
+        self.history.append(key + extras)
+
         self.append(signal)
 
 
-    def summary(self):
+class strat_iter(object):
+    def __init__(self, strat):
+        self.strat = strat
+
+    def next(self):
+        yield self.strat.next()
+
+        x = 0
+        while True:
+            try:
+                yield self[x]
+                x += 1
+            except (IndexError, ):
+                raise StopIteration()
+
+
+## older code ; make sure these calls are factored out
+
+    def __signal_orders(self):
+        """ signal_orders() ->
+
+        """
+        oc_lookup = {NoReverse : 'O', Reverse : 'C',}
+        oc = oc_lookup[reverse]
+        signals = self.history
+        
+ 
+        order = base.Order(quantity=quan, limit_price=y, 
+                           transmit=0, open_close=open_close)
+
+
+    def __summary(self):
         """ summary() -> summarize the orders tracked with this object
 
         """
@@ -105,8 +152,3 @@ class StrategyIndex(series.SeriesIndex):
             reports.append((order.limit_price, order_cost, running_total))
 
         return reports
-
-    def query(self):
-        exmsg = "Class %s does not reimplement 'query' method'"
-        exmsg = exmsg % (self.__class__.__name__, )
-        raise NotImplementedError(exmsg)

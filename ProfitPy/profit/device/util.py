@@ -34,48 +34,52 @@ import kdeui
 import profit.lib.base as base
 
 
-sigNewSession = qt.PYSIGNAL('new session')
-sigBrowserWriteDone = qt.PYSIGNAL('browser write done')
-sigConfigChanged = qt.PYSIGNAL('config changed')
-sigConnectedTws = qt.PYSIGNAL('connect tws')
-sigConnectedTwsError = qt.PYSIGNAL('connect tws error')
-sigFinishTws = qt.PYSIGNAL('tws finished')
-sigOrdersUpdated = qt.PYSIGNAL('OrderListViewUpdated')
-sigStartTws = qt.PYSIGNAL('StartTws')
-sigStartTwsFail = qt.PYSIGNAL('StartTwsFail')
-sigSubmitOrder = qt.PYSIGNAL('SubmitOrder')
-sigUrlSelected = qt.PYSIGNAL('urlSelected')
-sigViewWebBrowser = qt.PYSIGNAL('ViewWebBrowser')
-sigViewSource = qt.PYSIGNAL('ViewSource')
-sigViewTicker = qt.PYSIGNAL('ViewTicker')
-sigViewTickerItem = qt.PYSIGNAL('ViewTickerItem')
+PYSIGNAL = qt.PYSIGNAL
+SIGNAL = qt.SIGNAL
+SLOT = qt.SLOT
 
-plotControlColorSelected = qt.PYSIGNAL('PlotControlColorSelected')
-plotControlToggle = qt.PYSIGNAL('PlotControlToggle')
-plotRescaled = qt.PYSIGNAL('PlotRescaled')
-plotCtrlClick = qt.PYSIGNAL('PlotControlClicked')
+sigNewSession = PYSIGNAL('new session')
+sigBrowserWriteDone = PYSIGNAL('browser write done')
+sigConfigChanged = PYSIGNAL('config changed')
+sigConnectedTws = PYSIGNAL('connect tws')
+sigConnectedTwsError = PYSIGNAL('connect tws error')
+sigFinishTws = PYSIGNAL('tws finished')
+sigOrdersUpdated = PYSIGNAL('OrderListViewUpdated')
+sigStartTws = PYSIGNAL('StartTws')
+sigStartTwsFail = PYSIGNAL('StartTwsFail')
+sigSubmitOrder = PYSIGNAL('SubmitOrder')
+sigUrlSelected = PYSIGNAL('urlSelected')
+sigViewWebBrowser = PYSIGNAL('ViewWebBrowser')
+sigViewSource = PYSIGNAL('ViewSource')
+sigViewTicker = PYSIGNAL('ViewTicker')
+sigViewTickerItem = PYSIGNAL('ViewTickerItem')
 
-sigActivated = qt.SIGNAL('activated()')
-sigClicked = qt.SIGNAL('clicked()')
-sigDockClosed = qt.SIGNAL('headerCloseButtonClicked()')
-sigDoubleClicked = qt.SIGNAL('doubleClicked(QListViewItem *)')
-sigLastClosed = qt.SIGNAL('lastWindowClosed()')
-sigPlotMouseMoved = qt.SIGNAL('plotMouseMoved(const QMouseEvent &)')
-sigPlotMouseReleased = qt.SIGNAL('plotMouseReleased(const QMouseEvent&)')
-sigProcessExit = qt.SIGNAL('processExited()')
-sigReleased = qt.SIGNAL('released()')
-sigSelectChanged = qt.SIGNAL('selectionChanged(QListViewItem*)')
-sigStateChanged = qt.SIGNAL('stateChanged(int)')
-sigStdoutReady = qt.SIGNAL('readyReadStdout()')
-sigTextChanged = qt.SIGNAL('textChanged(const QString&)')
-sigToggled = qt.SIGNAL('toggled(bool)')
-sigValueChanged = qt.SIGNAL('valueChanged(int)')
+plotControlColorSelected = PYSIGNAL('PlotControlColorSelected')
+plotControlToggle = PYSIGNAL('PlotControlToggle')
+plotRescaled = PYSIGNAL('PlotRescaled')
+plotCtrlClick = PYSIGNAL('PlotControlClicked')
+
+sigActivated = SIGNAL('activated()')
+sigClicked = SIGNAL('clicked()')
+sigDockClosed = SIGNAL('headerCloseButtonClicked()')
+sigDoubleClicked = SIGNAL('doubleClicked(QListViewItem *)')
+sigLastClosed = SIGNAL('lastWindowClosed()')
+sigPlotMouseMoved = SIGNAL('plotMouseMoved(const QMouseEvent &)')
+sigPlotMouseReleased = SIGNAL('plotMouseReleased(const QMouseEvent&)')
+sigProcessExit = SIGNAL('processExited()')
+sigReleased = SIGNAL('released()')
+sigSelectChanged = SIGNAL('selectionChanged(QListViewItem*)')
+sigStateChanged = SIGNAL('stateChanged(int)')
+sigStdoutReady = SIGNAL('readyReadStdout()')
+sigTextChanged = SIGNAL('textChanged(const QString&)')
+sigToggled = SIGNAL('toggled(bool)')
+sigValueChanged = SIGNAL('valueChanged(int)')
 sigListContext = \
-    qt.SIGNAL('contextMenuRequested(QListViewItem*,const QPoint&,int)')
+    SIGNAL('contextMenuRequested(QListViewItem*,const QPoint&,int)')
 
-slotAccept = qt.SLOT('accept()')
-slotQuit = qt.SLOT('quit()')
-slotReject = qt.SLOT('reject()')
+slotAccept = SLOT('accept()')
+slotQuit = SLOT('quit()')
+slotReject = SLOT('reject()')
 
 iconNoGroup = kdecore.KIcon.NoGroup
 iconSizeSmall = kdecore.KIcon.SizeSmall
@@ -250,9 +254,7 @@ def buildAction(name, label, icon, accel, tip, collection):
     action.setIcon(icon)
     action.setText(kdecore.i18n(label))
     action.setToolTip(kdecore.i18n(tip))
-
     collection.insert(action)
-
     return action
 
 class OutputFrame(kdeui.KTextEdit):

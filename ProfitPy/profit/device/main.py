@@ -49,6 +49,14 @@ dockRight = kdeui.KDockWidget.DockRight
 i18n = kdecore.i18n
 
 
+try:
+    __file__
+except (NameError, ):
+    __file__ = sys.argv[0]
+
+
+
+
 class ProfitDeviceMainWindow(kdeui.KDockMainWindow):
     """ ProfitDeviceMainWindow() -> main window 
 
@@ -173,10 +181,10 @@ class ProfitDeviceMainWindow(kdeui.KDockMainWindow):
         stdoutdock.manualDock(shelldock, dockBottom, 80)
         stderrdock.manualDock(stdoutdock, dockCenter, 80)
 
-        outargs = (self.pythonShell, self.stdoutFrame, sys.__stdout__, )
-        errargs = (self.pythonShell, self.stderrFrame, sys.__stderr__)
-        sys.stdout = base.OutTee(*outargs)
-        sys.stderr = base.OutTee(*errargs)
+        for item in (self.pythonShell, self.stdoutFrame):
+            base.sysTee(item, 'stdout')
+        for item in (self.pythonShell, self.stderrFrame):
+            base.sysTee(item, 'stderr')
 
         connect(self.sessionList, util.sigViewSource, nodeviewer.viewNode)
         connect(self.sessionList, util.sigDoubleClicked, nodeviewer.viewNode)

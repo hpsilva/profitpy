@@ -183,15 +183,14 @@ class ConfigurationDialog(KDialogBase):
         """ buildBrokerPage(...) -> construct widgets for the broker settings
 
         """
+        readpath = config.readPathEntry
+        readnum = config.readNumEntry
+
         dsn = config.readEntry(keys.brokerDsn, defaults.brokerDsn)
-        keyscript = \
-            config.readPathEntry(keys.keyScript, defaults.keyScript)
-        startscript = \
-            config.readPathEntry(keys.brokerScript, defaults.brokerScript)
-        connectdelay = \
-            config.readNumEntry(keys.connectDelay, defaults.connectDelay)
-        embeddelay = \
-            config.readNumEntry(keys.embedDelay, defaults.embedDelay)
+        keyscript = readpath(keys.keyScript, defaults.keyScript)
+        startscript = readpath(keys.brokerScript, defaults.brokerScript)
+        connectdelay = readnum(keys.connectDelay, defaults.connectDelay)
+        embeddelay = readnum(keys.embedDelay, defaults.embedDelay)
 
         connectgroup = qt.QVGroupBox(i18n('Network Connection'), frame)
         qt.QLabel(i18n('Broker connection string:'), connectgroup)

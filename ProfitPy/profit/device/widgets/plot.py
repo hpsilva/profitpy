@@ -124,7 +124,7 @@ def getPlotStyle(sequence, default_color='#aa0000'):
     try:
         plotstyle = sequence.plot_style
     except (AttributeError, ):
-        base.PlotStyleMarker.set_style(sequence, default_color)
+        base.set_plot_style(sequence, default_color)
         plotstyle = sequence.plot_style
     return plotstyle
 
@@ -430,11 +430,6 @@ class SeriesPlot(qt.QSplitter):
 
         controlsgrid.setSpacing(self.gridSpacing)
         controlsgrid.setMargin(self.gridMargin)
-
-        #try:
-        #    strat = [(self.strategy_key, series.strategy), ]
-        #except (AttributeError, ):
-        #    strat = []
 
         smap = [(self.seriesKey, series), ] + series.index_map.items()
         smap = [(k, v) for k, v in smap if hasattr(v, 'plot_style')]

@@ -20,6 +20,10 @@
 ##~
 """ an interactive shell control
 
+Based on PyCute, Copyright (c) 2003 Gerard Vermeulen
+Based on Eric3, Copyright (c) 2003 - 2004 Detlev Offenbach <detlev@die-offenbachs.de>
+
+
 """
 import cgitb
 import os
@@ -31,6 +35,7 @@ import traceback
 import qt
 import kdecore
 import kdeui
+import profit.lib.base as base
 import profit.device.util as util
 
 
@@ -74,9 +79,7 @@ class InteractiveShell(kdeui.KTextEdit):
         self.setUndoRedoEnabled(False) ## big performance hit otherwise
 
     def setupSys(self):
-        if not self.parent():
-            sys.stdout = self
-            sys.stderr = self
+        base.sysTee(self, 'stdout')
         try:
             throwaway = sys.ps1
             throwaway = sys.ps2
@@ -271,6 +274,8 @@ class InteractiveShell(kdeui.KTextEdit):
         self.menu.popup(event.globalPos())
         event.accept()
 
+
+
 ##
 ## these methods are for the main gui client
 ##
@@ -306,6 +311,9 @@ class InteractiveShell(kdeui.KTextEdit):
         font = config.readFontEntry('shell', qt.QFont('fixed'))
         self.setFont(font)
 
+
+    def close(self):
+        base.sysUntee(self, 'stderr', 'stdout')
 
 if __name__ == '__main__':
     import profit.device.about as about

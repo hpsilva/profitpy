@@ -343,16 +343,6 @@ class TechnicalTickerNode(BaseNodeTabWidget):
         except (KeyError, ):
             pass
 
-    def enableExtended(cls, which=True):
-        """enableExtended(cls, [which]) -> sets indicators for building extras
-
-        """
-        cls.enable_data_lists = which
-        cls.enable_shell = which
-        cls.includePriceTypes = cls.includePriceTypes + \
-            (base.SizeTypes.Ask, base.SizeTypes.Bid, base.SizeTypes.Last, )
-    enableExtended = classmethod(enableExtended)
-
     def pageItems(self):
         """pageItems() -> a goofy way to get the page for a plot
 

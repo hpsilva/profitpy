@@ -152,7 +152,6 @@ class AccountSupervisorNode(BaseNodeWidget):
         curve.setEnabled(state)
         item = self.accountView.findItem(key, 0)
         self.refreshPlot((item, ))
-        #print curve, state
 
     def colorPlot(self, key, color):
         try:
@@ -162,7 +161,6 @@ class AccountSupervisorNode(BaseNodeWidget):
         else:
             curve = self.plotFrame.curve(curveidx)
             curve.setPen(qt.QPen(color))
-            #curve.itemChanged()
             item = self.accountView.findItem(key, 0)
             self.refreshPlot((item, ))
 

@@ -7,7 +7,6 @@ import profit.lib.strategy as strategy
 
 Reverse = base.Directions.Reverse
 NoReverse = base.Directions.NoReverse
-NoSignal = base.Directions.NoSignal
 
 Short = base.Directions.Short
 Long = base.Directions.Long
@@ -60,7 +59,7 @@ def make_series_indexes(ser, set_index, set_plot):
 ##
 ## strategy types must:
 ##      inherit from series.StrategyIndex
-##      implement a reindex method to update itself
+##      implement a query method that indicates a value from 
 ##
 
 

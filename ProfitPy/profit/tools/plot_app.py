@@ -26,28 +26,21 @@ import qt
 
 import plot_form
 
+
 import profit.device.widgets.node as nodewidgets
+import profit.device.widgets.shell as shell
 import profit.device.util as util
+
+import profit.lib.base as base
 import profit.lib.tools as tools
 
 
-class StdoutWrapper(object):
-    """ StdoutWrapper(widget) -> redirects stdout to widget
-
-    """
-    def __init__(self, widget, verbose):
-        self.widget = widget
-        self.verbose = verbose
-        sys.stdout = self
-
-    def write(self, value):
-        self.widget.insert(qt.QString(value))
-        if self.verbose:
-            sys.__stdout__.write(value)
-
-    def close(self):
-        sys.stdout = sys.__stdout__
-
+class PlotWidget(nodewidgets.TechnicalTickerNode):
+    def __init__(self, parent, ticker):
+        nodewidgets.TechnicalTickerNode.__init__(self, parent, ticker)
+        self.shell = shell.InteractiveShell(self)
+        self.addTab(self.shell, 'Shell')
+        self.shell.interpreter.locals['ticker'] = ticker
 
 class PlotApp(plot_form.PlotForm):
     """ PlotApp(...) -> main plot controller window
@@ -57,7 +50,7 @@ class PlotApp(plot_form.PlotForm):
 
     def __init__(self, parent=None, name=None, fl=0):
         plot_form.PlotForm.__init__(self, parent, name, fl)
-        self.wrapper = StdoutWrapper(self.stdoutTextEdit, verbose=0)
+        base.sysTee(self, 'stdout', 'stderr')
         self.tickersListView.setColumnAlignment(2, qt.Qt.AlignRight)
         self.setCaption(self.title % '')
         self.resize(qt.QSize(400, 700))
@@ -105,48 +98,48 @@ class PlotApp(plot_form.PlotForm):
         srcticker = self.tickers[symbol]
 
         rebuilder = tools.timed_ticker_rebuild
-        secs, count, newticker = rebuilder(srcticker, self.strategyName, ltrim=50)
-        newticker.print_report()
-        print 'rebuilt ticker in %s seconds' % (secs, )
 
-        nodewidgets.TechnicalTickerNode.enableExtended()
-        nodewidgets.TechnicalTickerNode(plotwin, newticker)
+        try:
+            secs, count, newticker = rebuilder(srcticker, self.strategyName, ltrim=50)
+        except (Exception, ), ex:
+            print 'Exception rebuilding ticker: %r, %s' % (ex, ex, )
+        else:
+            newticker.print_report()
+            print 'rebuilt ticker in %s seconds' % (secs, )
 
-        plotwin.setCaption('%s Test Plot' % (symbol, ))
-        plotwin.reparent(self, qt.Qt.WType_TopLevel, qt.QPoint(0,0), True)
-        plotwin.resize(qt.QSize(850, 600))
+            ## move to a subtype of TechnicalTickerNode with a shell
+            PlotWidget(plotwin, newticker)
 
-        self.rebuiltTickers[newticker.symbol] = newticker
-        return plotwin
+            plotwin.setCaption('%s Test Plot' % (symbol, ))
+            plotwin.reparent(self, qt.Qt.WType_TopLevel, qt.QPoint(0,0), True)
+            plotwin.resize(qt.QSize(850, 600))
+
+            self.rebuiltTickers[newticker.symbol] = newticker
+            return plotwin
 
     def closeEvent(self, event):
-        self.wrapper.close()
+        base.sysUntee(self, 'stdout', 'stderr')
         event.accept()
+
+    def write(self, value):
+        self.stdoutTextEdit.insert(qt.QString(value))
 
 
 if __name__ == '__main__':
-    win, app = util.qMain(PlotApp)
+    win, app = util.kMain(PlotApp, "Plot App", args=sys.argv[0:1])
     win.show()
 
     try:
-        filename = sys.argv[1]
-    except (IndexError, ):
-        pass
-    else:
-        win.loadTickers(filename)
-
-    try:
-        strategyname = sys.argv[2]
+        strategyname = sys.argv[1]
     except (IndexError, ):
         strategyname = os.environ.get('PROFITPY_STRATEGY', '')
     win.setStrategy(strategyname)
 
-    #try:
-    #    symbols = sys.argv[2:]
-    #except (IndexError, ):
-    #    pass
-    #else:
-    #    for symbol in symbols:
-    #        win.showTicker(symbol).show()     
+    try:
+        filename = sys.argv[2]
+    except (IndexError, ):
+        pass
+    else:
+        win.loadTickers(filename)
 
     app.exec_loop()

@@ -120,6 +120,9 @@ class ImportableViewItem(qt.QListViewItem):
         if which:
             if self.isSrc:
                 items = self.pyitems.items()
+                items = [(name, desc) 
+                            for name, desc in items 
+                                if not name.startswith('_')]
                 items.sort()
                 items.reverse()
                 for name, desc in items:
@@ -184,6 +187,7 @@ class SysPathView(qt.QListView):
             return not not items
 
     pathContentFilter = staticmethod(pathContentFilter)
+
 
 class SysPathDialog(KDialogBase):
     """ SysPathDialog(...) -> a dialog type to display the sys.path browser

@@ -252,7 +252,6 @@ Directions = AttributeMapping(
 
     Reverse=1,
     NoReverse=0,
-    NoSignal=(0, 0),
 )
 
 
@@ -381,17 +380,6 @@ def set_plot_style(series, color,
     plot_style.line_style = line_style
 
 
-class OutTee(object):
-    """ OutTee(*targets) -> mulitcasts output methods to each target
-
-    """
-    def __init__(self, *targets):
-        self.targets = targets
-
-    def write(self, value):
-        [target.write(value) for target in self.targets]
-
-
 def orders_agree(oa, ob):
     """ orders_agree(a, b) -> returns True if orders action and open-close match
 
@@ -421,3 +409,63 @@ def common_broker_register(obj, connection):
                 meth = getattr(obj, m)
                 msg_type = getattr(Ib.Message, message_class_name)
                 connection.register(msg_type, meth)
+
+
+class MultiCast(list):
+    """ Multicast() -> multiplexes messages to registered objects 
+
+        based on Multicast by Eduard Hiti
+        http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52289
+    """
+    def __init__(self, *items):
+        list.__init__(self)
+        self.extend(items)
+
+    def __call__(self, *args, **kwargs):
+        """ Invoke method attributes and return results through another Multicast
+
+        """
+        cls = self.__class__
+        args = [obj(*args, **kwargs) for obj in self]
+        return cls(*args)
+
+    def __getattr__(self, name):
+        """ returns attribute wrapper for further processing """
+        cls = self.__class__
+        args = [getattr(obj, name) for obj in self]
+        return cls(*args)
+
+    def __nonzero__(self):
+        """ logically true if all delegate values are logically true """
+        return not not reduce(lambda a, b: a and b, self, 1)
+
+
+##
+## support for sys.stdout and sys.stderr multicasting
+import sys
+
+## this belongs in a function, but it deserves special notice...
+## like lame comments.  ;)
+
+if not isinstance(sys.stdout, MultiCast):
+    sys.stdout = MultiCast(sys.stdout)
+if not isinstance(sys.stderr, MultiCast):
+    sys.stderr = MultiCast(sys.stderr)
+
+
+def sysTee(obj, *names):
+    """ sysTee(writable, [...]) -> add object to multicasting output
+
+    """
+    for name in names:
+        getattr(sys, name).append(obj)
+
+
+def sysUntee(obj, *names):
+    """ sysTee(obj, [...]) -> remove object from multicasting output
+
+    """
+    for name in names:
+        getattr(sys, name).remove(obj)
+
+

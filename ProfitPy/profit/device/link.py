@@ -60,8 +60,8 @@ import Ib.Socket
 
 """ The first side of the link defines a QThread for reading IbPy sockets.
 
-This QThread socket reader, and the alternate builder function defined for
-IbPy connections, form a way to read socket data in a Qt-friendly way.
+This QThread socket reader and the alternate builder function defined for
+IbPy connections form a way to read socket data in a Qt-friendly way.
 
 """
 

@@ -128,9 +128,6 @@ class MainStatusBar(kdeui.KStatusBar):
 
         """
         self.message_label.setText('Broker disconnected')
-        ## keep pylint happy
-        event = event
-
 
     def slotAccount(self, event):
         """ slotAccount(event) -> broker update account banner
