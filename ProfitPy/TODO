@@ -14,3 +14,11 @@ Release
         2.1  ANN:  aklug, pykde, tws forums
         2.2  melanie, patrick, dave, ibpy users
         3.0  register w/ PyPi
+
+
+Bugs and Limitations
+------------------------------------------------------------------------------
+The KDE xml ui resource file is included in the source directory.  Toolbar 
+editing is broken when the file is moved to a better location, (e.g., 
+~/.kde/share/apps/profitdevice/profitdevice.rc).  There isn't a workaround
+for this yet.
