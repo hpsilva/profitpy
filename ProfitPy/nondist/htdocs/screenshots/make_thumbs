@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+import PIL
+import PIL.Image as Image
+
+
+default_width = 150
+default_height = 150
+default_dir = '.'
+
+
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
+    try:
+        filedir = args[0]
+    except (IndexError, ):
+        filedir = default_dir
+
+    try:
+        width, height = args[1:3]
+        width, height = int(width), int(height)
+    except (IndexError, ValueError, ):
+        width, height = default_width, default_height
+
+    files = [filename for filename in os.listdir(filedir)]
+    files = [filename for filename in files if filename.endswith('.png') and (not filename.count('thumb'))]
+    resize_method = PIL.Image.ANTIALIAS
+    #print width, height
+    #print files
+
+    for filename in files:
+        image = Image.open(filename)
+        image.load()
+
+        thumb = image.resize((width, height), resize_method)
+        thumbname = '%s_thumb%s' % (filename[:-4], filename[-4:], )
+        #print thumbname
+        thumb.save(thumbname)
+
+
+if __name__ == '__main__':
+    main()
