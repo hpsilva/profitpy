@@ -18,7 +18,13 @@
 ##~ along with ProfitPy; if not, write to the Free Software
 ##~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##~
-""" strategy
+""" Defines the StrategyIndex type.
+
+StrategyIndex is the base class for types that indicate a trading signal.  
+Subclasses must reimplement the query method.  The inherited methods provide
+the functionality for tracking the signals and for interfacing with the ticker
+and series objects.
+
 
 """
 import profit.lib.base as base
@@ -119,6 +125,18 @@ class StrategyIndex(series.SeriesIndex):
         return format % args
 
     __repr__ = __str__
+
+
+class TrendIndex(series.SeriesIndex):
+    """ TrendIndex -> tracks calculated trend
+
+    """
+    def __init__(self, ser):
+        series.SeriesIndex.__init__(self, ser)
+
+    def reindex(self):
+        self.append(NoDirection)
+
 
 
 
