@@ -175,7 +175,7 @@ class ConflictingOrderPolicy(AccountPolicy):
         theseords = [o for oid, o in ordd if o.contract.symbol == sym]
 
         if theseords:
-            return not reduce(base.OrdersAgree, theseords)
+            return not reduce(base.orders_agree, theseords)
         else:
             return 1
 

@@ -19,32 +19,21 @@
 ##~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##~
 import os
-import optparse
 import sys
 import time
+import traceback
 
 import profit.lib.base as base
+import profit.lib.session as session
 import profit.lib.tickers as tickers
 import profit.lib.tools as tools
 
-ticker_builder = tools.timed_ticker_rebuild
 
+separator = '-' * 79
 
-def ticker_sorter(a, b):
-    return cmp(a.symbol, b.symbol)
+def coverage(files, fh):
+    ticker_builder = tools.timed_ticker_rebuild
 
-
-def files_sorter(a, b):
-    splt = os.path.split
-    return cmp(int(splt(a)[-1].split('.')[-1]),
-               int(splt(b)[-1].split('.')[-1]))
-
-
-def coverage_test(files):
-    total_profit = total_trades = 0
-    separator = '-' * 41
-
-    files.sort(files_sorter)
     for filename in files:
         print 'Coverage Test %s' % filename
         print separator
@@ -88,38 +77,81 @@ def coverage_test(files):
     print
 
 
+
+def files_sorter(a, b):
+    splt = os.path.split
+    try:
+        return cmp(int(splt(a)[-1].split('.')[-1]),
+                   int(splt(b)[-1].split('.')[-1]))
+    except (AttributeError, ValueError, IndexError, ):
+        return cmp(a, b)
+
+
+def run(strategy, files):
+    start = time.time()
+
+    total_profit = total_trades = 0
+    ticksort = lambda a, b: cmp(a.symbol, b.symbol)
+    rebuilder = tools.timed_ticker_rebuild
+
+    print 'Strategy coverage run started at %s' % (time.ctime(), )
+    print 'Using strategy name %s' % (strategy, )
+    print 
+    for filename in files:
+
+        print 'File %s' % (filename, )
+        print 'Symbol\tTrades\t  Profit\tEffective'
+        print separator
+        tickers = tools.load_object(filename)
+        source_tickers = tickers.values()
+        source_tickers.sort(ticksort)
+        for source_ticker in source_tickers:
+            sym = source_ticker.symbol
+            print sym, '\t', 
+            secs, count, newticker = rebuilder(source_ticker, strategy)
+
+            print '\n****code marker for examining the rebuilt ticker series'
+            print type(newticker.series[1].strategy); sys.exit(0)
+            print count
+
+        print
+        print
+
+
+    end = time.time()
+    print separator
+    print 'Strategy coverage run completed in %2.2f seconds' % (end - start, )
+
+
+def print_usage(name):
+    print 'Usage:'
+    print '\t%s strategy file [file [file [...]]]' % (name, )
+    print
+
+
+def print_strat_ex(name):
+    print separator
+    traceback.print_exc()
+    print separator
+    print 'Exception loading strategy builder named %s' % (name, )
+    print
+
+
 if __name__ == '__main__':
+    try:
+        strat = sys.argv[1]
+        files = sys.argv[2:]
+        if not files:
+            raise IndexError()
+    except (IndexError, ):
+        print_usage(name=sys.argv[0])
+        sys.exit(1)
 
-    parser = optparse.OptionParser()
-    parser.add_option('-f', '--files', dest='files', help='Files to process')
-    parser.add_option('-s', '--strategy', dest='strategy', default='', help='Strategy callable name')
-    options, args = parser.parse_args()
+    try:
+        strat_session = session.Session(strategy_builder=strat)
+    except (Exception, ), ex:
+        print_strat_ex(strat)
+        sys.exit(2)
 
-    print options, args
-    if not options.files:
-        parser.error('-f or --files option required')
-
-    #try:
-    #    strategyname = sys.argv[1]
-    #except (IndexError, ):
-    #    strategyname = os.environ.get('PROFITPY_STRATEGY', '')
-    #win.setStrategy(strategyname)
-
-
-
-    #try:
-    #    files = sys.argv[2:]
-    #    if not files:
-    #        raise IndexError()
-    #except (IndexError, ):
-    #    print 'Usage %s file [file]...' % (sys.argv[0], )
-    #    sys.exit(1)
-
-    #try:
-    #    r = coverage_test(files)
-    #except (KeyboardInterrupt, ):
-    #    print '** interuppted **'
-
-
-    print 'running...'
-    print 'done'
+    files.sort(files_sorter)
+    run(strategy=strat, files=files)

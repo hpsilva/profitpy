@@ -59,10 +59,6 @@ class Defaults(object):
     strategy = None
 
 
-
-
-
-
 class Session(dict):
     """ Session(**kwds) -> construct a new session
 

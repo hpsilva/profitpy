@@ -43,12 +43,10 @@ class TickerSupervisor(dict):
             return self.id_map[key]
         except (KeyError, ):
             pass
-
         try:
             return self.sym_map[key]
         except (KeyError, ):
             pass
-
         return dict.__getitem__(self, key)
 
     def __setitem__(self, (tid, tsym), ticker):
@@ -59,12 +57,10 @@ class TickerSupervisor(dict):
             sym_map = self.sym_map
         except (AttributeError, ):
             self.sym_map = sym_map = {}
-
         try:
             id_map = self.id_map
         except (AttributeError, ):
             self.id_map = id_map = {}
-
         sym_map[tsym] = id_map[tid] = ticker
         dict.__setitem__(self, (tid, tsym), ticker)
 
@@ -224,7 +220,7 @@ def build(symbol_table, **kwds):
     new_supervisor = TickerSupervisor()
     for id_sym in symbol_table:
         tobj = new_supervisor[id_sym] = TechnicalTicker(*id_sym)
-        for series_key in base.series_keys:
+        for series_key in base.PriceSizeTypes:
             tobj.series[series_key] = ser = series.build()
-            base.PlotStyleMarker.set_style(ser, '#0000bb')
+            base.set_plot_style(ser, '#0000bb')
     return new_supervisor

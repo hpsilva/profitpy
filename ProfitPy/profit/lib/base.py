@@ -226,21 +226,21 @@ AccountKeys = AttributeMapping(
 
 
 AccountLabels = AttributeMapping(
-    FutureOptionValue="Futures Value",
-    EquityWithLoanValue="Equity with Loan",
-    Leverage="Leverage",
-    NetLiquidation="Net Liquidation",
-    OptionMarketValue="Options Value",
-    TotalCashBalance="Total Cash Balance",
-    TimeStamp="Time Stamp",
-    DayTradesRemaining="Remaining Day Trades",
-    GrossPositionValue="Gross Position",
-    FuturesPNL="Futures PnL",
-    MaintMarginReq="Maint Margin Requirement",
-    InitMarginReq="Initial Margin Requirement",
-    StockMarketValue="Stocks Value",
-    AccountDescription="Account Description",
-    LongOptionValue="Long Option Value",
+    FutureOptionValue='Futures Value',
+    EquityWithLoanValue='Equity with Loan',
+    Leverage='Leverage',
+    NetLiquidation='Net Liquidation',
+    OptionMarketValue='Options Value',
+    TotalCashBalance='Total Cash Balance',
+    TimeStamp='Time Stamp',
+    DayTradesRemaining='Remaining Day Trades',
+    GrossPositionValue='Gross Position',
+    FuturesPNL='Futures PnL',
+    MaintMarginReq='Maint Margin Requirement',
+    InitMarginReq='Initial Margin Requirement',
+    StockMarketValue='Stocks Value',
+    AccountDescription='Account Description',
+    LongOptionValue='Long Option Value',
     SettledCash='Settled Cash',
 )
 
@@ -254,7 +254,6 @@ Directions = AttributeMapping(
     NoReverse=0,
     NoSignal=(0, 0),
 )
-
 
 
 OrderActions = AttributeMapping(
@@ -335,31 +334,7 @@ PriceSizeLookup = PriceSizeLookup()
 
 
 ## all the price and size keys for building series objects
-series_keys = PriceTypes.values() + SizeTypes.values()
-
-
-def common_broker_register(obj, connection):
-    common = {
-        'Account' :  ('ib_account', ),
-        'Error' : ('ib_error', ),
-        'ExecutionDetails' : ('ib_execution_details', ),
-        'MarketDepth' : ('ib_market_depth', ),
-        'NextId' : ('ib_next_id', ),
-        'OpenOrder' : ('ib_open_order', ),
-        'OrderStatus' : ('ib_order_status', ),
-        'Portfolio' : ('ib_portfolio', ),
-        'Ticker' : ('ib_ticker', ),
-        'ReaderStart' : ('ib_reader_start', ),
-        'ReaderStop' : ('ib_reader_stop', ),
-        'NewsBulletin' : ('ib_news_bulletin', ),
-    }
-
-    for message_class_name, method_names in common.items():
-        for m in method_names:
-            if hasattr(obj, m):
-                meth = getattr(obj, m)
-                msg_type = getattr(Ib.Message, message_class_name)
-                connection.register(msg_type, meth)
+PriceSizeTypes  = PriceTypes.values() + SizeTypes.values()
 
 
 ##-----------------------------------------------------------------------------
@@ -386,22 +361,24 @@ class PlotStyleMarker(object):
         self.curve_style = curve_style
         self.line_style = line_style
 
-    def set_style(series, color, 
-                       width=0,
-                       axis='main left',
-                       init_display=True,
-                       curve_type=None,
-                       curve_style=None,
-                       line_style=None):
-    
-        series.plot_style = plot_style = PlotStyleMarker(color)
-        plot_style.width = width
-        plot_style.init_display = init_display
-        plot_style.pkey, plot_style.yaxis = axis.split()
-        plot_style.curve_type = curve_type
-        plot_style.curve_style = curve_style
-        plot_style.line_style = line_style
-    set_style = staticmethod(set_style)
+
+def set_plot_style(series, color, 
+                           width=0, 
+                           axis='main left', 
+                           init_display=True,
+                           curve_type=None,
+                           curve_style=None,
+                           line_style=None):
+    """ set_plot_style(color, ...) -> one way to set the plot style of a series
+
+    """
+    series.plot_style = plot_style = PlotStyleMarker(color)
+    plot_style.width = width
+    plot_style.init_display = init_display
+    plot_style.pkey, plot_style.yaxis = axis.split()
+    plot_style.curve_type = curve_type
+    plot_style.curve_style = curve_style
+    plot_style.line_style = line_style
 
 
 class OutTee(object):
@@ -415,5 +392,32 @@ class OutTee(object):
         [target.write(value) for target in self.targets]
 
 
-def OrdersAgree(oa, ob):
+def orders_agree(oa, ob):
+    """ orders_agree(a, b) -> returns True if orders action and open-close match
+
+    """
     return oa.action == ob.action and oa.open_close == ob.open_close
+
+
+def common_broker_register(obj, connection):
+    common = {
+        'Account' :  ('ib_account', ),
+        'Error' : ('ib_error', ),
+        'ExecutionDetails' : ('ib_execution_details', ),
+        'MarketDepth' : ('ib_market_depth', ),
+        'NextId' : ('ib_next_id', ),
+        'OpenOrder' : ('ib_open_order', ),
+        'OrderStatus' : ('ib_order_status', ),
+        'Portfolio' : ('ib_portfolio', ),
+        'Ticker' : ('ib_ticker', ),
+        'ReaderStart' : ('ib_reader_start', ),
+        'ReaderStop' : ('ib_reader_stop', ),
+        'NewsBulletin' : ('ib_news_bulletin', ),
+    }
+
+    for message_class_name, method_names in common.items():
+        for m in method_names:
+            if hasattr(obj, m):
+                meth = getattr(obj, m)
+                msg_type = getattr(Ib.Message, message_class_name)
+                connection.register(msg_type, meth)
