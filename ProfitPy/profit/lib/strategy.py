@@ -113,13 +113,12 @@ class StrategyIndex(series.SeriesIndex):
             running_pos += movesize
             yield ((index, price), (running_pnl, running_pos), order, )
 
+    def __str__(self):
+        format = '<%s.%s object at 0x%x>'
+        args = (__name__, self.__class__.__name__, id(self), )
+        return format % args
 
-    def print_report(self, indent=0):
-        for item in self.gauge():
-            #print item
-            # ((33, 13.949999999999999), (-1396.0, 100), <profit.lib.base.Order object at 0x4316a34c>)
-            x, y = item[0]
-            pos, siz = item[1]
-            print ('\t' * indent), 
-            print 'at %4s price %2.2f position %6.2f shares %s' % (x, y, pos, siz, )
+    __repr__ = __str__
+
+
 

@@ -157,5 +157,5 @@ def import_item(name):
     """
     names = name.split('.')
     modname, itemname = names[0:-1], names[-1]
-    mod = import_name('.'.join(modname))
+    mod = import_name(str.join('.', modname))
     return getattr(mod, itemname)

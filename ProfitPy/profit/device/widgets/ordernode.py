@@ -125,20 +125,18 @@ class OrderSupervisorNode(BaseNodeWidget):
         link.connect(orderslistview)
 
 class OrderSupervisorListItem(qt.QListViewItem):
-    def compare(self, other, column, ascending):
-
-        a, b = str(self.text(column)), str(other.text(column))
-
-        if column == 0:
-            return cmp(int(a), int(b))
-        else:
-            return cmp(a, b)
-
-    #def key(self, col, asc):
-    #    if col == 0:
-    #        return int(str(self.text(0)))
-    #    else:
-    #        return self.text(col)
+    def compare(self, item, column, ascending):
+        a = self.text(column)
+        b = item.text(column)
+        try:
+            a = int(str(a))
+        except (ValueError, ):
+            pass
+        try:
+            b = int(str(b))
+        except:
+            pass
+        return cmp(a, b)
 
 
 class OrderSupervisorList(BaseNodeListView):

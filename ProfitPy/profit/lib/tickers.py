@@ -104,7 +104,6 @@ class TickerSupervisor(dict):
         else:
             return 0
 
-
     def update_portfolio(self, contract, position, market_price, market_value):
         try:
             ticker = self[contract.symbol]
@@ -118,7 +117,6 @@ class TickerSupervisor(dict):
             ticker.previous_data[field] = ticker.current_data.get(field, 0)
             ticker.current_data[field] = value
 
-
     def depth_message(self, ticker_id, position, operation, side, price, size):
         """ 
 
@@ -131,16 +129,16 @@ class TickerSupervisor(dict):
             except (KeyError, ), ke:
                 pass
 
-
-    def report(self, price_size=base.PriceTypes.Bid):
-        tids = [(tsym, len(tobj.series[price_size])) 
-                    for (tsym, tid), tobj in self.items()]
-        tids.sort(lambda x, y: cmp(x[1], y[1]))
-
-        rowfs = '%s\t\t%s'
-        print rowfs % ('Symbol', 'Len ' + base.PriceSizeLookup[price_size], )
-        for tsym, rptlen in tids:
-            print rowfs % (tsym, rptlen)
+    if 0:
+        def report(self, price_size=base.PriceTypes.Bid):
+            tids = [(tsym, len(tobj.series[price_size])) 
+                        for (tsym, tid), tobj in self.items()]
+            tids.sort(lambda x, y: cmp(x[1], y[1]))
+    
+            rowfs = '%s\t\t%s'
+            print rowfs % ('Symbol', 'Len ' + base.PriceSizeLookup[price_size], )
+            for tsym, rptlen in tids:
+                print rowfs % (tsym, rptlen)
 
 
 class TechnicalTicker(object):
@@ -160,32 +158,13 @@ class TechnicalTicker(object):
         self.depth_table = {}
 
     def __str__(self):
-        s = ""
-        for k, v in self.current_data.items():
-            s += ' %s=%s' % (k, v)
-        return '<%s(%s,%s)%s>' % (self.__class__.__name__, 
+        items = self.current_data.items()
+        items.sort()
+        keys = dict([(k, v.replace(' ', '')) 
+                        for k, v in base.PriceSizeLookup.items()])
+        s = str.join(' ', ['%s=%s' % (keys[k], v) for k, v in items])
+        return '<%s(%s, %s) %s>' % (self.__class__.__name__, 
                                   self.id, self.symbol, s)
-
-    def print_report(self):
-        dashes = '-' * 79
-        print '\n'
-        print dashes
-        print self
-        print dashes
-
-        for rpt_keys in self.strategy_keys:
-            try:
-                print '%s Series:' % (base.PriceSizeLookup[rpt_keys], )
-                self.series[rpt_keys].print_report(indent=1)
-            except (KeyError, ):
-                pass
-            try:
-                strategy = self.series[rpt_keys].strategy
-                print '%s Strategy:' % (base.PriceSizeLookup[rpt_keys], )
-                strategy.print_report(indent=1)
-            except (KeyError, AttributeError, ):
-                pass
-        print dashes
 
 
 class TickerPriceSizeMap(dict):

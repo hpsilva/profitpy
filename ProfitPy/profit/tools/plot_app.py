@@ -32,15 +32,20 @@ import profit.device.widgets.shell as shell
 import profit.device.util as util
 
 import profit.lib.base as base
+import profit.lib.coverage as coverage
 import profit.lib.tools as tools
 
 
 class PlotWidget(nodewidgets.TechnicalTickerNode):
+    """ PlotWidget() -> a ticker plot widget with a python shell widget
+
+    """
     def __init__(self, parent, ticker):
         nodewidgets.TechnicalTickerNode.__init__(self, parent, ticker)
         self.shell = shell.InteractiveShell(self)
         self.addTab(self.shell, 'Shell')
         self.shell.interpreter.locals['ticker'] = ticker
+
 
 class PlotApp(plot_form.PlotForm):
     """ PlotApp(...) -> main plot controller window
@@ -50,7 +55,7 @@ class PlotApp(plot_form.PlotForm):
 
     def __init__(self, parent=None, name=None, fl=0):
         plot_form.PlotForm.__init__(self, parent, name, fl)
-        base.stdTee(self, 'stdout', 'stderr')
+        base.stdtee(self, 'stdout', 'stderr')
         self.tickersListView.setColumnAlignment(2, qt.Qt.AlignRight)
         self.setCaption(self.title % '')
         self.resize(qt.QSize(400, 700))
@@ -108,7 +113,7 @@ class PlotApp(plot_form.PlotForm):
                 ticker = None
 
         if ticker:
-            ticker.print_report()
+            coverage.ticker_report(ticker, sys.stdout)
             plotwin = qt.QVBox(self)
             PlotWidget(plotwin, ticker)
             plotwin.setCaption('%s Test Plot' % (symbol, ))
@@ -116,7 +121,7 @@ class PlotApp(plot_form.PlotForm):
             plotwin.resize(qt.QSize(850, 600))
 
     def closeEvent(self, event):
-        base.stdNoTee(self, 'stdout', 'stderr')
+        base.stdnotee(self, 'stdout', 'stderr')
         for child in self.children():
             child.deleteLater()
         event.accept()

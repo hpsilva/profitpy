@@ -79,7 +79,7 @@ class InteractiveShell(kdeui.KTextEdit):
         self.setUndoRedoEnabled(False) ## big performance hit otherwise
 
     def setupSys(self):
-        base.stdTee(self, 'stdout')
+        base.stdtee(self, 'stdout')
         try:
             throwaway = sys.ps1
             throwaway = sys.ps2
@@ -90,7 +90,7 @@ class InteractiveShell(kdeui.KTextEdit):
 
     def writeBanner(self):
         self.setText('')
-        self.write(''.join(self.introText + (sys.ps1, )))
+        self.write(str.join('', self.introText + (sys.ps1, )))
 
     def setupHistory(self):
         ## add in the lines from the history file or make the file if absent
@@ -143,7 +143,7 @@ class InteractiveShell(kdeui.KTextEdit):
         if linestr:
             self.history.append(qt.QString(linestr))
         self.lines.append(linestr)
-        source = '\n'.join(self.lines)
+        source = str.join('\n', self.lines)
         try:
             self.more = self.interpreter.runsource(source)
         except (SystemExit, ):
@@ -314,7 +314,7 @@ class InteractiveShell(kdeui.KTextEdit):
 
 
     def close(self):
-        base.stdNoTee(self, 'stderr', 'stdout')
+        base.stdnotee(self, 'stderr', 'stdout')
 
 if __name__ == '__main__':
     import profit.device.about as about

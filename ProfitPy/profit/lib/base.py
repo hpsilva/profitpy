@@ -77,36 +77,34 @@ class Order(Ib.Type.Order):
     """
     commission_per_share = 0.01
 
-    def cost_long(order, commission_per_share=commission_per_share):
-        """ cost_long(order, ...) -> compute the cost of an order 
+    def cost_long(self, commission_per_share=commission_per_share):
+        """ cost_long() -> compute the cost of an order 
 
         """
-        price = order.limit_price * order.quantity
-        if order.quantity < 100:
+        price = self.limit_price * self.quantity
+        if self.quantity < 100:
             ## minimum order price is a dollar for lots less than 100
             return price + (100.0 * commission_per_share)
 
-        if order.quantity <= 500:
+        if self.quantity <= 500:
             ## up to 500 shares is a penny per
-            return price + (order.quantity * commission_per_share)
+            return price + (self.quantity * commission_per_share)
 
-        if order.quantity > 500:
+        if self.quantity > 500:
             ## over 500 shares is a bit different and maybe not accurate
             price += 500 * commission_per_share
-            price += (order.quantity - 500) * (commission_per_share * 0.5)
+            price += (self.quantity - 500) * (commission_per_share * 0.5)
             return price
-    cost_long = staticmethod(cost_long)
 
-    def cost_ignore_sells(order):
-        """ cost_ignore_sells(order) -> order cost ignoring Sell or ShortSell
+    def cost_ignore_sells(self):
+        """ cost_ignore_sells() -> order cost ignoring Sell or ShortSell
 
         """
-        if order.action in (OrderActions.Sell, OrderActions.ShortSell):
+        if self.action in (OrderActions.Sell, OrderActions.ShortSell):
             cost = 0.0
         else:
-            cost = order.cost_long(order)
+            cost = self.cost_long()
         return cost
-    cost_ignore_sells = staticmethod(cost_ignore_sells)
 
     def buy_open_factory(cls, size, price, aux_price):
         """ buy_open_factory(...) -> make an open-buy order 
@@ -446,39 +444,33 @@ class MultiCast(list):
 ##
 import sys
 
-##
-## this belongs in a function, but it deserves special notice...
-## like lame comments.  ;)
-##
-if not isinstance(sys.stdout, MultiCast):
-    sys.stdout = MultiCast(sys.stdout)
-if not isinstance(sys.stderr, MultiCast):
-    sys.stderr = MultiCast(sys.stderr)
+def stdinit():
+    import __main__
+    if not hasattr(sys, 'ps1') and '__IP' not in dir(__main__):
+        if not isinstance(sys.stdout, MultiCast):
+            sys.stdout = MultiCast(sys.stdout)
+        if not isinstance(sys.stderr, MultiCast):
+            sys.stderr = MultiCast(sys.stderr)
+
+stdinit()
+del(stdinit)
 
 
-def stdTee(obj, *names):
-    """ stdTee(writable, [...]) -> add object to multicasting output
-
-    """
-    for name in names:
-        getattr(sys, name).append(obj)
-
-
-def stdNoTee(obj, *names):
-    """ stdNoTee(obj, [...]) -> remove object from multicasting output
+def stdtee(obj, *names):
+    """ stdtee(writable, [...]) -> add object to multicasting output
 
     """
     for name in names:
-        getattr(sys, name).remove(obj)
-
-"""
-import atexit
-
-def stdRestore():
-    import sys
-    for name in ('stdout', 'stderr'):
-        setattr(sys, name, getattr(sys, '__%s__' % (name, )))
+        which = getattr(sys, name)
+        if obj not in which:
+            which.append(obj)
 
 
-atexit.register(stdRestore)
-"""
+def stdnotee(obj, *names):
+    """ stdnotee(obj, [...]) -> remove object from multicasting output
+
+    """
+    for name in names:
+        which = getattr(sys, name)
+        if obj in which:
+            which.remove(obj)

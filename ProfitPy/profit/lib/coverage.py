@@ -29,53 +29,8 @@ import profit.lib.tickers as tickers
 import profit.lib.tools as tools
 
 
-separator = '-' * 79
-
-def coverage(files, fh):
-    ticker_builder = tools.timed_ticker_rebuild
-
-    for filename in files:
-        print 'Coverage Test %s' % filename
-        print separator
-        print 'Symbol\tTrades\t  Profit\tEffective'
-        print separator
-
-        eff = {}
-        tickers = tools.load_object(filename)
-        source_tickers = tickers.values()
-        source_tickers.sort(ticker_sorter)
-        for source_ticker in source_tickers:
-            sym = source_ticker.symbol
-            fillsecs, msgcount, new_ticker = \
-                ticker_builder(source_ticker, strategy_builders,)
-
-            reports = new_ticker.series[1].strategy.history.summary()
-            if reports:
-                rptlen = len(reports)
-                profit = reports[-1][-1]
-                eff[sym] = (rptlen, profit)
-                print '%4s\t%6s\t%8.2f' % (sym, rptlen, profit)
-
-        if eff:
-            trades = sum([v[0] for v in eff.values()])
-            profit = sum([v[1] for v in eff.values()])
-            eff = profit / trades
-            rpt = (trades, profit, eff)
-            total_profit += profit
-            total_trades += trades
-
-            print separator
-            print 'Total\t%6s\t%8.2f\t%9.2f' % rpt
-            print
-
-    print '* Total\tTrades\tProfit\tEffectiveness'
-    if total_trades:
-        rpt = (total_trades, total_profit, total_profit/total_trades)
-    else:
-        rpt = (total_trades, total_profit, 0)
-    print '*      \t%4s\t%6.2f\t%7.2f' % rpt
-    print
-
+sep = '-' * 79
+altsep = sep.replace('-', '=')
 
 
 def files_sorter(a, b):
@@ -87,40 +42,112 @@ def files_sorter(a, b):
         return cmp(a, b)
 
 
-def run(strategy, files):
+def ticker_report(ticker, fh=None):
+    strat_format = 'at %4s price %2.2f position %6.2f shares %s'
+    index_format = 'index key=%s len=%s'
+
+    print >> fh, '\n'
+    print >> fh, sep
+    print >> fh, ticker
+    print >> fh, sep
+
+    for rpt_key in ticker.strategy_keys:
+        series = ticker.series[rpt_key]
+        key_name = base.PriceSizeLookup[rpt_key]
+        print >> fh, '%s Series:' % (key_name, )
+        print >> fh, '\tseries len=%s' % (len(series), )
+        for index in series.indexes:
+            print >> fh, '\t', index_format % (index.key, len(index), )
+
+        try:
+            strategy = series.strategy
+        except (KeyError, AttributeError, ):
+            pass
+        else:
+            print >> fh, '%s Strategy:' % (key_name, )
+            for item in strategy.gauge():
+                x, y = item[0]
+                pos, siz = item[1]
+                print >> fh, '\t', strat_format % (x, y, pos, siz, )
+    print >> fh, sep
+
+
+def profit_on_close(strat, records):
+    last_record = records[-1]
+    value, position = last_record[1]
+    last_update = strat.series[-1]
+    last_order = base.Order(quantity=abs(position), limit_price=last_update, 
+                       transmit=0, open_close='C')
+    close = last_order.cost_long() * (abs(position) / position)
+    return value + close
+
+def strategy_report(strategy, supervisors, fh=None):
     start = time.time()
+    total_profit = 0
+    total_trades = 0
 
-    total_profit = total_trades = 0
-    ticksort = lambda a, b: cmp(a.symbol, b.symbol)
-    rebuilder = tools.timed_ticker_rebuild
+    print >> fh, 'Strategy coverage run started at %s' % (time.ctime(), )
+    print >> fh, altsep
+    print >> fh, 'Using strategy name %s' % (strategy, )
+    print >> fh
 
-    print 'Strategy coverage run started at %s' % (time.ctime(), )
-    print 'Using strategy name %s' % (strategy, )
-    print 
-    for filename in files:
+    for file_name, source_tickers in supervisors:
+        source_tickers.sort(lambda a, b: cmp(a.symbol, b.symbol))
+        file_profit = 0
+        file_trades = 0
 
-        print 'File %s' % (filename, )
-        print 'Symbol\tTrades\t  Profit\tEffective'
-        print separator
-        tickers = tools.load_object(filename)
-        source_tickers = tickers.values()
-        source_tickers.sort(ticksort)
+        print >> fh, 'File %s' % (file_name, )
+        print >> fh, 'Symbol\tTrades\t  Profit\tEffective'
+        print >> fh, sep
+
         for source_ticker in source_tickers:
-            sym = source_ticker.symbol
-            print sym, '\t', 
-            secs, count, newticker = rebuilder(source_ticker, strategy)
+            symbol = source_ticker.symbol
+            secs, count, rebuilt_ticker = \
+                tools.timed_ticker_rebuild(source_ticker, strategy)
+            
+            strat_objs = [rebuilt_ticker.series[key].strategy 
+                            for key in rebuilt_ticker.strategy_keys]
+            try:
+                strat_obj = strat_objs[0]
+            except (IndexError, ):
+                pass
+            tick_results = list(strat_obj.gauge())
+            tick_trades = len(tick_results)
+            tick_profit = 0
 
-            print '\n****code marker for examining the rebuilt ticker series'
-            print type(newticker.series[1].strategy); sys.exit(0)
-            print count
+            if tick_trades:
+                last_trade = tick_results[-1]
+                if last_trade[1][1]:
+                    tick_profit = profit_on_close(strat_obj, tick_results)
+                else:
+                    tick_profit = last_trade[1][0]
 
+            file_trades += tick_trades
+            file_profit += tick_profit
+            print >> fh, '%4s\t%6s\t%8.2f' % (symbol, tick_trades, tick_profit)
+
+        if file_trades:
+            rpt = (file_trades, file_profit, file_profit/file_trades)
+        else:
+            rpt = (file_trades, file_profit, 0)
+        total_trades += file_trades
+        total_profit += file_profit
+        print >> fh, 'Sub Total'
+        print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
         print
-        print
 
+    if total_trades:
+        rpt = (total_trades, total_profit, total_profit/total_trades)
+    else:
+        rpt = (total_trades, total_profit, 0)
 
-    end = time.time()
-    print separator
-    print 'Strategy coverage run completed in %2.2f seconds' % (end - start, )
+    print >> fh, 'Grand Total'
+    print >> fh, sep
+    print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
+    print >> fh
+    print >> fh, altsep
+    rpt = 'Strategy coverage run completed in %2.2f seconds' 
+    print >> fh, rpt % (time.time() - start, )
 
 
 def print_usage(name):
@@ -129,11 +156,11 @@ def print_usage(name):
     print
 
 
-def print_strat_ex(name):
-    print separator
+def print_coverage_ex(err):
+    print sep
     traceback.print_exc()
-    print separator
-    print 'Exception loading strategy builder named %s' % (name, )
+    print sep
+    print err
     print
 
 
@@ -141,6 +168,7 @@ if __name__ == '__main__':
     try:
         strat = sys.argv[1]
         files = sys.argv[2:]
+        files.sort(files_sorter)
         if not files:
             raise IndexError()
     except (IndexError, ):
@@ -150,8 +178,14 @@ if __name__ == '__main__':
     try:
         strat_session = session.Session(strategy_builder=strat)
     except (Exception, ), ex:
-        print_strat_ex(strat)
+        msg = 'Exception loading strategy builder named "%s"' % (strat, )
+        print_coverage_ex(msg)
         sys.exit(2)
 
-    files.sort(files_sorter)
-    run(strategy=strat, files=files)
+    try:
+        supervisors = [(fn, tools.load_object(fn).values()) for fn in files]
+        strategy_report(strat, supervisors)
+    except (Exception, ), ex:
+        msg = 'Exception executing strategy "%s"' % (ex, )
+        print_coverage_ex(msg)
+        sys.exit(2)

@@ -49,11 +49,6 @@ class Series(list):
         for idx in self.indexes:
             idx.reindex()
 
-    def print_report(self, indent=0):
-        print '\t' * indent, 'series len=%s' % (len(self), )
-        for index in self.indexes:
-            print '\t' * indent, 'index key=%s len=%s' % (index.key, len(index), )
-
 
 class IndexMapping(object):
     """ IndexMapping(indexes) -> partial dictionary emulator for Series clients

@@ -49,7 +49,7 @@ class SourceCodeRequestNode(qtext.QextScintilla):
         node = node.item
         try:
             txt_lines,  lineno = inspect.findsource(node.__class__)
-            txt = "".join(txt_lines)
+            txt = str.join('', txt_lines)
         except (IOError, TypeError):
             txt = 'Unable to get source.'
             lineno = 0

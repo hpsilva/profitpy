@@ -370,7 +370,7 @@ class ConfigurationDialog(KDialogBase):
         target= self.sender().target
         dlg = syspath.SysPathDialog(self)
         if dlg.exec_loop() == kdeui.KFontDialog.Accepted:
-            path = '.'.join(dlg.path)
+            path = str.join('.', dlg.path)
             target.setText(path)
 
 

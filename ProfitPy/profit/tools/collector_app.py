@@ -157,7 +157,7 @@ class DataCollectorMainForm(qt.QDialog):
         """ timeStamp() -> waste of a function
 
         """
-        return ' '.join(time.ctime().split()[1:4])
+        return str.join(' ', time.ctime().split()[1:4])
 
     def handleReadyStdout(self, process, textwidget):
         """ handleReadyStdout(...) -> write process stdout to text widget
