@@ -1,0 +1,56 @@
+body {
+  font : 100% sans-serif;
+}
+
+a, a:visited {
+  font : bold 100% sans-serif;
+  color : #1856FF;
+  text-decoration : none;
+}
+
+a:active {
+  color : white;
+}
+
+a:hover {
+  text-decoration : underline;
+}
+
+h4 {
+  margin-bottom : 0;
+}
+
+
+h1.title {
+  font : bold 150% sans-serif;
+  padding : 0.5em;
+  margin : 0;
+  border-bottom : 0.25em solid white;
+}
+
+
+div.main {
+  border-top : 0.35em solid black;
+  border-bottom  : 0.35em solid black;
+  margin : 1em;
+  background : #d8d8d8;
+}
+
+
+div.title {
+}
+
+img.title {
+  float : right;
+  position : relative;	
+}
+
+strong.title {
+  padding : 1em;
+}
+
+div.content {
+  padding : 1em;
+}
+
+
