@@ -18,6 +18,10 @@
 ##~ along with ProfitPy; if not, write to the Free Software
 ##~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ##~
+""" Coverage testing bits.
+
+
+"""
 import os
 import sys
 import time
@@ -80,6 +84,7 @@ def profit_on_close(strat, records):
                        transmit=0, open_close='C')
     close = last_order.cost_long() * (abs(position) / position)
     return value + close
+
 
 def strategy_report(strategy, supervisors, fh=None):
     start = time.time()
@@ -185,7 +190,9 @@ if __name__ == '__main__':
     try:
         supervisors = [(fn, tools.load_object(fn).values()) for fn in files]
         strategy_report(strat, supervisors)
+    except (KeyboardInterrupt, ):
+        print 'Keyboard interrupt'
     except (Exception, ), ex:
         msg = 'Exception executing strategy "%s"' % (ex, )
         print_coverage_ex(msg)
-        sys.exit(2)
+        sys.exit(3)
