@@ -50,7 +50,7 @@ class PlotApp(plot_form.PlotForm):
 
     def __init__(self, parent=None, name=None, fl=0):
         plot_form.PlotForm.__init__(self, parent, name, fl)
-        base.sysTee(self, 'stdout', 'stderr')
+        base.stdTee(self, 'stdout', 'stderr')
         self.tickersListView.setColumnAlignment(2, qt.Qt.AlignRight)
         self.setCaption(self.title % '')
         self.resize(qt.QSize(400, 700))
@@ -118,7 +118,7 @@ class PlotApp(plot_form.PlotForm):
             return plotwin
 
     def closeEvent(self, event):
-        base.sysUntee(self, 'stdout', 'stderr')
+        base.stdNoTee(self, 'stdout', 'stderr')
         event.accept()
 
     def write(self, value):

@@ -79,7 +79,7 @@ class InteractiveShell(kdeui.KTextEdit):
         self.setUndoRedoEnabled(False) ## big performance hit otherwise
 
     def setupSys(self):
-        base.sysTee(self, 'stdout')
+        base.stdTee(self, 'stdout')
         try:
             throwaway = sys.ps1
             throwaway = sys.ps2
@@ -313,7 +313,7 @@ class InteractiveShell(kdeui.KTextEdit):
 
 
     def close(self):
-        base.sysUntee(self, 'stderr', 'stdout')
+        base.stdNoTee(self, 'stderr', 'stdout')
 
 if __name__ == '__main__':
     import profit.device.about as about

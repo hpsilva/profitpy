@@ -182,9 +182,9 @@ class ProfitDeviceMainWindow(kdeui.KDockMainWindow):
         stderrdock.manualDock(stdoutdock, dockCenter, 80)
 
         for item in (self.pythonShell, self.stdoutFrame):
-            base.sysTee(item, 'stdout')
+            base.stdTee(item, 'stdout')
         for item in (self.pythonShell, self.stderrFrame):
-            base.sysTee(item, 'stderr')
+            base.stdTee(item, 'stderr')
 
         connect(self.sessionList, util.sigViewSource, nodeviewer.viewNode)
         connect(self.sessionList, util.sigDoubleClicked, nodeviewer.viewNode)

@@ -453,16 +453,16 @@ if not isinstance(sys.stderr, MultiCast):
     sys.stderr = MultiCast(sys.stderr)
 
 
-def sysTee(obj, *names):
-    """ sysTee(writable, [...]) -> add object to multicasting output
+def stdTee(obj, *names):
+    """ stdTee(writable, [...]) -> add object to multicasting output
 
     """
     for name in names:
         getattr(sys, name).append(obj)
 
 
-def sysUntee(obj, *names):
-    """ sysTee(obj, [...]) -> remove object from multicasting output
+def stdNoTee(obj, *names):
+    """ stdNoTee(obj, [...]) -> remove object from multicasting output
 
     """
     for name in names:
