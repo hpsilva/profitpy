@@ -20,6 +20,9 @@
 ##~
 """ Common constants, enumerations, functions, and types
 
+When imported, this module redefines sys.stdout and sys.stderr if it hasn't
+already done that.  The replacements are MultiCast instances, which supports
+writing to multiple file handles.
 
 """
 import Ib.Message
@@ -412,9 +415,9 @@ def common_broker_register(obj, connection):
 
 
 class MultiCast(list):
-    """ Multicast() -> multiplexes messages to registered objects 
+    """ MultiCast() -> multiplexes messages to registered objects 
 
-        based on Multicast by Eduard Hiti
+        MultiCast is based on Multicast by Eduard Hiti (no license stated):
         http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52289
     """
     def __init__(self, *items):
@@ -422,18 +425,16 @@ class MultiCast(list):
         self.extend(items)
 
     def __call__(self, *args, **kwargs):
-        """ Invoke method attributes and return results through another Multicast
+        """ () -> map object calls to result as a MultiCast
 
         """
-        cls = self.__class__
-        args = [obj(*args, **kwargs) for obj in self]
-        return cls(*args)
+        itemreturns = [obj(*args, **kwargs) for obj in self]
+        return self.__class__(*itemreturns)
 
     def __getattr__(self, name):
         """ returns attribute wrapper for further processing """
-        cls = self.__class__
-        args = [getattr(obj, name) for obj in self]
-        return cls(*args)
+        attrs = [getattr(obj, name) for obj in self]
+        return self.__class__(*attrs)
 
     def __nonzero__(self):
         """ logically true if all delegate values are logically true """
@@ -442,11 +443,13 @@ class MultiCast(list):
 
 ##
 ## support for sys.stdout and sys.stderr multicasting
+##
 import sys
 
+##
 ## this belongs in a function, but it deserves special notice...
 ## like lame comments.  ;)
-
+##
 if not isinstance(sys.stdout, MultiCast):
     sys.stdout = MultiCast(sys.stdout)
 if not isinstance(sys.stderr, MultiCast):
@@ -468,4 +471,14 @@ def stdNoTee(obj, *names):
     for name in names:
         getattr(sys, name).remove(obj)
 
+"""
+import atexit
 
+def stdRestore():
+    import sys
+    for name in ('stdout', 'stderr'):
+        setattr(sys, name, getattr(sys, '__%s__' % (name, )))
+
+
+atexit.register(stdRestore)
+"""

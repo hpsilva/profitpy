@@ -319,8 +319,7 @@ class TechnicalTickerNode(BaseNodeTabWidget):
         """
         xpos = int(round(xpos))
         try:
-            ## FIX ME
-            item = view.view_items[xpos]
+            item = view.findItem('%s' % xpos, 0)
         except (KeyError, ):
             pass
         else:
@@ -375,9 +374,8 @@ class TickerSeriesDataNode(BaseNodeListView):
         self.columnDefs = start + middle
         BaseNodeListView.__init__(self, parent, node)
 
-        self.view_items = view_items = {}
         for i in range(len(series)):
-            view_items[i] = item = qt.QListViewItem(self, '%s' % i)
+            item = qt.QListViewItem(self, '%s' % i)
             for colidx, seq in enumerate(seqs):
                 try:
                     v = seq[1][i] or ''
@@ -385,7 +383,7 @@ class TickerSeriesDataNode(BaseNodeListView):
                     v = seq
                 try:
                     v = '%2.6f' % v
-                except TypeError:
+                except (TypeError, ):
                     pass
                 item.setText(colidx+1, '%s' % (v, ))
 

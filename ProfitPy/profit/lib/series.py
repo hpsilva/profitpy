@@ -97,6 +97,7 @@ def build():
 class BaseIndex(list):
     """ """
 
+
 class SeriesIndex(BaseIndex):
     """ SeriesIndex(series) -> base index type
 

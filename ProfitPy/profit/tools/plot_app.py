@@ -73,7 +73,7 @@ class PlotApp(plot_form.PlotForm):
             self.tickers = obj
             self.rebuiltTickers = {}
         else:
-            print 'couldn not fathom a ticker object from the pickle'
+            print 'Could not load a pickled tickers from %s' % (filename, )
             return
 
         self.setCaption(self.title % filename)
@@ -94,31 +94,31 @@ class PlotApp(plot_form.PlotForm):
         self.strategyName = stratname
 
     def showTicker(self, symbol):
-        plotwin = qt.QVBox(self)
-        srcticker = self.tickers[symbol]
-
-        rebuilder = tools.timed_ticker_rebuild
-
         try:
-            secs, count, newticker = rebuilder(srcticker, self.strategyName, ltrim=50)
-        except (Exception, ), ex:
-            print 'Exception rebuilding ticker: %r, %s' % (ex, ex, )
-        else:
-            newticker.print_report()
-            print 'rebuilt ticker in %s seconds' % (secs, )
+            ticker = self.rebuiltTickers[symbol]
+        except (KeyError, ):
+            try:
+                secs, count, ticker = \
+                    tools.timed_ticker_rebuild(self.tickers[symbol], 
+                                               self.strategyName, ltrim=50)
+                self.rebuiltTickers[symbol] = ticker
+                print 'rebuilt ticker in %s seconds' % (secs, )
+            except (Exception, ), ex:
+                print 'Exception rebuilding ticker: %r, %s' % (ex, ex, )
+                ticker = None
 
-            ## move to a subtype of TechnicalTickerNode with a shell
-            PlotWidget(plotwin, newticker)
-
+        if ticker:
+            ticker.print_report()
+            plotwin = qt.QVBox(self)
+            PlotWidget(plotwin, ticker)
             plotwin.setCaption('%s Test Plot' % (symbol, ))
             plotwin.reparent(self, qt.Qt.WType_TopLevel, qt.QPoint(0,0), True)
             plotwin.resize(qt.QSize(850, 600))
 
-            self.rebuiltTickers[newticker.symbol] = newticker
-            return plotwin
-
     def closeEvent(self, event):
         base.stdNoTee(self, 'stdout', 'stderr')
+        for child in self.children():
+            child.deleteLater()
         event.accept()
 
     def write(self, value):

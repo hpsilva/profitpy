@@ -117,14 +117,14 @@ def getCurveStyle(style, default=qwt.QwtCurve.Lines):
     return curveStyleMap.get(style.curve_style, default)
 
 
-def getPlotStyle(sequence, default_color='#aa0000'):
+def getPlotStyle(sequence, default='#aa0000'):
     """ getPlotStyle(seq) -> returns sequence.plot_style; builds it if necessary
 
     """
     try:
         plotstyle = sequence.plot_style
     except (AttributeError, ):
-        base.set_plot_style(sequence, default_color)
+        base.set_plot_style(sequence, default)
         plotstyle = sequence.plot_style
     return plotstyle
 
@@ -144,10 +144,14 @@ class BaseZoomer(qwt.QwtPlotZoomer):
     ## a bit of confusion.
     def __init__(self, canvas, xAxis=xBottom, yAxis=yLeft,
                  selectionFlags=qwt.QwtPicker.DragSelection,
-                 cursorLabelMode=qwt.QwtPicker.AlwaysOff,
-                 name=''):
+                 cursorLabelMode=qwt.QwtPicker.ActiveOnly,
+                 name='foo'):
         qwt.QwtPlotZoomer.__init__(self, xAxis, yAxis, selectionFlags, 
                                    cursorLabelMode, canvas, name)
+        self.setCursorLabelPen(qt.QPen(qt.Qt.white))
+        ## not quite, but this does adjust the color
+        self.setRubberBandPen(qt.QPen(qt.Qt.white))
+
 
     def rescale(self):
         """ rescale() -> rescales the zoomer and emits a signal when its done
@@ -382,7 +386,6 @@ class SeriesPlot(qt.QSplitter):
 
     """
     seriesKey = 'Series'
-
     mainKey = 'main'
     oscKey = 'osc'
     plotKeys = (mainKey, oscKey, )

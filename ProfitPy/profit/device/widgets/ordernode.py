@@ -124,6 +124,22 @@ class OrderSupervisorNode(BaseNodeWidget):
             orderslistview.setSelected(firstitem, True)
         link.connect(orderslistview)
 
+class OrderSupervisorListItem(qt.QListViewItem):
+    def compare(self, other, column, ascending):
+
+        a, b = str(self.text(column)), str(other.text(column))
+
+        if column == 0:
+            return cmp(int(a), int(b))
+        else:
+            return cmp(a, b)
+
+    #def key(self, col, asc):
+    #    if col == 0:
+    #        return int(str(self.text(0)))
+    #    else:
+    #        return self.text(col)
+
 
 class OrderSupervisorList(BaseNodeListView):
     """OrderSupervisorNode(parent, node) -> displays orders
@@ -173,7 +189,8 @@ class OrderSupervisorList(BaseNodeListView):
 
         """
         if not item:
-            item = qt.QListViewItem(self)
+            #item = qt.QListViewItem(self)
+            item = OrderSupervisorListItem(self)
         item.om = (oid, omon)
         vals = self.valueList(oid, omon)
         for c, v in enumerate(vals):

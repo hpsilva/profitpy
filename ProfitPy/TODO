@@ -7,10 +7,6 @@ all
     *   final refactoring of _ in attribute names and method bodies
 
 ./tools
-    ## USE ENV VAR
-    collector_client.py
-        *   integration with session builder names
-
     plot_app.py
     plot_shell.py
         *   integration with strategy builder (??)

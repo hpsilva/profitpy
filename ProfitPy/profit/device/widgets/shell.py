@@ -126,7 +126,8 @@ class InteractiveShell(kdeui.KTextEdit):
             histfile.close()
 
         except (Exception, ), ex:
-            sys.__stdout__.write('%s\n' % (ex, ))
+            pass
+            #sys.__stdout__.write('%s\n' % (ex, ))
 
     def write(self, text):
         if not str(text).strip():

@@ -51,7 +51,7 @@ def make_series_indexes(ser, set_index, set_plot):
     set_plot(kama_macd, color='#ffffff', axis='osc left', curve_style='stick')
 
     ser.strategy = strategy = \
-       set_index('Strategy', BrainDeadRandomStrategy, ser=ser, trade_shares=100)
+       set_index('Strategy', BrainDeadRandomStrategy, strategy_series=ser, order_size=100)
     set_plot(strategy, color='#b3b3b3', axis='main right', curve_type='strategy')
 
 
@@ -64,8 +64,8 @@ def make_series_indexes(ser, set_index, set_plot):
 
 
 class BrainDeadRandomStrategy(strategy.StrategyIndex):
-    def __init__(self, ser, trade_shares):
-        strategy.StrategyIndex.__init__(self, ser, trade_shares)
+    def __init__(self, strategy_series, order_size):
+        strategy.StrategyIndex.__init__(self, strategy_series, order_size)
         self.signals = [Short, Long, ] + [NoDirection ,] * 50
         random.shuffle(self.signals)
 

@@ -39,9 +39,9 @@ class StrategyIndex(series.SeriesIndex):
         Clients should use this class as a base and reimplement the 'query' 
         method, and return Short, Long, or NoDirection from that.
     """
-    def __init__(self, ser, trade_shares):
+    def __init__(self, ser, order_size):
         series.SeriesIndex.__init__(self, ser)
-        self.trade_shares = trade_shares
+        self.order_size = order_size
         self.indication = (NoDirection, NoReverse)
         self.history = []
         self.position = 0
@@ -63,8 +63,7 @@ class StrategyIndex(series.SeriesIndex):
             indication.
         """
         signal = self.query()
-        ser = self.series
-        shares = self.trade_shares
+        shares = self.order_size
         lastposition = self.position
         reverse = NoReverse
 
@@ -82,73 +81,45 @@ class StrategyIndex(series.SeriesIndex):
 
         ## adjust the position according to the signal and reverse.  if there
         ## is a previous position and no reverse, the position is furthered.
-        if lastposition and reverse:
+        if not signal:
+            quan = 0
+        elif lastposition and reverse:
             quan = -lastposition
             self.position = 0
         else:
             quan = shares * signal
             self.position += quan
 
-        x = len(ser) - 1
-        y = ser[-1]
-
-        key = (x, y, signal, reverse, )
-        extras = (shares, self.position, quan, )
-        self.history.append(key + extras)
-
+        series = self.series
+        self.history.append((len(series)-1, series[-1], signal, reverse, quan))
         self.append(signal)
 
-
-class strat_iter(object):
-    def __init__(self, strat):
-        self.strat = strat
-
-    def next(self):
-        yield self.strat.next()
-
-        x = 0
-        while True:
-            try:
-                yield self[x]
-                x += 1
-            except (IndexError, ):
-                raise StopIteration()
-
-
-## older code ; make sure these calls are factored out
-
-    def __signal_orders(self):
-        """ signal_orders() ->
+    def gauge(self):
+        """ gauge() -> a generator for strategy performance measurement
 
         """
-        oc_lookup = {NoReverse : 'O', Reverse : 'C',}
-        oc = oc_lookup[reverse]
-        signals = self.history
-        
- 
-        order = base.Order(quantity=quan, limit_price=y, 
-                           transmit=0, open_close=open_close)
+        running_pnl = 0
+        running_pos = 0
+        opencloselookup = {NoReverse : 'O', Reverse : 'C'}
+
+        for record in self.history:
+            index, price, direction, reverse, movesize = record[0:5]
+            if not direction:
+                continue
+            order = base.Order(quantity=movesize, limit_price=price, 
+                               transmit=0, open_close=opencloselookup[reverse])
+            cost = base.Order.cost_long(order)
+            running_pnl +=  -cost
+            running_pos += movesize
+            yield ((index, price), (running_pnl, running_pos), order, )
 
 
-    def __summary(self):
-        """ summary() -> summarize the orders tracked with this object
+    def print_report(self, indent=0):
+        for item in self.gauge():
+            #print item
+            # ((33, 13.949999999999999), (-1396.0, 100), <profit.lib.base.Order object at 0x4316a34c>)
+            x, y = item[0]
+            pos, siz = item[1]
+            print ('\t' * indent), 
+            print 'at %4s price %2.2f position %6.2f shares %s' % (x, y, pos, siz, )
 
-        """
-        ## simulate a final close order if there's an open position
-        ## note that this screws up a call to summary on a live strategy
-        if self.position:
-            dr = -(self.position / abs(self.position))
-            x = len(self.strategy.series)
-            y = self.strategy.series[-1]
-            self.save(x, y, direction=dr, reverse=1, shares=self.position)
-
-        reports = []
-        running_total = 0
-
-        ## maybe need to track error rate here
-        for order in [record[6] for record in self]:
-            order_cost = base.Order.cost_long(order)
-            running_total -= order_cost
-            reports.append((order.limit_price, order_cost, running_total))
-
-        return reports

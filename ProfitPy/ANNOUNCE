@@ -45,13 +45,10 @@ substituted:
   * Python 2.3.3
     http://www.python.org/
 
-  * KDE 3.2.2
-    http://www.kde.org/
+  * PyKDE 3.11.1
+    http://www.riverbankcomputing.co.uk/pykde/
 
-  * PyKDE 3.11
-    http://www.riverbankcomputing.co.uk/pykde/index.php
-
-  * PyQwt 3.8
+  * PyQwt 4.0rc0 
     http://sourceforge.net/projects/pyqwt/
 
   * SciPy 0.3
@@ -65,7 +62,7 @@ ProfitPy can make use of these optional components as well:
   * The Eric3 Python IDE
     http://www.die-offenbachs.de/detlev/eric3.html
 
-    The main GUI features a source code viewing widget.  If the Eric3 Python 
+    The ProfitPy main GUI features a source code viewing widget.  If the Eric3 
     IDE is present and importable, its source editor widget will be used 
     instead.
 
@@ -143,14 +140,7 @@ The TWS demo system is available here:
 
 Thank you!
 ------------------------------------------------------------------------------
-Guido van Rossum and crew for making the only programming language I need
-Phil Thompson and Jim Bublitz for the Qt and KDE wrappers
-Gerard Vermeulen and the Qwt developers for the Qwt and its Python wrapper
-Detlev Offenbach for the ass-kicking Eric3 IDE
-Patrick Stinson and Bob Nigh - for feedback, for ideas, for sushi and beer
-JC for everything
-
-And you, for I am very interested in your experience with ProfitPy.  Please 
+Thank you, for I am very interested in your experience with ProfitPy.  Please 
 drop me an note with any feedback you have.
 
 Troy Melhase
