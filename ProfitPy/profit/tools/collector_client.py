@@ -146,7 +146,7 @@ def get_options():
     ## wait this long between saves
     default_save_interval = 60 * 5
 
-    default_output_dir = '../var/'
+    default_output_dir = './'
     default_dsn = 'localhost:7496'
 
     parser = optparse.OptionParser()
