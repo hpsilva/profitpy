@@ -72,8 +72,7 @@ def make_series_indexes(ser, set_index, set_plot):
     kama_sig = set_index('KAMA Signal', series.KAMA, kama, 10)
     set_plot(kama_sig, color='#0000aa', axis='main left')
 
-    kama_slope = set_index('KAMA Slope', 
-                           series.LinearRegressionSlope, kama, 4)
+    kama_slope = set_index('KAMA Slope', series.LinearRegressionSlope, kama, 4)
     set_plot(kama_slope, color='yellow', axis='osc left', init_display=True)
 
     kama_macd = set_index('KAMA-Signal MACD', series.Convergence, kama_sig, kama)

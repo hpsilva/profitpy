@@ -67,45 +67,43 @@ def make_series_indexes(ser, set_index, set_plot):
         series of a ticker.
 
     """
+    series_slope = set_index('Series Slope', series.LinearRegressionSlope, ser, periods=100, scale=100)
+    set_plot(series_slope, '#770000', axis='osc left')
+
     kama = set_index('KAMA', series.KAMA, ser, 10)
-    set_plot(kama, color='#00aa00', axis='main left')
+    set_plot(kama, color='#007700', axis='main left')
 
-    kama_sig = set_index('KAMA Signal', series.KAMA, kama, 10)
-    set_plot(kama_sig, color='#0000aa', axis='main left')
+    #kama_slope = set_index('KAMA Slope', series.LinearRegressionSlope, kama, periods=100, scale=100)
+    #set_plot(kama_slope, color='#007700', axis='osc left')
 
-    kama_slope = set_index('KAMA Slope', 
-                           series.LinearRegressionSlope, kama, 4)
-    set_plot(kama_slope, color='yellow', axis='osc left', init_display=True)
+    kama_sig = set_index('KAMA Signal', series.KAMA, kama, 10) ## kama line of the kama line
+    set_plot(kama_sig, color='#000077', axis='main left')
 
-    kama_macd = set_index('KAMA-Signal MACD', series.Convergence, kama_sig, kama)
-    set_plot(kama_macd, color='#ffffff', axis='osc left', curve_style='stick')
+    #kama_sig_slope = set_index('KAMA Signal Slope', series.LinearRegressionSlope, kama_sig, periods=100, scale=100)
+    #set_plot(kama_sig_slope, color='#000077', axis='osc left')
+
+    kama_macd = set_index('KAMA-Signal MACD', series.PercentConvergence, ser, kama) #, kama_sig)
+    set_plot(kama_macd, color='#ffffff', axis='osc right', curve_style='stick')
 
     if 0: 
-        bb_upper = set_index('Bollinger Band Upper', series.BollingerBand, 
-                                        series=ser, period=30, dev_factor=10)
+        bb_upper = set_index('Bollinger Band Upper', series.BollingerBand, series=ser, period=30, dev_factor=10)
         set_plot(bb_upper, color='#fa1800')
     
-        bb_lower = set_index('Bollinger Band Lower', series.BollingerBand, 
-                                        series=ser, period=30, dev_factor=-10)
+        bb_lower = set_index('Bollinger Band Lower', series.BollingerBand, series=ser, period=30, dev_factor=-10)
         set_plot(bb_lower, color='#0af800')
 
     if 0:
         cog = set_index('Center of Gravity', series.CenterOfGravity, series=ser, periods=30)
         set_plot(cog, '#6633CC', axis='osc right')
 
-    gap = \
-        set_index('KAMA-Sig MACD Gap', GapSizeFilter, kama_macd, bounds=(-0.03, 0.03))
-
-    vof = \
-        set_index('Vertical Order Filter', VerticalOrderFilter, ser, kama, kama_sig)
-
-    ser.trend = trend = \
-        set_index('Trend', CombinerTrend, vof, gap)
-
+    
+    #signs = set_index('Slope Side Match', SignMatchFilter, series_slope, kama_slope, kama_sig_slope)
+    gap = set_index('KAMA-Sig MACD Gap', GapSizeFilter, kama_macd, bounds=(-0.215, 0.215))
+    vof = set_index('Vertical Order Filter', VerticalOrderFilter, ser, kama, kama_sig)
+    ser.trend = trend = set_index('Trend', ConcurrentTrends, gap, vof)
     set_plot(trend, color='#b3b3b3', axis='main right', curve_type='trend')
 
-    ser.strategy = strategy = \
-       set_index('Strategy', SligntlyBetterThanRandomStrategy, ser, trend, 100)
+    ser.strategy = strategy = set_index('Strategy', SligntlyBetterThanRandomStrategy, ser, trend, 100)
     set_plot(strategy, color='#b3b3b3', axis='main right', curve_type='strategy')
 
 
@@ -117,11 +115,12 @@ class SligntlyBetterThanRandomStrategy(strategy.StrategyIndex):
         strategy.StrategyIndex.__init__(self, series, size)
         self.trend = trend
         self.snooze = snooze
-        self.last = None
-        self.silence_marker = [0, ] * 20
+        self.last = NoDirection
+        self.silence_marker = [0, ] * 50
 
     def query(self):
         signal = self.trend.query()
+        ## TODO:  add a warder-thing here
 
         if len(self) < self.snooze:
             return NoDirection
@@ -139,22 +138,27 @@ class SligntlyBetterThanRandomStrategy(strategy.StrategyIndex):
                 self.last = NoDirection
         return signal
 
-
-class CombinerTrend(strategy.TrendIndex):
-    def __init__(self, *trends):
+class SignMatchFilter(strategy.TrendIndex):
+    def __init__(self, *seqs):
         strategy.TrendIndex.__init__(self, None)
-        self.trends = trends
-        self.all_long = [Long, ] * len(trends)
-        self.all_short = [Short, ] * len(trends)
+        self.seqs = seqs
+        #self.all_long = [float(Long), ] * len(seqs)
+        #self.all_short = [float(Short), ] * len(seqs)
 
     def query(self):
-        results = [trend.query() for trend in self.trends]
-        if self.all_long == results:
+        seqs = self.seqs
+        lens = len(seqs)
+        lasts = [seq[-1] for seq in seqs if seq[-1]]
+        if len(lasts) != lens:
+            return NoDirection
+
+        if len([item for item in lasts if item > 0]) == lens:
             return Long
-        elif self.all_short == results:
+        elif len([item for item in lasts if item < 0]) == lens:
             return Short
         else:
             return NoDirection
+
 
 class GapSizeFilter(strategy.TrendIndex):
     def __init__(self, ser, bounds):
@@ -188,3 +192,20 @@ class VerticalOrderFilter(strategy.TrendIndex):
         elif a > b > c:
              level = Long
         return level
+
+
+class ConcurrentTrends(strategy.TrendIndex):
+    def __init__(self, *trends):
+        strategy.TrendIndex.__init__(self, None)
+        self.trends = trends
+        self.all_long = [Long, ] * len(trends)
+        self.all_short = [Short, ] * len(trends)
+
+    def query(self):
+        results = [trend.query() for trend in self.trends]
+        if self.all_long == results:
+            return Long
+        elif self.all_short == results:
+            return Short
+        else:
+            return NoDirection

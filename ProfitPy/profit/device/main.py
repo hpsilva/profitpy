@@ -254,6 +254,9 @@ class ProfitDeviceMainWindow(kdeui.KDockMainWindow):
         try:
             sess = session.Session(**params)
         except (Exception, ), ex:
+            import traceback
+            traceback.print_exc()
+            print >> sys.__stdout__, ex
             util.displayException(self, 'Problem building session object', ex)
             sess = {}
 

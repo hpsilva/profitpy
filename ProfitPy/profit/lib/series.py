@@ -468,6 +468,21 @@ class Convergence(SeriesIndex):
             self.append(None)
 
 
+class PercentConvergence(SeriesIndex):
+    """ PercentConvergence -> Convergence as a percentage
+
+    """
+    def __init__(self, series, signal):
+        SeriesIndex.__init__(self, series)
+        self.signal = signal
+
+    def reindex(self):
+        try:
+            self.append((1 - self.signal[-1] / self.series[-1]) * 100)
+        except (TypeError, ZeroDivisionError, ):
+            self.append(None)
+
+
 class MACDHistogram(SeriesIndex):
     """ MACDHistogram -> Tracks difference between line and its signal
 
@@ -650,9 +665,10 @@ class LinearRegressionSlope(SeriesIndex):
     """ LinearRegressionSlope(series, periods) -> slope of the linear regression
 
     """
-    def __init__(self, series, periods):
+    def __init__(self, series, periods, scale=1):
         SeriesIndex.__init__(self, series)
         self.periods = periods
+        self.scale = scale
         self.xarray = array(range(0, periods))
 
     def reindex(self):
@@ -662,7 +678,7 @@ class LinearRegressionSlope(SeriesIndex):
             slope, intercept, r, two_tail_prob, est_stderr = linregress(xa, ya)
         except (TypeError, ValueError, ZeroDivisionError):
             slope = 0.0
-        self.append(slope)
+        self.append(slope * self.scale)
 
 
 class TrueRange(MovingAverageIndex):
