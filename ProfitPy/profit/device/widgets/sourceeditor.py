@@ -94,8 +94,22 @@ class SimpleEditor(qt.QFrame):
         """
         from eric3.QScintilla import Editor
         from eric3.Project import Project
-        from eric3.eric3 import initializeMimeSourceFactory
-        initializeMimeSourceFactory(eric3Dir)
+
+        ## older versions
+        try:
+            from eric3.eric3 import initializeMimeSourceFactory
+        except (ImportError, ):
+            pass
+        else:
+            initializeMimeSourceFactory(eric3Dir)
+
+        ## recent versions (around snapshot 20040818) 
+        try:
+            from eric3.Utilities import Startup
+        except (ImportError, ):
+            pass
+        else:
+            Startup.initializeMimeSourceFactory(eric3Dir)
 
         self.layout().setAutoAdd(True)
         self.project = Project.Project()
