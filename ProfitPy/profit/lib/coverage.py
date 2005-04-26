@@ -76,11 +76,12 @@ def ticker_report(ticker, fh=None):
         except (KeyError, AttributeError, ):
             pass
         else:
-            print >> fh, '%s Strategy:' % (key_name, )
-            for item in strategy.gauge():
-                x, y = item[0]
-                pos, siz = item[1]
-                print >> fh, '\t', strat_format % (x, y, pos, siz, )
+            if strategy:
+                print >> fh, '%s Strategy:' % (key_name, )
+                for item in strategy.gauge():
+                    x, y = item[0]
+                    pos, siz = item[1]
+                    print >> fh, '\t', strat_format % (x, y, pos, siz, )
     print >> fh, sep
 
 
@@ -95,6 +96,8 @@ def profit_on_close(strat, records):
 
 
 def simulate_final(aseries, astrategy):
+    if not astrategy:
+        return
     tick_results = list(astrategy.gauge())
     tick_trades = len(tick_results)
     tick_profit = 0
@@ -119,14 +122,20 @@ def simulate_final(aseries, astrategy):
             astrategy[-1] = sig
 
 
-def strategy_report(strategy, supervisors, fh=None, print_headfoot=True, 
-                    print_subtotal=True, print_grandtotal=True):
+def strategy_report(strategy, supervisors, fh=None, 
+                    print_head_foot=True, 
+                    print_sub_total=True, 
+                    print_running_total=True,
+                    print_grand_total=True):
     start = time.time()
     total_profit = 0
     total_trades = 0
     report = {}
-    
-    if print_headfoot:
+
+    ## yuk - but effective
+    proc_syms = session.import_name(strategy.split('.')[0]).config.keys()
+
+    if print_head_foot:
         print >> fh, 'Strategy coverage run started at %s' % (time.ctime(), )
         print >> fh, altsep
         print >> fh, 'Using strategy name %s' % (strategy, )
@@ -144,16 +153,22 @@ def strategy_report(strategy, supervisors, fh=None, print_headfoot=True,
 
         for source_ticker in source_tickers:
             symbol = source_ticker.symbol
+
+            if symbol not in proc_syms:
+                continue
             secs, count, rebuilt_ticker = \
                 tools.timed_ticker_rebuild(source_ticker, strategy)
-            
+
             strat_objs = [rebuilt_ticker.series[key].strategy 
                             for key in rebuilt_ticker.strategy_keys]
             try:
                 strat_obj = strat_objs[0]
             except (IndexError, ):
                 pass
-            tick_results = list(strat_obj.gauge())
+            try:
+                tick_results = list(strat_obj.gauge())
+            except (AttributeError, ):
+                continue
             tick_trades = len(tick_results)
             tick_profit = 0.0
             tick_effective = 0.0
@@ -173,28 +188,39 @@ def strategy_report(strategy, supervisors, fh=None, print_headfoot=True,
             print >> fh, '%4s\t%6s\t%8.2f\t%8.2f' % tick_record
             file_report[symbol] = (tick_trades, tick_profit)
 
+
         if file_trades:
             rpt = (file_trades, file_profit, file_profit/file_trades)
         else:
             rpt = (file_trades, file_profit, 0)
         total_trades += file_trades
         total_profit += file_profit
-        if print_subtotal:
-            print >> fh, 'Sub Total'
+        if print_sub_total:
+            print >> fh, sep
+            print >> fh, 'File Sub Total'
             print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
-            print
+
+        if print_running_total:
+            if total_trades:
+                rpt = (total_trades, total_profit, total_profit/total_trades)
+            else:
+                rpt = (total_trades, total_profit, 0)
+            print >> fh, 'Running Total'
+            print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
+
+        print
 
     if total_trades:
         rpt = (total_trades, total_profit, total_profit/total_trades)
     else:
         rpt = (total_trades, total_profit, 0)
 
-    if print_grandtotal:
+    if print_grand_total:
         print >> fh, 'Grand Total'
         print >> fh, sep
         print >> fh, '\t%6s\t%8.2f\t%8.2f' % rpt
         print >> fh
-    if print_headfoot:
+    if print_head_foot:
         print >> fh, altsep
         rpt = 'Strategy coverage run completed in %2.2f seconds' 
         print >> fh, rpt % (time.time() - start, )
@@ -230,22 +256,15 @@ def main(args=None):
         print_usage(name=sys.argv[0])
         return
 
-    try:
-        strat_session = session.Session(strategy_builder=strat)
-    except (Exception, ), ex:
-        msg = 'Exception loading strategy builder named "%s"' % (strat, )
-        print_coverage_ex(msg)
-        return
-
+    results = ()
     try:
         supervisors = [(fn, tools.load_object(fn).values()) for fn in files]
         results = strategy_report(strat, supervisors)
     except (KeyboardInterrupt, ):
-        print 'Keyboard interrupt'
+        print 'Keyboard Interrupt'
     except (Exception, ), ex:
         msg = 'Exception executing strategy "%s"' % (ex, )
         print_coverage_ex(msg)
-        return
     return results
 
 

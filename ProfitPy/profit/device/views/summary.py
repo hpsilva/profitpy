@@ -451,7 +451,7 @@ class SummaryLCDFrame(qt.QFrame):
         key = self.context[0]
         lcd = self.context[2]
 
-        lcd.setSegmentStyle(style)
+        #lcd.setSegmentStyle(style)
         self.writeLcd(key, lcd)
 
     def readLcd(self, key, widget):
@@ -469,7 +469,7 @@ class SummaryLCDFrame(qt.QFrame):
         backcolor = config.readColorEntry('%s__back' % (key, ), backcolor)
 
         widget.setFrameStyle(qt.QFrame.StyledPanel | qt.QFrame.Sunken)
-        widget.setSegmentStyle(style)
+        #widget.setSegmentStyle(style)
         widget.setPaletteForegroundColor(forecolor)
         widget.setPaletteBackgroundColor(backcolor)
 

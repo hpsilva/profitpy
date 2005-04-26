@@ -372,7 +372,8 @@ class TickerSeriesDataNode(BaseNodeListView):
     focusAllColumns = True
     sorting = (-1, )
 
-    def __init__(self, parent, node, key):
+    def __init__(self, parent, node, key, 
+                 remap={'-1.000000':'-1', '1.000000':1}):
         series = node.series[key]
         seqs = [(base.PriceSizeLookup[key], series), ]
         seqs += series.index_map.items()
@@ -393,6 +394,7 @@ class TickerSeriesDataNode(BaseNodeListView):
                     v = '%2.6f' % v
                 except (TypeError, ):
                     pass
+                v = remap.get(v, v)
                 item.setText(colidx+1, '%s' % (v, ))
 
 

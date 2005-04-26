@@ -45,7 +45,9 @@ class Series(list):
 
     """
     def __init__(self, data=None):
-        list.__init__(self, data or [])
+        if data is None:
+            data = []
+        list.__init__(self, data)
         self.indexes = indexes = []
         self.index_map = IndexMapping(indexes)
 

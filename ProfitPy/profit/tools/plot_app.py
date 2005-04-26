@@ -30,6 +30,18 @@ __about__ = {
 import os
 import sys
 
+""" stuff we're after for the spline display :
+
+  splrep    -- find smoothing spline given (x,y) points on curve.
+   splprep   -- find smoothing spline given parametrically defined curve.
+   splev     -- evaluate the spline or its derivatives.
+   splint    -- compute definite integral of a spline.
+   sproot    -- find the roots of a cubic spline.
+   spalde    -- compute all derivatives of a spline at given points.
+   bisplrep   -- find bivariate smoothing spline representation.
+   bisplev 
+"""
+
 import qt
 
 import plot_form
@@ -43,6 +55,42 @@ import profit.lib.base as base
 import profit.lib.coverage as coverage
 import profit.lib.tools as tools
 
+## this is a teribble ugly hack that doesn't belong here
+import pprint
+from Numeric import array
+import scipy.interpolate as interpolate
+
+def make_spline_drawer(plot_widget):
+    def draw_spline(key, series, start, stop, bound_canvas):
+        x = array(range(start, stop))
+        y = array(series[start:stop])
+    
+        try:
+            #vector_of_knots, spline_coefficients, spline_degree  = interpolate.splrep(x, y)
+            #er = I.splrep(range(550,750), ticker.series[1][550:750])
+
+    
+            er = interpolate.splrep(x, y)
+            for k in er:
+                pprint.pprint(k)
+
+            spline = list(interpolate.splev(x, er))
+
+
+
+
+        except (Exception, ), ex:
+            print '**', ex
+        else:
+            print er
+
+        seq = spline
+        sty = base.PlotStyleMarker('red')
+        print 'zz', plot_widget.initCurve(key, seq, sty)
+
+
+    return draw_spline
+## end big hack chunk
 
 class PlotWidget(nodewidgets.TechnicalTickerNode):
     """ PlotWidget() -> a ticker plot widget with a python shell widget
@@ -50,10 +98,19 @@ class PlotWidget(nodewidgets.TechnicalTickerNode):
     """
     def __init__(self, parent, ticker):
         nodewidgets.TechnicalTickerNode.__init__(self, parent, ticker)
-        self.shell = shell.InteractiveShell(self)
-        self.addTab(self.shell, 'Shell')
-        self.shell.interpreter.locals['ticker'] = ticker
+        sh = self.shell = shell.InteractiveShell(self)
+        self.addTab(sh, 'Shell')
 
+        ## TODO:  add a function to the shell for drawing the spline over a given
+        ## region to the indicated (==1) ticker series plot.
+
+        sh.interpreter.locals['ticker'] = ticker
+
+        ## hack on!
+        pw = self.plotPages[1].plots['main']
+        sh.interpreter.locals['plot_widget'] = pw
+        sh.interpreter.locals['draw_spline'] = make_spline_drawer(pw)
+        ## hack off!
 
 class PlotApp(plot_form.PlotForm):
     """ PlotApp(...) -> main plot controller window
@@ -116,7 +173,7 @@ class PlotApp(plot_form.PlotForm):
             try:
                 secs, count, ticker = \
                     tools.timed_ticker_rebuild(self.tickers[symbol], 
-                                               self.strategyName, ltrim=50)
+                                               self.strategyName, ltrim=0)
                 self.rebuiltTickers[symbol] = ticker
                 print 'rebuilt ticker in %s seconds' % (secs, )
             except (Exception, ), ex:
@@ -133,9 +190,9 @@ class PlotApp(plot_form.PlotForm):
         coverage.ticker_report(ticker, sys.stdout)
         supervisors = [(self.fileName, [ticker, ], ), ]
         coverage.strategy_report(self.strategyName, supervisors, sys.stdout, 
-                                 print_headfoot=False, 
-                                 print_subtotal=False, 
-                                 print_grandtotal=False)
+                                 print_head_foot=False, 
+                                 print_sub_total=False, 
+                                 print_grand_total=False, print_running_total=False)
 
         plotwin = qt.QVBox(self)
         PlotWidget(plotwin, ticker)
@@ -169,5 +226,9 @@ if __name__ == '__main__':
         pass
     else:
         win.loadTickers(filename)
+
+    syms = sys.argv[3:]
+    for sym in syms:
+        win.showTicker(sym)
 
     app.exec_loop()

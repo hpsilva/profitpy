@@ -52,6 +52,10 @@ OpenCloseLookup = {
 }
 
 
+ignore_symbols = ['CEPH', 'QCOM', 'SBUX', 'PMCS', 'BBBY', 'ADBE', 'COST', 'MXIM',
+                  'KLAC', 'ALTR', 'MERQ', 'DELL', 'GILD', 'MSFT', 'MEDI', 'EBAY',
+                  'DISH', 'YHOO', 'NXTL', 'CTXS', 'PDLI', 'PSFT', 'SPOT', 'BRCM', ]
+ignore_symbols = []
 def slightly_better_factory(tickers, strategy_keys=[base.PriceTypes.Bid, ], 
                             **session):
     """ the purpose of the strategy builder is to add a strategy object to 
@@ -66,8 +70,16 @@ def slightly_better_factory(tickers, strategy_keys=[base.PriceTypes.Bid, ],
 
     for (ticker, ticker_series) in targets:
         index_func = ticker_series.index_map.set
-        style_func(ticker_series, color='#aa0000')
-        make_series_indexes(ticker_series, index_func, style_func)
+
+        if ticker.symbol in ignore_symbols:
+            make_null_strategy(ticker_series)
+        else:
+            style_func(ticker_series, color='#aa0000')
+            make_series_indexes(ticker_series, index_func, style_func)
+
+
+def make_null_strategy(ser):
+    ser.strategy = None
 
 
 def make_series_indexes(ser, set_index, set_plot):
@@ -115,6 +127,14 @@ def make_series_indexes(ser, set_index, set_plot):
     set_plot(strategy, color='#b3b3b3', axis='main right', curve_type='strategy')
 
 
+class NullStrategy(strategy.StrategyIndex):
+    def __init__(self, ser, size=100):
+        strategy.StrategyIndex.__init__(self, ser, size)
+
+    def query(self):
+        self.append(0)
+        return NoDirection
+     
 class SligntlyBetterThanRandomStrategy(strategy.StrategyIndex):
     """ SligntlyBetterThanRandomStrategy -> really, it's only slightly better       (than nothing :)
 
