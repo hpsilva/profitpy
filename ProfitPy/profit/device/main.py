@@ -233,7 +233,7 @@ class ProfitDeviceMainWindow(kdeui.KDockMainWindow):
 
         config = util.appConfig()
         self.applyMainWindowSettings(config)
-        self.toolBar().applySettings(config, None)
+        self.toolBar().applySettings(config, '')
         self.pythonShell.onGuiComplete()
 
         ## optional parameter used because the main widget  isn't built yet

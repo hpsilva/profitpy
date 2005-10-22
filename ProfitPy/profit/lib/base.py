@@ -303,12 +303,12 @@ OrderTypes = AttributeMapping(
 
 
 PriceTypes = AttributeMapping(
-    Ask=Ib.Socket.ASK_PRICE,
-    Bid=Ib.Socket.BID_PRICE,
-    Last=Ib.Socket.LAST_PRICE,
-    High=Ib.Socket.HIGH_PRICE,
-    Low=Ib.Socket.LOW_PRICE,
-    Close=Ib.Socket.CLOSE_PRICE,
+    Ask=Ib.Type.ASK_PRICE,
+    Bid=Ib.Type.BID_PRICE,
+    Last=Ib.Type.LAST_PRICE,
+    High=Ib.Type.HIGH_PRICE,
+    Low=Ib.Type.LOW_PRICE,
+    Close=Ib.Type.CLOSE_PRICE,
 )
 
 
@@ -323,10 +323,10 @@ SecurityTypes = AttributeMapping(
 
 
 SizeTypes = AttributeMapping(
-    Ask=Ib.Socket.ASK_SIZE,
-    Bid=Ib.Socket.BID_SIZE,
-    Last=Ib.Socket.LAST_SIZE,
-    Volume=Ib.Socket.VOLUME_SIZE,
+    Ask=Ib.Type.ASK_SIZE,
+    Bid=Ib.Type.BID_SIZE,
+    Last=Ib.Type.LAST_SIZE,
+    Volume=Ib.Type.VOLUME_SIZE,
 )
 
 

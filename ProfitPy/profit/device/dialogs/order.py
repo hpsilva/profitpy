@@ -66,7 +66,7 @@ class OrderDialog(kdeui.KDialogBase):
 
     def __init__(self, parent=None):
         buttons = kdeui.KDialogBase.Ok | kdeui.KDialogBase.Cancel
-        kdeui.KDialogBase.__init__(self, parent, None, False, None, buttons)
+        kdeui.KDialogBase.__init__(self, parent, self.__class__.__name__, False, '', buttons)
         self.setupControls()
         self.setupLayout()
         self.setupValues()

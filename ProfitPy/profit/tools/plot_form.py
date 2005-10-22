@@ -35,14 +35,14 @@ class PlotForm(QWidget):
         PlotFormLayout.addLayout(layout2,1,0)
 
         self.splitter2 = QSplitter(self,"splitter2")
-        self.splitter2.setSizePolicy(QSizePolicy(7,5,3,0,self.splitter2.sizePolicy().hasHeightForWidth()))
+        #self.splitter2.setSizePolicy(QSizePolicy(7,5,3,0,self.splitter2.sizePolicy().hasHeightForWidth()))
         self.splitter2.setOrientation(QSplitter.Horizontal)
 
         self.tickersListView = QListView(self.splitter2,"tickersListView")
         self.tickersListView.addColumn(self.__tr("Id"))
         self.tickersListView.addColumn(self.__tr("Symbol"))
         self.tickersListView.addColumn(self.__tr("Length"))
-        self.tickersListView.setSizePolicy(QSizePolicy(7,7,1,0,self.tickersListView.sizePolicy().hasHeightForWidth()))
+        #self.tickersListView.setSizePolicy(QSizePolicy(7,7,1,0,self.tickersListView.sizePolicy().hasHeightForWidth()))
         self.tickersListView.setMinimumSize(QSize(0,0))
         self.tickersListView.setResizePolicy(QScrollView.Manual)
         self.tickersListView.setVScrollBarMode(QListView.Auto)
@@ -52,7 +52,7 @@ class PlotForm(QWidget):
         self.tickersListView.setResizeMode(QListView.AllColumns)
 
         self.stdoutTextEdit = QTextEdit(self.splitter2,"stdoutTextEdit")
-        self.stdoutTextEdit.setSizePolicy(QSizePolicy(7,7,2,0,self.stdoutTextEdit.sizePolicy().hasHeightForWidth()))
+        #self.stdoutTextEdit.setSizePolicy(QSizePolicy(7,7,2,0,self.stdoutTextEdit.sizePolicy().hasHeightForWidth()))
         self.stdoutTextEdit.setMinimumSize(QSize(0,0))
         stdoutTextEdit_font = QFont(self.stdoutTextEdit.font())
         stdoutTextEdit_font.setFamily("Bitstream Vera Sans Mono")
