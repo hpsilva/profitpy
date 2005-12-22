@@ -276,7 +276,9 @@ class BasePlot(qwt.QwtPlot):
         isctrl = event.stateAfter() == qt.QEvent.ControlButton
         isleft = event.stateAfter() == qt.QEvent.ControlButton 
         if isctrl and isleft:
-            args = (self.invTransform(xBottom, event.x()), )
+            args = (self.invTransform(xBottom, event.x()),
+                    self.invTransform(yLeft, event.y()),
+                    )
             self.emit(plotCtrlClick, args)
 
     def resetAxes(self):

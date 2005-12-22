@@ -40,6 +40,12 @@ import sys
    spalde    -- compute all derivatives of a spline at given points.
    bisplrep   -- find bivariate smoothing spline representation.
    bisplev 
+
+## this is a teribble ugly hack that doesn't belong here
+import pprint
+from Numeric import array
+import scipy.interpolate as interpolate
+
 """
 
 import qt
@@ -55,42 +61,6 @@ import profit.lib.base as base
 import profit.lib.coverage as coverage
 import profit.lib.tools as tools
 
-## this is a teribble ugly hack that doesn't belong here
-import pprint
-from Numeric import array
-import scipy.interpolate as interpolate
-
-def make_spline_drawer(plot_widget):
-    def draw_spline(key, series, start, stop, bound_canvas):
-        x = array(range(start, stop))
-        y = array(series[start:stop])
-    
-        try:
-            #vector_of_knots, spline_coefficients, spline_degree  = interpolate.splrep(x, y)
-            #er = I.splrep(range(550,750), ticker.series[1][550:750])
-
-    
-            er = interpolate.splrep(x, y)
-            for k in er:
-                pprint.pprint(k)
-
-            spline = list(interpolate.splev(x, er))
-
-
-
-
-        except (Exception, ), ex:
-            print '**', ex
-        else:
-            print er
-
-        seq = spline
-        sty = base.PlotStyleMarker('red')
-        print 'zz', plot_widget.initCurve(key, seq, sty)
-
-
-    return draw_spline
-## end big hack chunk
 
 class PlotWidget(nodewidgets.TechnicalTickerNode):
     """ PlotWidget() -> a ticker plot widget with a python shell widget
@@ -100,23 +70,16 @@ class PlotWidget(nodewidgets.TechnicalTickerNode):
         nodewidgets.TechnicalTickerNode.__init__(self, parent, ticker)
         sh = self.shell = shell.InteractiveShell(self)
         self.addTab(sh, 'Shell')
-
-        ## TODO:  add a function to the shell for drawing the spline over a given
-        ## region to the indicated (==1) ticker series plot.
-
         sh.interpreter.locals['ticker'] = ticker
 
-        ## hack on!
-        pw = self.plotPages[1].plots['main']
-        sh.interpreter.locals['plot_widget'] = pw
-        sh.interpreter.locals['draw_spline'] = make_spline_drawer(pw)
-        ## hack off!
 
 class PlotApp(plot_form.PlotForm):
     """ PlotApp(...) -> main plot controller window
 
     """
     title = 'Test Plot [%s]'
+    widget_type = PlotWidget
+    message_handle = sys.stderr
 
     def __init__(self, parent=None, name=None, fl=0):
         plot_form.PlotForm.__init__(self, parent, name, fl)
@@ -143,7 +106,7 @@ class PlotApp(plot_form.PlotForm):
             self.tickers = obj
             self.rebuiltTickers = {}
         else:
-            print 'Could not load a pickled tickers from %s' % (filename, )
+            print >> self.message_handle, 'Could not load a pickled tickers from %s' % (filename, )
             return
 
         self.fileName = filename
@@ -161,7 +124,7 @@ class PlotApp(plot_form.PlotForm):
         self.showTicker(sym)
 
     def setStrategy(self, stratname):
-        print 'using strategy named "%s"' % (stratname, )
+        print >> self.message_handle, 'using strategy named "%s"' % (stratname, )
         self.strategyName = stratname
 
     def showTicker(self, symbol):
@@ -175,9 +138,9 @@ class PlotApp(plot_form.PlotForm):
                     tools.timed_ticker_rebuild(self.tickers[symbol], 
                                                self.strategyName, ltrim=0)
                 self.rebuiltTickers[symbol] = ticker
-                print 'rebuilt ticker in %s seconds' % (secs, )
+                print >> self.message_handle, 'rebuilt ticker in %s seconds' % (secs, )
             except (Exception, ), ex:
-                print 'Exception rebuilding ticker: %r, %s' % (ex, ex, )
+                print >> self.message_handle, 'Exception rebuilding ticker: %r, %s' % (ex, ex, )
                 import traceback
                 traceback.print_exc()
                 ticker = None
@@ -187,18 +150,20 @@ class PlotApp(plot_form.PlotForm):
             stratobj = serobj.strategy
             coverage.simulate_final(serobj, stratobj)
 
-        coverage.ticker_report(ticker, sys.stdout)
+        coverage.ticker_report(ticker, self.message_handle)
         supervisors = [(self.fileName, [ticker, ], ), ]
-        coverage.strategy_report(self.strategyName, supervisors, sys.stdout, 
+        coverage.strategy_report(self.strategyName, supervisors, self.message_handle,
                                  print_head_foot=False, 
                                  print_sub_total=False, 
                                  print_grand_total=False, print_running_total=False)
 
         plotwin = qt.QVBox(self)
-        PlotWidget(plotwin, ticker)
+        plot = self.widget_type(plotwin, ticker)
         plotwin.setCaption('%s Test Plot' % (symbol, ))
         plotwin.reparent(self, qt.Qt.WType_TopLevel, qt.QPoint(0,0), True)
         plotwin.resize(qt.QSize(850, 600))
+        plot.fileName = self.fileName
+        plot.symbol = symbol
 
     def not__closeEvent(self, event):
         base.stdnotee(self, 'stdout', 'stderr')
@@ -210,7 +175,7 @@ class PlotApp(plot_form.PlotForm):
         self.stdoutTextEdit.insert(qt.QString(value))
 
 
-if __name__ == '__main__':
+def main():
     win, app = util.kMain(PlotApp, "Plot App", args=sys.argv[0:1])
     win.show()
 
@@ -232,3 +197,6 @@ if __name__ == '__main__':
         win.showTicker(sym)
 
     app.exec_loop()
+
+if __name__ == '__main__':
+    main()
