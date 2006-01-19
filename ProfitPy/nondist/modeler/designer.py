@@ -21,16 +21,16 @@ import traceback
 
 from qt import *
 
-from Profit.designer.designer_form import DesignerForm
-from Profit.designer.index_widget import IndexDesignWidget
-from Profit.designer.index_controls import IndexControlsWidget
+from profit.designer.designer_form import DesignerForm
+from profit.designer.index_widget import IndexDesignWidget
+from profit.designer.index_controls import IndexControlsWidget
 
-from Profit.device import Node
-from Profit.device import Plot
+from profit.device import Node
+from profit.device import Plot
 
-from Profit.lib import Base, Series, Tickers
-from Profit.lib.Tools import load_object
-from Profit.lib.Tools import timed_ticker_rebuild
+from profit.lib import Base, Series, Tickers
+from profit.lib.Tools import load_object
+from profit.lib.Tools import timed_ticker_rebuild
 
 
 ## fix buildControls below to use the inspect module

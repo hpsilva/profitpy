@@ -6,11 +6,11 @@ import sys
 
 from qt import *
 
-from Profit.device import Node
+from profit.device import Node
 
-from Profit.lib import Base, Series, Tickers
-from Profit.lib.Tools import load_object
-from Profit.lib.Tools import timed_ticker_rebuild
+from profit.lib import Base, Series, Tickers
+from profit.lib.Tools import load_object
+from profit.lib.Tools import timed_ticker_rebuild
 
 from ticker_design_form import TickerDesignForm
 
