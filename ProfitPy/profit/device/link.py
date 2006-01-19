@@ -30,7 +30,7 @@ approaches just stopped working.
 
 This version seems a bit more strong:
 
-    1.  The Ib.Message module is inspected for a set of message types.
+    1.  The ib.message module is inspected for a set of message types.
     This helps prevent cut-and-paste and hard-coding the method names.
 
     2.  The QIbSocketReader type inherits QThread, making it safe as a source
@@ -62,8 +62,8 @@ __about__ = {
 
 import qt
 
-import Ib.Message
-import Ib.Socket
+import ib.message
+import ib.socket
 
 
 """ The first side of the link defines a QThread for reading IbPy sockets.
@@ -74,7 +74,7 @@ IbPy connections form a way to read socket data in a Qt-friendly way.
 """
 
 
-class QIbSocketReader(Ib.Socket.SocketReaderBase, qt.QThread):
+class QIbSocketReader(ib.socket.SocketReaderBase, qt.QThread):
     """ QIbSocketReader(...) -> a Qt thread for reading an IbPy socket
 
     This reader type is an alternate to the default Python threading.Thread 
@@ -88,16 +88,16 @@ class QIbSocketReader(Ib.Socket.SocketReaderBase, qt.QThread):
     the instance should do that.
     """
     def __init__(self, readers, socket):
-        Ib.Socket.SocketReaderBase.__init__(self, readers, socket)
+        ib.socket.SocketReaderBase.__init__(self, readers, socket)
         qt.QThread.__init__(self)
 
     def build(cls, client_id=0):
-        """ buildSocketReader(client_id=0) -> alternate builder for Ib.Sockets
+        """ buildSocketReader(client_id=0) -> alternate builder for ib.sockets
     
         The class method complements the construction by providing a builder
         suitable making an IbPy connection with this reader type.
         """
-        return Ib.Socket.build(client_id=client_id, reader_type=cls)
+        return ib.socket.build(client_id=client_id, reader_type=cls)
     build = classmethod(build)
 
 
@@ -116,14 +116,14 @@ def messageTypes():
     """
     def isreader(cls):
         """ returns true if a class is a SocketReader subclass """
-        basecls = Ib.Message.SocketReader
+        basecls = ib.message.SocketReader
         return issubclass(cls, basecls) and not cls is basecls
 
     def istype(cls):
         """ returns true if an object is a type """
         return isinstance(cls, (type, ))
 
-    src = Ib.Message.__dict__.values()
+    src = ib.message.__dict__.values()
     types = [typ for typ in src if istype(typ) and isreader(typ)]
     return dict([(typ.__name__, typ) for typ in types])
 

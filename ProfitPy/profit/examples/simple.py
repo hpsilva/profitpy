@@ -34,7 +34,7 @@ __about__ = {
     'revision' : '$Revision$',
 }
 
-import Ib.Socket as ibsocket
+import ib.socket as ibsocket
 import profit.lib.account as account
 import profit.lib.policies as policies
 

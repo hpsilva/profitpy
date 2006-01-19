@@ -33,12 +33,12 @@ __about__ = {
     'revision' : '$Revision$',
 }
 
-import Ib.Message
-import Ib.Socket
-import Ib.Type
+import ib.message
+import ib.socket
+import ib.type
 
 
-class ComboLeg(Ib.Type.ComboLeg):
+class ComboLeg(ib.type.ComboLeg):
     """ ComboLeg(...) -> local comboleg wrapper
 
     """
@@ -55,7 +55,7 @@ class ComboLeg(Ib.Type.ComboLeg):
                self.open_close == other.open_close
 
 
-class Contract(Ib.Type.Contract):
+class Contract(ib.type.Contract):
     """ Contract(...) -> local contract wrapper
 
     """
@@ -79,7 +79,7 @@ class Contract(Ib.Type.Contract):
     stock_factory = classmethod(stock_factory)
 
 
-class Order(Ib.Type.Order):
+class Order(ib.type.Order):
     """ Order(...) -> local order wrapper
 
     """
@@ -303,12 +303,12 @@ OrderTypes = AttributeMapping(
 
 
 PriceTypes = AttributeMapping(
-    Ask=Ib.Type.ASK_PRICE,
-    Bid=Ib.Type.BID_PRICE,
-    Last=Ib.Type.LAST_PRICE,
-    High=Ib.Type.HIGH_PRICE,
-    Low=Ib.Type.LOW_PRICE,
-    Close=Ib.Type.CLOSE_PRICE,
+    Ask=ib.type.ASK_PRICE,
+    Bid=ib.type.BID_PRICE,
+    Last=ib.type.LAST_PRICE,
+    High=ib.type.HIGH_PRICE,
+    Low=ib.type.LOW_PRICE,
+    Close=ib.type.CLOSE_PRICE,
 )
 
 
@@ -323,10 +323,10 @@ SecurityTypes = AttributeMapping(
 
 
 SizeTypes = AttributeMapping(
-    Ask=Ib.Type.ASK_SIZE,
-    Bid=Ib.Type.BID_SIZE,
-    Last=Ib.Type.LAST_SIZE,
-    Volume=Ib.Type.VOLUME_SIZE,
+    Ask=ib.type.ASK_SIZE,
+    Bid=ib.type.BID_SIZE,
+    Last=ib.type.LAST_SIZE,
+    Volume=ib.type.VOLUME_SIZE,
 )
 
 
@@ -416,7 +416,7 @@ def common_broker_register(obj, connection):
         for m in method_names:
             if hasattr(obj, m):
                 meth = getattr(obj, m)
-                msg_type = getattr(Ib.Message, message_class_name)
+                msg_type = getattr(ib.message, message_class_name)
                 connection.register(msg_type, meth)
 
 
