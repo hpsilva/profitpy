@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+""" ib_login_helper -> key sending script for automated TWS logins.
+
+Requires the guitest_ module.
+
+.. _guitest:  https://svn.enthought.com/enthought/browser/trunk/src/lib/enthought/guitest
+
+
+"""
+import logging
+import optparse
+import sys
+
+import guitest
+
+
+class defaults:
+    username = 'edemo'
+    password = 'demouser'
+    wait = 60
+    verbose = False
+    title = 'Login'
+
+
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
+    parser = optparse.OptionParser()
+    parser.add_option('-u', '--username', dest='username',
+                      help='login with USERNAME',
+                      default=defaults.username,
+                      metavar='USERNAME')
+    parser.add_option('-p', '--password', dest='password',
+                      help='login with PASSWORD',
+                      default=defaults.password,
+                      metavar='PASSWORD')
+    parser.add_option('-t', '--title', dest='title',
+                      help='wait for window with TITLE',
+                      default=defaults.title,
+                      metavar='TITLE')
+    parser.add_option('-w', '--wait', dest='wait',
+                      help='look for login window at most WAIT seconds',
+                      default=defaults.wait,
+                      type='int',
+                      metavar='WAIT')
+    parser.add_option('-v', '--verbose', dest='verbose',
+                      action='store_true',
+                      help='echo progress to stdout',
+                      default=defaults.verbose)
+    options, throwaway = parser.parse_args()
+    if options.verbose:
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)s %(message)s')
+
+    logging.debug('waiting %s seconds for window title "%s".',
+                  options.wait, options.title)
+
+    wids = guitest.WaitWindowViewable(options.title, wait=options.wait)
+    if not wids:
+        logging.debug('no window found.')
+        return
+    wid = wids[0]
+    logging.debug('found window ids "%s", using %s', wids, wid)
+
+    r = guitest.SetInputFocus(wid)
+    if not r:
+        logging.debug('could not set input focus.')
+        return
+    logging.debug('input focus set successfully.')
+
+    keys = list(options.username) + ['TAB'] + list(options.password) + ['ENT']
+    for c in keys:
+        r = guitest.PressReleaseKey(c)
+        if not r:
+            logging.debug('could not press key "%s".', c)
+            return
+
+    logging.debug('sent all keys successfully.')
+    return True
+
+
+if __name__ == '__main__':
+    exitcodes = {None:1, True:0,}    
+    result = main()
+    sys.exit(exitcodes.get(result, exitcodes[None]))
