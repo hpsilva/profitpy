@@ -145,6 +145,8 @@ class PlotApp(plot_form.PlotForm):
                 traceback.print_exc()
                 ticker = None
 
+        if not ticker:
+            return
         for skey in ticker.strategy_keys:
             serobj = ticker.series[skey]
             stratobj = serobj.strategy
