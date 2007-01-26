@@ -59,7 +59,7 @@ class Defaults(object):
     """ Defaults -> a place holder type for method default arguments
 
     """
-    connection = 'Ib.Socket.build'
+    connection = 'ib.client.build'
     account = 'profit.lib.account.build'
     broker = 'profit.lib.broker.build'
     tickers = 'profit.lib.tickers.build'

@@ -62,8 +62,9 @@ __about__ = {
 
 import qt
 
-import ib.message
-import ib.socket
+from ib.client import message, build_qt
+from ib.client import ThreadingReader
+from ib.client.reader import Reader
 
 
 """ The first side of the link defines a QThread for reading IbPy sockets.
@@ -74,7 +75,7 @@ IbPy connections form a way to read socket data in a Qt-friendly way.
 """
 
 
-class QIbSocketReader(ib.socket.SocketReaderBase, qt.QThread):
+class QIbSocketReader(ThreadingReader, qt.QThread):
     """ QIbSocketReader(...) -> a Qt thread for reading an IbPy socket
 
     This reader type is an alternate to the default Python threading.Thread 
@@ -88,7 +89,7 @@ class QIbSocketReader(ib.socket.SocketReaderBase, qt.QThread):
     the instance should do that.
     """
     def __init__(self, readers, socket):
-        ib.socket.SocketReaderBase.__init__(self, readers, socket)
+        ThreadingReader.__init__(self, readers, socket)
         qt.QThread.__init__(self)
 
     def build(cls, client_id=0):
@@ -97,7 +98,7 @@ class QIbSocketReader(ib.socket.SocketReaderBase, qt.QThread):
         The class method complements the construction by providing a builder
         suitable making an IbPy connection with this reader type.
         """
-        return ib.socket.build(client_id=client_id, reader_type=cls)
+        return build_qt(clientId=client_id)
     build = classmethod(build)
 
 
@@ -116,14 +117,13 @@ def messageTypes():
     """
     def isreader(cls):
         """ returns true if a class is a SocketReader subclass """
-        basecls = ib.message.SocketReader
-        return issubclass(cls, basecls) and not cls is basecls
+        return issubclass(cls, Reader) and not cls is Reader
 
     def istype(cls):
         """ returns true if an object is a type """
         return isinstance(cls, (type, ))
 
-    src = ib.message.__dict__.values()
+    src = message.__dict__.values()
     types = [typ for typ in src if istype(typ) and isreader(typ)]
     return dict([(typ.__name__, typ) for typ in types])
 

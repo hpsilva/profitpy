@@ -33,12 +33,12 @@ __about__ = {
     'revision' : '$Revision$',
 }
 
-import ib.message
-import ib.socket
-import ib.type
+from ib.client import message
+#import ib.socket
+import ib.types
+from ib.types import TickType
 
-
-class ComboLeg(ib.type.ComboLeg):
+class ComboLeg(ib.types.ComboLeg):
     """ ComboLeg(...) -> local comboleg wrapper
 
     """
@@ -55,7 +55,7 @@ class ComboLeg(ib.type.ComboLeg):
                self.open_close == other.open_close
 
 
-class Contract(ib.type.Contract):
+class Contract(ib.types.Contract):
     """ Contract(...) -> local contract wrapper
 
     """
@@ -79,7 +79,7 @@ class Contract(ib.type.Contract):
     stock_factory = classmethod(stock_factory)
 
 
-class Order(ib.type.Order):
+class Order(ib.types.Order):
     """ Order(...) -> local order wrapper
 
     """
@@ -303,12 +303,12 @@ OrderTypes = AttributeMapping(
 
 
 PriceTypes = AttributeMapping(
-    Ask=ib.type.ASK_PRICE,
-    Bid=ib.type.BID_PRICE,
-    Last=ib.type.LAST_PRICE,
-    High=ib.type.HIGH_PRICE,
-    Low=ib.type.LOW_PRICE,
-    Close=ib.type.CLOSE_PRICE,
+    Ask=TickType.ASK,
+    Bid=TickType.BID,
+    Last=TickType.LAST,
+    High=TickType.HIGH,
+    Low=TickType.LOW,
+    Close=TickType.CLOSE,
 )
 
 
@@ -323,10 +323,10 @@ SecurityTypes = AttributeMapping(
 
 
 SizeTypes = AttributeMapping(
-    Ask=ib.type.ASK_SIZE,
-    Bid=ib.type.BID_SIZE,
-    Last=ib.type.LAST_SIZE,
-    Volume=ib.type.VOLUME_SIZE,
+    Ask=TickType.ASK_SIZE,
+    Bid=TickType.BID_SIZE,
+    Last=TickType.LAST_SIZE,
+    Volume=TickType.VOLUME,
 )
 
 
@@ -416,7 +416,7 @@ def common_broker_register(obj, connection):
         for m in method_names:
             if hasattr(obj, m):
                 meth = getattr(obj, m)
-                msg_type = getattr(ib.message, message_class_name)
+                msg_type = getattr(message, message_class_name)
                 connection.register(msg_type, meth)
 
 
