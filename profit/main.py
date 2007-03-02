@@ -54,7 +54,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setupLeftDock()
         self.setupBottomDock()
-        self.setupTrayIcon()
+        #self.setupTrayIcon()
         self.createSession()
         self.readSettings()
         if len(argv) > 1:
