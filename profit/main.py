@@ -18,9 +18,10 @@
 #    add check and read of startup .py script
 #    write session collector script
 #    create better defaults for plot colors
-#    add zooms to plots
-#    reset plot scale and/or axis on curve enable/disable
 #    fix systray icon
+#    add window icon
+#    add account, orders, and strategy supervisors
+#    fix zoom to (1000,1000) in plots
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp

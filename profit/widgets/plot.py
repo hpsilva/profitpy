@@ -4,15 +4,28 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import QRectF, Qt
 from PyQt4.QtGui import (QColor, QColorDialog, QFrame, QPen,
                          QStandardItem, QStandardItemModel, )
-from PyQt4.Qwt5 import QwtPlotCurve
+from PyQt4.Qwt5 import (QwtPicker, QwtPlot, QwtPlotCurve,
+                        QwtPlotPicker, QwtPlotZoomer, )
 
 from ib.ext.TickType import TickType
 
 from profit.lib import Settings, Signals, colorIcon
 from profit.widgets.ui_plot import Ui_Plot
+
+
+class PlotCurve(QwtPlotCurve):
+    """ Implement later.
+
+    """
+
+
+class PlotPicker(QwtPlotPicker):
+    """ Implement later.
+
+    """
 
 
 class ControlTreeItem(QStandardItem):
@@ -64,6 +77,7 @@ class Plot(QFrame, Ui_Plot):
         self.tickerId = tickerId
         self.setupModel()
         self.setupTree()
+        self.setupZoomer()
         session.registerMeta(self)
 
     def setupModel(self):
@@ -91,6 +105,27 @@ class Plot(QFrame, Ui_Plot):
         for col in range(model.columnCount()):
             tree.resizeColumnToContents(col)
 
+
+    def setupZoomer(self):
+        """ Configures the zoomer and picker objects for this instance.
+
+        @return None
+        """
+        plot = self.plotWidget
+        canvas = plot.canvas()
+        pen = QPen(Qt.black)
+        self.zoomer = zoomer = \
+            QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yLeft,
+                          QwtPicker.DragSelection,
+                          QwtPicker.AlwaysOff, canvas)
+        self.picker = picker = \
+            PlotPicker(QwtPlot.xBottom, QwtPlot.yLeft,
+                          QwtPicker.NoSelection,
+                          QwtPlotPicker.CrossRubberBand,
+                          QwtPicker.AlwaysOn, canvas)
+        zoomer.setRubberBandPen(pen)
+        picker.setTrackerPen(pen)
+
     def addCurve(self, key, color, data):
         """ Creates a new, empty plot curve for the given key.
 
@@ -99,8 +134,8 @@ class Plot(QFrame, Ui_Plot):
         @param data sequence associated with curve
         @return None
         """
-        self.curves[key] = curve = QwtPlotCurve()
-        curve.setStyle(QwtPlotCurve.Lines)
+        self.curves[key] = curve = PlotCurve()
+        curve.setStyle(PlotCurve.Lines)
         self.colors[key] = color
         self.ydata[key] = data
 
@@ -182,16 +217,17 @@ class Plot(QFrame, Ui_Plot):
         else:
             plot = self.plotWidget
             if enable:
-                curve.setVisible(True)
                 y = self.ydata[key]
                 x = range(len(y))
                 curve.setData(x, y)
-                curve.attach(plot)
                 curve.setPen(QPen(self.colors[key]))
+                curve.setVisible(True)
+                curve.attach(plot)
             else:
                 curve.setVisible(False)
+                curve.detach()
             plot = self.plotWidget
-            plot.updateLayout()
+            plot.updateAxes()
             plot.replot()
 
     def on_session_createdSeries(self, tickerId, field):
