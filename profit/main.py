@@ -18,8 +18,6 @@
 #    add check and read of startup .py script
 #    write session collector script
 #    create better defaults for plot colors
-#    store plot colors by symbol, series, and index
-#    send connection closed signal to connection display
 #    add zooms to plots
 #    reset plot scale and/or axis on curve enable/disable
 #    fix systray icon

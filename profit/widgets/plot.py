@@ -11,7 +11,7 @@ from PyQt4.Qwt5 import QwtPlotCurve
 
 from ib.ext.TickType import TickType
 
-from profit.lib import Signals, colorIcon
+from profit.lib import Settings, Signals, colorIcon
 from profit.widgets.ui_plot import Ui_Plot
 
 
@@ -47,6 +47,7 @@ class Plot(QFrame, Ui_Plot):
         self.colors = {}
         self.ydata = {}
         self.session = None
+        self.settings = Settings()
         self.tickerId = None
         self.plotSplitter.setSizes([80, 300])
 
@@ -113,19 +114,54 @@ class Plot(QFrame, Ui_Plot):
         ticker = self.tickerCollection[self.tickerId]
         series = ticker.series[key]
         root = dataModel.invisibleRootItem()
-        color = QColor('red')
+        name = TickType.getField(key)
+        color = self.curveColor(name)
         icon = colorIcon(color)
-        item = ControlTreeItem(TickType.getField(key), icon)
+        item = ControlTreeItem(name, icon)
         root.appendRow(item)
         rowcol = item.row(), item.column()
         self.addCurve(rowcol, color, series)
         for index in series.indexes:
-            color = QColor('blue')
+            color = self.curveColor(name, index.name)
             icon = colorIcon(color)
             subitem = ControlTreeItem(index.name, icon)
             item.appendRow(subitem)
             subrowcol = rowcol + (subitem.row(), subitem.column())
             self.addCurve(subrowcol, color, index)
+
+    defaultCurveColors = {
+        ('bidSize', ):'blue',
+        ('bidSize', 'MACD'):'black',
+    }
+
+    def curveColor(self, *names):
+        """ Loads color for named curve.
+
+        @param *names one or more strings to form settings key
+        @return QColor instance
+        """
+        names = tuple([str(name) for name in names])
+        settings = self.settings
+        settings.beginGroup(settings.keys.plots)
+        key = '%s:%s' % (self.tickerId, str.join(':', names))
+        default = self.defaultCurveColors.get(names, 'red')
+        value = settings.value(key, default)
+        settings.endGroup()
+        return QColor(value)
+
+    def saveCurveColor(self, color, *names):
+        """ Saves named curve color setting.
+
+        @param color QColor instance
+        @param *names one or more strings to form settings key
+        @return None
+        """
+        names = [str(name) for name in names]
+        settings = self.settings
+        settings.beginGroup(settings.keys.plots)
+        key = '%s:%s' % (self.tickerId, str.join(':', names))
+        settings.setValue(key, color)
+        settings.endGroup()
 
     def enableCurve(self, item, enable=True):
         """ Sets the visibility and style of a plot curve.
@@ -198,10 +234,13 @@ class Plot(QFrame, Ui_Plot):
         model = self.controlTree.model()
         if parent.isValid():
             parentkey = (parent.row(), parent.column())
-            item = model.item(*parentkey).child(*key)
+            parentitem = model.item(*parentkey)
+            item = parentitem.child(*key)
             key = parentkey + key
+            names = (parentitem.text(), item.text(), )
         else:
             item = model.item(*key)
+            names = (item.text(), )
         try:
             itemcolor = self.colors[key]
         except (AttributeError, ):
@@ -211,6 +250,7 @@ class Plot(QFrame, Ui_Plot):
             if color.isValid():
                 self.colors[key] = color
                 item.setIcon(colorIcon(color))
+                self.saveCurveColor(color, *names)
                 try:
                     curve = self.curves[key]
                 except (KeyError, ):

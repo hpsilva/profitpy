@@ -57,6 +57,7 @@ class Settings(QSettings):
         size = 'Size'
         position = 'Position'
         maximized = 'Maximized'
+        plots = 'Plots'
 
     defaultSize = QSize(400, 400)
     defaultPosition = QPoint(200, 200)

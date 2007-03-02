@@ -64,6 +64,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="alignment" >
+         <set>Qt::AlignRight</set>
+        </property>
         <property name="readOnly" >
          <bool>true</bool>
         </property>
@@ -82,9 +85,15 @@
          <sizepolicy>
           <hsizetype>7</hsizetype>
           <vsizetype>0</vsizetype>
-          <horstretch>2</horstretch>
+          <horstretch>6</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="frame" >
+         <bool>true</bool>
+        </property>
+        <property name="alignment" >
+         <set>Qt::AlignRight</set>
         </property>
         <property name="readOnly" >
          <bool>true</bool>

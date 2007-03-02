@@ -34,7 +34,7 @@ class Series(list):
     def __init__(self):
         list.__init__(self)
         self.indexes = [
-            Index('MCAD'),
+            Index('MACD'),
             Index('EMA-20'),
             Index('SMA-50'),
             Index('KAMA'),
