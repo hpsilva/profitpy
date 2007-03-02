@@ -1,0 +1,102 @@
+<ui version="4.0" >
+ <class>TickerDisplay</class>
+ <widget class="QWidget" name="TickerDisplay" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
+   <property name="spacing" >
+    <number>6</number>
+   </property>
+   <item>
+    <widget class="SearchBar" native="1" name="widget" />
+   </item>
+   <item>
+    <widget class="LocalTable" name="tickerTable" >
+     <property name="alternatingRowColors" >
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode" >
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="showGrid" >
+      <bool>true</bool>
+     </property>
+     <property name="gridStyle" >
+      <enum>Qt::DotLine</enum>
+     </property>
+     <column>
+      <property name="text" >
+       <string>Symbol</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Position</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Value</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Ask Size</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Ask Price</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Bid Size</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Bid Price</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Last Size</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Last Price</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SearchBar</class>
+   <extends>QWidget</extends>
+   <header>searchbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LocalTable</class>
+   <extends>QTableWidget</extends>
+   <header>localtable.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

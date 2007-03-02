@@ -1,0 +1,154 @@
+<ui version="4.0" >
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>558</width>
+    <height>479</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Profit Device</string>
+  </property>
+  <widget class="QWidget" name="centralwidget" >
+   <layout class="QVBoxLayout" >
+    <property name="margin" >
+     <number>0</number>
+    </property>
+    <property name="spacing" >
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="CentralTabs" name="centralTabs" />
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>558</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_Edit" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_Help" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuFile" >
+    <property name="title" >
+     <string>&amp;File</string>
+    </property>
+    <widget class="QMenu" name="menuRecent_Sessions" >
+     <property name="title" >
+      <string>Recent Sessions</string>
+     </property>
+     <addaction name="separator" />
+     <addaction name="actionClearRecentMenu" />
+    </widget>
+    <addaction name="actionNewSession" />
+    <addaction name="actionOpenSession" />
+    <addaction name="menuRecent_Sessions" />
+    <addaction name="separator" />
+    <addaction name="actionSaveSession" />
+    <addaction name="actionSaveSessionAs" />
+    <addaction name="separator" />
+    <addaction name="actionCloseSession" />
+    <addaction name="separator" />
+    <addaction name="actionQuit" />
+   </widget>
+   <addaction name="menuFile" />
+   <addaction name="menu_Edit" />
+   <addaction name="menu_Help" />
+  </widget>
+  <widget class="QStatusBar" name="statusbar" />
+  <action name="actionNewSession" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/filenew.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;New Session...</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionOpenSession" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/fileopen.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Open Session...</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionClearRecentMenu" >
+   <property name="text" >
+    <string>Clear &amp;Menu</string>
+   </property>
+  </action>
+  <action name="actionSaveSession" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/filesave.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Save Session</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSaveSessionAs" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/filesaveas.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Save Session &amp;As...</string>
+   </property>
+  </action>
+  <action name="actionCloseSession" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/fileclose.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Close Session</string>
+   </property>
+   <property name="shortcut" >
+    <string>Alt+F4</string>
+   </property>
+  </action>
+  <action name="actionQuit" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/exit.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CentralTabs</class>
+   <extends>QTabWidget</extends>
+   <header>centraltabs.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="profit.qrc" />
+ </resources>
+ <connections/>
+</ui>

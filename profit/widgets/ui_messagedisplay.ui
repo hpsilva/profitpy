@@ -1,0 +1,113 @@
+<ui version="4.0" >
+ <class>MessageDisplay</class>
+ <widget class="QWidget" name="MessageDisplay" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>491</width>
+    <height>464</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
+   <property name="spacing" >
+    <number>6</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item>
+      <widget class="SearchBar" native="1" name="searchBar" />
+     </item>
+     <item>
+      <layout class="QHBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="displayButton" >
+         <property name="contextMenuPolicy" >
+          <enum>Qt::DefaultContextMenu</enum>
+         </property>
+         <property name="text" >
+          <string>Display</string>
+         </property>
+         <property name="icon" >
+          <iconset resource="profit.qrc" >:/images/icons/filter.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="colorButton" >
+         <property name="text" >
+          <string>Highlight</string>
+         </property>
+         <property name="icon" >
+          <iconset resource="profit.qrc" >:/images/icons/colorize.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pauseButton" >
+         <property name="text" >
+          <string>Pause</string>
+         </property>
+         <property name="icon" >
+          <iconset resource="profit.qrc" >:/images/icons/player_pause.png</iconset>
+         </property>
+         <property name="checkable" >
+          <bool>true</bool>
+         </property>
+         <property name="checked" >
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTableView" name="messageTable" >
+     <property name="alternatingRowColors" >
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode" >
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior" >
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="gridStyle" >
+      <enum>Qt::DotLine</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SearchBar</class>
+   <extends>QWidget</extends>
+   <header>searchbar.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="profit.qrc" />
+ </resources>
+ <connections/>
+</ui>
