@@ -11,6 +11,8 @@ from subprocess import Popen, PIPE
 
 from PyQt4.QtCore import pyqtSignature
 from PyQt4.QtGui import QFrame, QMessageBox
+
+from profit.lib import Signals
 from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
 
@@ -40,12 +42,41 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.setupUi(self)
         self.session = session
         self.hostNameEdit.setText(defaults.host)
-        self.portNumberEdit.setText(str(defaults.port))
-        self.clientIdEdit.setText(str(defaults.client))
+        self.portNumberEdit.setValue(defaults.port)
+        self.clientIdEdit.setValue(defaults.client)
         keyHelperCommand, brokerCommand = commandStrings()
         self.keyHelperCommandEdit.setText(keyHelperCommand)
         self.brokerCommandEdit.setText(brokerCommand)
         self.pids = {'broker':[], 'helper':[]}
+        session.registerMeta(self)
+        self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
+
+    def on_session_ConnectionClosed(self, message):
+        self.setEnabledButtons(True, False)
+        self.serverVersionEdit.setText('')
+        self.connectionTimeEdit.setText('')
+
+    def on_connectedTWS(self):
+        session = self.session
+        if session.isConnected:
+            self.setEnabledButtons(False, True)
+            try:
+                session.requestTickers()
+                session.requestAccount()
+                session.requestOrders()
+            except (Exception, ), exc:
+                QMessageBox.critical(self, 'Session Error', str(exc))
+            else:
+                self.serverVersionEdit.setText(
+                    str(session.connection.serverVersion())
+                    )
+                self.connectionTimeEdit.setText(
+                    session.connection.TwsConnectionTime()
+                    )
+        else:
+            QMessageBox.critical(self, 'Connection Error',
+                                 'Unable to connect.')
+            self.setEnabledButtons(True, False)
 
     @pyqtSignature('')
     def on_connectButton_clicked(self):
@@ -61,21 +92,6 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
             session.connectTWS(hostName, portNo, clientId)
         except (Exception, ), exc:
             QMessageBox.critical(self, 'Connection Error', str(exc))
-            return
-        if session.isConnected:
-            self.setEnabledButtons(False, True)
-            try:
-                session.requestTickers()
-                session.requestAccount()
-                session.requestOrders()
-            except (Exception, ), exc:
-                QMessageBox.critical(self, 'Session Error', str(exc))
-                raise
-        else:
-            QMessageBox.critical(self, 'Connection Error',
-                                 'Unable to connect.')
-            self.setEnabledButtons(True, False)
-
 
     @pyqtSignature('')
     def on_disconnectButton_clicked(self):
@@ -89,7 +105,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
 
     def clientId(self):
         try:
-            clientId = int(self.clientIdEdit.text())
+            clientId = self.clientIdEdit.value()
         except (ValueError, ), exc:
             clientId = None
             QMessageBox.critical(self, 'Client Id Error', str(exc))
@@ -97,7 +113,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
 
     def portNo(self):
         try:
-            portNo = int(self.portNumberEdit.text())
+            portNo = self.portNumberEdit.value()
         except (ValueError, ), exc:
             portNo = None
             QMessageBox.critical(self, 'Port Number Error', str(exc))
@@ -112,11 +128,11 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
 
     def setNextClientId(self):
         try:
-            value = int(self.clientIdEdit.text())
+            value = self.clientIdEdit.value()
         except (ValueError, ):
             pass
         else:
-            self.clientIdEdit.setText(str(value+1))
+            self.clientIdEdit.setValue(value+1)
 
 
     @pyqtSignature('')

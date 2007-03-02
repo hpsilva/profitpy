@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>499</width>
-    <height>439</height>
+    <width>524</width>
+    <height>535</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -19,6 +19,81 @@
    <property name="spacing" >
     <number>6</number>
    </property>
+   <item>
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>Status</string>
+     </property>
+     <layout class="QHBoxLayout" >
+      <property name="margin" >
+       <number>9</number>
+      </property>
+      <property name="spacing" >
+       <number>6</number>
+      </property>
+      <item>
+       <spacer>
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType" >
+         <enum>QSizePolicy::Minimum</enum>
+        </property>
+        <property name="sizeHint" >
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label" >
+        <property name="text" >
+         <string>Server Version:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="serverVersionEdit" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>7</hsizetype>
+          <vsizetype>0</vsizetype>
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="readOnly" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label" >
+        <property name="text" >
+         <string>Connection Time:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="connectionTimeEdit" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>7</hsizetype>
+          <vsizetype>0</vsizetype>
+          <horstretch>2</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="readOnly" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="groupBox" >
      <property name="title" >
@@ -75,9 +150,15 @@
            </widget>
           </item>
           <item row="1" column="1" >
-           <widget class="QLineEdit" name="portNumberEdit" >
+           <widget class="QSpinBox" name="portNumberEdit" >
             <property name="alignment" >
              <set>Qt::AlignRight</set>
+            </property>
+            <property name="maximum" >
+             <number>65536</number>
+            </property>
+            <property name="minimum" >
+             <number>1024</number>
             </property>
            </widget>
           </item>
@@ -89,7 +170,7 @@
            </widget>
           </item>
           <item row="2" column="1" >
-           <widget class="QLineEdit" name="clientIdEdit" >
+           <widget class="QSpinBox" name="clientIdEdit" >
             <property name="alignment" >
              <set>Qt::AlignRight</set>
             </property>
@@ -151,19 +232,6 @@
          </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <spacer>
-        <property name="orientation" >
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" >
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
       </item>
      </layout>
     </widget>
@@ -290,21 +358,21 @@
         </item>
        </layout>
       </item>
-      <item>
-       <spacer>
-        <property name="orientation" >
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" >
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>506</width>
+       <height>211</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
