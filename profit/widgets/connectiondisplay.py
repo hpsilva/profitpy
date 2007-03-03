@@ -60,7 +60,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
 
     def updateMessageRate(self, message):
-        last = self.session.messages[-20:]
+        last = self.session.messages[-10:]
         count = len(last)
         try:
             rate = count / (last[-1][0] - last[0][0])

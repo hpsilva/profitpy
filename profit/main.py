@@ -41,21 +41,19 @@ from profit.widgets.shell import PythonShell
 from profit.widgets.ui_mainwindow import Ui_MainWindow
 
 
-def svn_revision():
-    return popen('svnversion|cut -f 2 -d :|cut -f 1 -d M').read().strip()
-
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     iconName = ':images/icons/blockdevice.png'
 
-    def __init__(self, parent=None):
-        QMainWindow.__init__(self, parent)
+    def __init__(self):
+        QMainWindow.__init__(self)
         self.setupUi(self)
         self.setupLeftDock()
         self.setupBottomDock()
         self.setupIcons()
         self.createSession()
         self.readSettings()
+        title = '%s (0.2 alpha)' % QApplication.applicationName()
+        self.setWindowTitle(title)
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
 
@@ -78,16 +76,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def setupIcons(self):
         icon = QIcon(self.iconName)
         self.setWindowIcon(icon)
-        self.trayIcon = trayIcon = QSystemTrayIcon(self)
-        self.trayMenu = trayMenu = QMenu()
-        trayIcon.setIcon(icon)
-        trayMenu.addAction(icon, 'Profit Device')
-        trayMenu.addSeparator()
-        for action in self.menuFile.actions():
-            trayMenu.addAction(action)
-        trayIcon.setContextMenu(trayMenu)
-        self.connect(trayIcon, Signals.activated, self.on_trayIcon_activated)
-        trayIcon.show()
+        if 0:
+            self.trayIcon = trayIcon = QSystemTrayIcon(self)
+            self.trayMenu = trayMenu = QMenu()
+            trayIcon.setIcon(icon)
+            trayMenu.addAction(icon, QApplication.applicationName())
+            trayMenu.addSeparator()
+            for action in self.menuFile.actions():
+                trayMenu.addAction(action)
+            trayIcon.setContextMenu(trayMenu)
+            self.connect(trayIcon, Signals.activated, self.on_trayIcon_activated)
+            trayIcon.show()
 
     def on_trayIcon_activated(self, reason):
         if reason == self.trayIcon.Trigger:
@@ -98,10 +97,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 msg = 'Not Connected'
             self.trayIcon.showMessage('Connection Status:', msg)
-
-    def setWindowTitle(self, text):
-        text = '%s 0.2 (alpha) (r %s)' % (text, svn_revision())
-        QMainWindow.setWindowTitle(self, text)
 
     def createSession(self):
         ## lookup builder and pass instance here

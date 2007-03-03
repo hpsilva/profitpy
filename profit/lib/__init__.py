@@ -54,7 +54,7 @@ class Settings(QSettings):
         main = 'MainWindow'
         session = 'Session'
         org = 'ProfitPy'
-        app = 'ProfitDevice'
+        app = 'Profit Device'
         size = 'Size'
         position = 'Position'
         maximized = 'Maximized'
