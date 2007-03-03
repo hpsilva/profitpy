@@ -13,6 +13,7 @@ class Signals:
     """ Contains SIGNAL attributes for easy and consistent reference.
 
     """
+    activated = SIGNAL('activated(QSystemTrayIcon::ActivationReason)')
     clicked = SIGNAL('clicked()')
     connectedTWS = SIGNAL('connectedTWS')
     createdSeries = SIGNAL('createdSeries')

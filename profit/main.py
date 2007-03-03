@@ -18,8 +18,6 @@
 #    add check and read of startup .py script
 #    write session collector script
 #    create better defaults for plot colors
-#    fix systray icon
-#    add window icon
 #    add account, orders, and strategy supervisors
 #    fix zoom to (1000,1000) in plots
 
@@ -48,12 +46,14 @@ def svn_revision():
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    iconName = ':images/icons/blockdevice.png'
+
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
         self.setupUi(self)
         self.setupLeftDock()
         self.setupBottomDock()
-        #self.setupTrayIcon()
+        self.setupIcons()
         self.createSession()
         self.readSettings()
         if len(argv) > 1:
@@ -75,15 +75,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tabifyDockWidget(self.shellDock, self.stdoutDock)
         self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
 
-    def setupTrayIcon(self):
+    def setupIcons(self):
+        icon = QIcon(self.iconName)
+        self.setWindowIcon(icon)
         self.trayIcon = trayIcon = QSystemTrayIcon(self)
         self.trayMenu = trayMenu = QMenu()
-        trayIcon.setIcon(QIcon(":/images/icons/run.png"))
-        trayMenu.setTitle('Profit Device') # get from app
+        trayIcon.setIcon(icon)
+        trayMenu.addAction(icon, 'Profit Device')
         trayMenu.addSeparator()
-        trayMenu.addMenu(self.menuFile)
+        for action in self.menuFile.actions():
+            trayMenu.addAction(action)
         trayIcon.setContextMenu(trayMenu)
+        self.connect(trayIcon, Signals.activated, self.on_trayIcon_activated)
         trayIcon.show()
+
+    def on_trayIcon_activated(self, reason):
+        if reason == self.trayIcon.Trigger:
+            self.setVisible(not self.isVisible())
+        elif reason == self.trayIcon.MiddleClick:
+            if self.session and self.session.isConnected:
+                msg = 'Connected'
+            else:
+                msg = 'Not Connected'
+            self.trayIcon.showMessage('Connection Status:', msg)
 
     def setWindowTitle(self, text):
         text = '%s 0.2 (alpha) (r %s)' % (text, svn_revision())
