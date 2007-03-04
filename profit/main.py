@@ -37,6 +37,7 @@ from profit.widgets import profit_rc
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
+from profit.widgets.settingsdialog import SettingsDialog
 from profit.widgets.shell import PythonShell
 from profit.widgets.ui_mainwindow import Ui_MainWindow
 
@@ -149,6 +150,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     msg = 'Load aborted; loaded %s messages of %s.'
                     msg %= (msgid+1, count)
             self.statusBar().showMessage(msg, 5000)
+
+    @pyqtSignature('')
+    def on_actionSettings_triggered(self):
+        settings = Settings()
+        dlg = SettingsDialog()
+        dlg.readSettings(settings)
+        if dlg.exec_() == dlg.Accepted:
+            dlg.writeSettings(settings)
 
     @pyqtSignature('bool')
     def on_actionClearRecentMenu_triggered(self, checked=False):

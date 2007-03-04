@@ -51,14 +51,16 @@ class Settings(QSettings):
         """ Attributes are setting keys.
 
         """
-        main = 'MainWindow'
-        session = 'Session'
-        org = 'ProfitPy'
         app = 'Profit Device'
-        size = 'Size'
-        position = 'Position'
+        appearance = 'Appearance'
+        main = 'MainWindow'
         maximized = 'Maximized'
+        org = 'ProfitPy'
         plots = 'Plots'
+        position = 'Position'
+        session = 'Session'
+        size = 'Size'
+        strategy = 'Strategy'
 
     defaultSize = QSize(400, 400)
     defaultPosition = QPoint(200, 200)
@@ -78,14 +80,17 @@ class Settings(QSettings):
         """
         QSettings.setValue(self, key, QVariant(value))
 
-    def value(self, key, default):
+    def value(self, key, default=None):
         """ Returns value for key, or default if key doesn't exist.
 
         @param key setting key as string
         @param default value returned if key does not exist
         @return value of key or default
         """
-        default = QVariant(default)
+        if default is None:
+            default = QVariant()
+        else:
+            default = QVariant(default)
         return QSettings.value(self, key, default)
 
 

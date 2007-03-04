@@ -21,12 +21,14 @@
 <file>images/icons/kcontrol.png</file>
 <file>images/icons/klipper_dock.png</file>
 <file>images/icons/looknfeel.png</file>
+<file>images/icons/misc.png</file>
 <file>images/icons/package_system.png</file>
 <file>images/icons/player_pause.png</file>
 <file>images/icons/player_play.png</file>
 <file>images/icons/run.png</file>
 <file>images/icons/server.png</file>
 <file>images/icons/services.png</file>
+<file>images/icons/source_py.png</file>
 <file>images/icons/tab_remove.png</file>
 <file>images/icons/terminal.png</file>
 <file>images/icons/view_detailed.png</file>

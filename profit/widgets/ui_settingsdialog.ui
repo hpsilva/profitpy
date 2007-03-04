@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog" >
+ <class>SettingsDialog</class>
+ <widget class="QDialog" name="SettingsDialog" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -142,7 +142,7 @@ p, li { white-space: pre-wrap; }
              <number>6</number>
             </property>
             <item>
-             <widget class="QCheckBox" name="closeWhenModified" >
+             <widget class="QCheckBox" name="confirmCloseWhenModified" >
               <property name="text" >
                <string>Close with session modified</string>
               </property>
@@ -152,7 +152,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="closeWhenConnected" >
+             <widget class="QCheckBox" name="confirmCloseWhenConnected" >
               <property name="text" >
                <string>Close when connected</string>
               </property>
@@ -512,7 +512,11 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QFontComboBox" name="shellFont" />
+               <widget class="QFontComboBox" name="shellFont" >
+                <property name="fontFilters" >
+                 <set>QFontComboBox::MonospacedFonts</set>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -553,9 +557,9 @@ p, li { white-space: pre-wrap; }
                <number>6</number>
               </property>
               <item row="2" column="1" >
-               <widget class="QPushButton" name="decreaseColorButton" >
+               <widget class="QPushButton" name="decreaseColor" >
                 <property name="text" >
-                 <string>Select...</string>
+                 <string/>
                 </property>
                 <property name="flat" >
                  <bool>false</bool>
@@ -570,9 +574,9 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item row="1" column="1" >
-               <widget class="QPushButton" name="neutralColorButton" >
+               <widget class="QPushButton" name="neutralColor" >
                 <property name="text" >
-                 <string>Select...</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -584,9 +588,9 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item row="0" column="1" >
-               <widget class="QPushButton" name="increaseColorButton" >
+               <widget class="QPushButton" name="increaseColor" >
                 <property name="text" >
-                 <string>Select...</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -640,7 +644,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>SettingsDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel" >
@@ -656,7 +660,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>SettingsDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel" >
