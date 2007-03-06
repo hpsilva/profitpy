@@ -60,7 +60,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
 
     def updateMessageRate(self, message):
-        last = self.session.messages[-10:]
+        last = self.session.messages[-25:]
         count = len(last)
         try:
             rate = count / (last[-1][0] - last[0][0])
@@ -70,7 +70,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
             self.rateThermo.setValue(rate)
 
     def updateLastMessage(self, message):
-        name = message.__class__.__name__
+        name = message.typeName
         items = str.join(', ', ['%s=%s' % item for item in message.items()])
         text = '%s%s' % (name, ' ' + items if items else '')
         self.lastMessageEdit.setText(text[0:60])

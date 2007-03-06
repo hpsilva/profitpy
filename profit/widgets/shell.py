@@ -21,7 +21,7 @@ from traceback import extract_tb, format_exception_only, format_list
 from PyQt4.QtCore import Qt, QString
 from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit
 
-from profit.lib import Signals
+from profit.lib import Settings, Signals
 
 
 class PythonInterpreter(InteractiveInterpreter):
@@ -88,10 +88,13 @@ class PythonShell(QTextEdit):
         self.point = self.more = self.reading = self.pointer = self.pos = 0
         self.setupInterp()
         self.setupUi()
+        self.setupShellFont()
         self.readShellHistory()
         self.writeBanner()
         self.connect(QApplication.instance(), Signals.lastWindowClosed,
                      self.writeShellHistory)
+        self.connect(self.window(), Signals.settingsChanged,
+                     self.setupShellFont)
 
     def setupInterp(self):
         self.interp = PythonInterpreter(output=sys.stderr)
@@ -103,13 +106,13 @@ class PythonShell(QTextEdit):
             main=self.window(),
         )
 
+    def setupShellFont(self):
+        settings = Settings()
+        settings.beginGroup(settings.keys.appearance)
+        font = settings.value('shellFont', QFont())
+        self.setFont(QFont(font))
+
     def setupUi(self):
-        font = QFont(self.font())
-        font.setFamily("Bitstream Vera Sans Mono")
-        font.setPointSize(10)
-        font.setWeight(50)
-        font.setBold(False)
-        self.setFont(font)
         self.setLineWrapMode(self.NoWrap)
         self.setUndoRedoEnabled(False) ## big performance hit otherwise
 

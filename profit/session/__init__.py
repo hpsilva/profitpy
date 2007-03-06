@@ -210,7 +210,7 @@ class Session(QObject):
         messages = self.messages
         current = (timefunc(), message)
         messages.append(current)
-        typename = message.__class__.__name__
+        typename = message.typeName
         typed = self.typedMessages.setdefault(typename, [])
         typed.append(current + (len(messages), ))
         self.bareMessages.append(message)

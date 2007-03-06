@@ -18,7 +18,7 @@ def replayOrders(messages, obj):
     def pred((t, m)):
         return ismsg(m)
     for time, message in ifilter(pred, messages):
-        call = getattr(obj, 'on_session_%s' % message.__class__.__name__)
+        call = getattr(obj, 'on_session_%s' % message.typeName)
         call(message)
 
 

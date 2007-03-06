@@ -25,16 +25,10 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <widget class="QTreeView" name="controlTree" >
-      <property name="alternatingRowColors" >
-       <bool>true</bool>
-      </property>
       <property name="uniformRowHeights" >
        <bool>true</bool>
       </property>
       <property name="animated" >
-       <bool>true</bool>
-      </property>
-      <property name="allColumnsShowFocus" >
        <bool>true</bool>
       </property>
      </widget>

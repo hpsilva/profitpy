@@ -53,16 +53,18 @@
     <addaction name="separator" />
     <addaction name="actionQuit" />
    </widget>
-   <widget class="QMenu" name="menuHelp" >
-    <property name="title" >
-     <string>&amp;Help</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
     </property>
     <addaction name="actionSettings" />
+   </widget>
+   <widget class="QMenu" name="menuHelp" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAboutProfitDevice" />
+    <addaction name="actionDocumentation" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menEdit" />
@@ -143,6 +145,16 @@
    </property>
    <property name="text" >
     <string>Settings...</string>
+   </property>
+  </action>
+  <action name="actionAboutProfitDevice" >
+   <property name="text" >
+    <string>About Profit Device...</string>
+   </property>
+  </action>
+  <action name="actionDocumentation" >
+   <property name="text" >
+    <string>Documentation...</string>
    </property>
   </action>
  </widget>

@@ -28,6 +28,7 @@ class Signals:
     modelDoubleClicked = SIGNAL('doubleClicked (const QModelIndex &)')
     modelReset = SIGNAL('modelReset()')
     sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
+    settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')
     tickerClicked = SIGNAL('tickerClicked')
@@ -51,6 +52,7 @@ class Settings(QSettings):
         """ Attributes are setting keys.
 
         """
+        account = 'Account'
         app = 'Profit Device'
         appearance = 'Appearance'
         main = 'MainWindow'
@@ -61,6 +63,7 @@ class Settings(QSettings):
         session = 'Session'
         size = 'Size'
         strategy = 'Strategy'
+        winstate = 'Window State'
 
     defaultSize = QSize(400, 400)
     defaultPosition = QPoint(200, 200)
@@ -127,15 +130,22 @@ tickerIdRole = Qt.UserRole + 32
 ##
 valueAlign = Qt.AlignRight | Qt.AlignVCenter
 
+class ValueColorItem(object):
+    increase = QBrush(QColor(Qt.darkGreen))
+    neutral = QBrush(QColor(Qt.blue))
+    decrease = QBrush(QColor(Qt.red))
 
-class ValueTableItem(QTableWidgetItem):
+    @classmethod
+    def setColors(cls, increase, neutral, decrease):
+        cls.increase = QBrush(increase)
+        cls.neutral = QBrush(neutral)
+        cls.decrease = QBrush(decrease)
+
+
+class ValueTableItem(QTableWidgetItem, ValueColorItem):
     """ Table item that changes colors based on value changes.
 
     """
-    red = QBrush(QColor('red'))
-    green = QBrush(QColor('green'))
-    blue = QBrush(QColor('blue'))
-
     def __init__(self):
         """ Constructor.
 
@@ -161,11 +171,11 @@ class ValueTableItem(QTableWidgetItem):
             self.setText(str(value))
             return
         if value < current:
-            self.setForeground(self.red)
+            self.setForeground(self.decrease)
         elif value > current:
-            self.setForeground(self.green)
+            self.setForeground(self.increase)
         else:
-            self.setForeground(self.blue)
+            self.setForeground(self.neutral)
         self.value = value
         self.setText(str(value))
 
@@ -234,7 +244,7 @@ def nogc(obj):
 
 
 def disabledUpdates(name):
-    """ Creates decorator to wrap table access with setUpdatesEnabled calls
+    """ Creates decorator to wrap table access with setUpdatesEnabled calls.
 
     @param name name of table attribute
     @return decorator function
@@ -259,7 +269,7 @@ def disabledUpdates(name):
 def nameIn(*names):
     def check(obj):
         try:
-            return obj.__class__.__name__ in names
+            return obj.typeName in names
         except (AttributeError, ):
             return False
     return check

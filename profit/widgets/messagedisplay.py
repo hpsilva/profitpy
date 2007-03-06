@@ -22,7 +22,7 @@ def messageTypeNames():
 
     @return set of all message type names as strings
     """
-    return set([t.__name__ for t in registry.values()])
+    return set([t.typeName for t in registry.values()])
 
 
 def messageRow(index, mtuple):
@@ -54,7 +54,7 @@ def messageName(index, (mtime, message)):
     @param message message instance
     @return type name of message as string
     """
-    return message.__class__.__name__
+    return message.typeName
 
 
 def messageText(index, (mtime, message)):
@@ -126,7 +126,7 @@ class MessagesTableModel(QAbstractTableModel):
             return QVariant()
         message = self.messages[index.row()]
         if role == Qt.ForegroundRole:
-            return QVariant(self.brushes[message[1].__class__.__name__])
+            return QVariant(self.brushes[message[1].typeName])
         if role != Qt.DisplayRole:
             return QVariant()
         try:
@@ -186,7 +186,7 @@ class MessagesFilterModel(QSortFilterProxyModel):
         if self.stoprow and row > self.stoprow:
             return False
         msg = self.messages[row][1]
-        return msg.__class__.__name__ in self.types
+        return msg.typeName in self.types
 
 
 class MessageDisplay(QFrame, Ui_MessageDisplay):

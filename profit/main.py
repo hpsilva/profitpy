@@ -7,11 +7,9 @@
 
 # todo:
 #    search bar for tickers, orders, account, etc.
-#    complete account dock widget
 #    account display plots
-#    add config dialog and session builder class setting
 #    add prompts to close/quit if connected
-#    add setting saves for message colors
+#    add setting saves for message display colors
 #    change "open" to "import"; provide actual "open" via
 #        new window (if existing window has session messages)
 #    modify orders display to use model/tree view
@@ -20,20 +18,25 @@
 #    create better defaults for plot colors
 #    add account, orders, and strategy supervisors
 #    fix zoom to (1000,1000) in plots
+#    finalize about dialog box content
+#    add help links to wiki
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
 from signal import SIGQUIT
 from sys import argv
 
-from PyQt4.QtCore import Qt, pyqtSignature
-from PyQt4.QtGui import QApplication, QFrame, QMainWindow, QSystemTrayIcon
+from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
+from PyQt4.QtGui import QApplication, QColor, QMainWindow
 from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
-from PyQt4.QtGui import QIcon
+from PyQt4.QtGui import QSystemTrayIcon
+from PyQt4.QtGui import QIcon, QDesktopServices
 
-from profit.lib import Signals, Settings, nogc
+from profit.lib import Signals, Settings, ValueColorItem, nogc
 from profit.session import Session
 from profit.widgets import profit_rc
+from profit.widgets.accountsummary import AccountSummary
+from profit.widgets.aboutdialog import AboutDialog
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
@@ -50,16 +53,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setupLeftDock()
         self.setupBottomDock()
-        self.setupIcons()
-        self.createSession()
+        self.setupMainIcon()
+        self.setupSysTray()
+        self.setupColors()
         self.readSettings()
         title = '%s (0.2 alpha)' % QApplication.applicationName()
         self.setWindowTitle(title)
+        self.connect(self, Signals.settingsChanged, self.setupColors)
+        self.connect(self, Signals.settingsChanged, self.setupSysTray)
+        self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
 
     def setupLeftDock(self):
-        self.accountDock = Dock('Account', self, QFrame)
+        self.accountDock = Dock('Account', self, AccountSummary)
         self.sessionDock = Dock('Session', self, SessionTree)
         self.tabifyDockWidget(self.sessionDock, self.accountDock)
 
@@ -74,25 +81,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tabifyDockWidget(self.shellDock, self.stdoutDock)
         self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
 
-    def setupIcons(self):
+    def setupMainIcon(self):
         icon = QIcon(self.iconName)
         self.setWindowIcon(icon)
-        if 0:
-            self.trayIcon = trayIcon = QSystemTrayIcon(self)
-            self.trayMenu = trayMenu = QMenu()
-            trayIcon.setIcon(icon)
-            trayMenu.addAction(icon, QApplication.applicationName())
-            trayMenu.addSeparator()
-            for action in self.menuFile.actions():
-                trayMenu.addAction(action)
-            trayIcon.setContextMenu(trayMenu)
-            self.connect(trayIcon, Signals.activated, self.on_trayIcon_activated)
+
+    def setupSysTray(self):
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        if settings.value('useSystemTrayIcon', QVariant()).toInt()[0]:
+            icon = self.windowIcon()
+            try:
+                trayIcon = self.trayIcon
+            except (AttributeError, ):
+                self.trayIcon = trayIcon = QSystemTrayIcon(self)
+                self.trayMenu = trayMenu = QMenu()
+                trayIcon.setIcon(icon)
+                trayMenu.addAction(icon, QApplication.applicationName())
+                trayMenu.addSeparator()
+                for action in self.menuFile.actions():
+                    trayMenu.addAction(action)
+                    trayIcon.setContextMenu(trayMenu)
+                self.connect(trayIcon, Signals.activated,
+                             self.on_trayIcon_activated)
             trayIcon.show()
+        else:
+            try:
+                trayIcon = self.trayIcon
+            except (AttributeError, ):
+                pass
+            else:
+                trayIcon.hide()
 
     def on_trayIcon_activated(self, reason):
-        if reason == self.trayIcon.Trigger:
+        if reason == QSystemTrayIcon.Trigger:
             self.setVisible(not self.isVisible())
-        elif reason == self.trayIcon.MiddleClick:
+        elif reason == QSystemTrayIcon.MiddleClick:
             if self.session and self.session.isConnected:
                 msg = 'Connected'
             else:
@@ -103,6 +126,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ## lookup builder and pass instance here
         self.session = Session()
         self.emit(Signals.sessionCreated, self.session)
+
+    @pyqtSignature('')
+    def on_actionAboutProfitDevice_triggered(self):
+        dlg = AboutDialog(self)
+        dlg.exec_()
+
+    @pyqtSignature('')
+    def on_actionDocumentation_triggered(self):
+        QDesktopServices.openUrl(
+            QUrl('http://code.google.com/p/profitpy/w/list?q=label:Documentation'))
 
     @pyqtSignature('bool')
     def on_actionNewSession_triggered(self, checked=False):
@@ -158,6 +191,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dlg.readSettings(settings)
         if dlg.exec_() == dlg.Accepted:
             dlg.writeSettings(settings)
+            self.emit(Signals.settingsChanged)
 
     @pyqtSignature('bool')
     def on_actionClearRecentMenu_triggered(self, checked=False):
@@ -189,7 +223,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def checkClose(self):
         check = True
-        if self.session.isModified:
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        confirm = settings.value('confirmCloseWhenModified', QVariant(1))
+        confirm = confirm.toInt()[0]
+        if self.session.isModified and confirm:
             buttons = QMessageBox.Save|QMessageBox.Discard|QMessageBox.Cancel
             msg = QMessageBox.question(self, 'ProfitPy',
                                        'This session has been modified.\n'
@@ -222,11 +260,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pos = settings.value(settings.keys.position,
                              settings.defaultPosition).toPoint()
         maxed = settings.value(settings.keys.maximized, False).toBool()
-        settings.endGroup()
         self.resize(size)
         self.move(pos)
         if maxed:
             self.showMaximized()
+        state = settings.value(settings.keys.winstate, QVariant())
+        self.restoreState(state.toByteArray())
+        settings.endGroup()
 
     def writeSettings(self):
         settings = Settings()
@@ -234,4 +274,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings.setValue(settings.keys.size, self.size())
         settings.setValue(settings.keys.position, self.pos())
         settings.setValue(settings.keys.maximized, self.isMaximized())
+        settings.setValue(settings.keys.winstate, self.saveState())
         settings.endGroup()
+
+
+    def setupColors(self):
+        settings = Settings()
+        settings.beginGroup(settings.keys.appearance)
+        cls = ValueColorItem
+        keys = ['increaseColor', 'neutralColor', 'decreaseColor']
+        attrs = [k.replace('Color', '') for k in keys]
+        values = [QColor(settings.value(key, getattr(cls, attr)))
+                     for key, attr in zip(keys, attrs)]
+        cls.setColors(*values)

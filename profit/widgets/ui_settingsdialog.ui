@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>604</width>
-    <height>518</height>
+    <height>517</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -498,7 +498,7 @@ p, li { white-space: pre-wrap; }
                 </property>
                 <property name="sizeHint" >
                  <size>
-                  <width>40</width>
+                  <width>20</width>
                   <height>20</height>
                  </size>
                 </property>
@@ -512,9 +512,27 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QFontComboBox" name="shellFont" >
-                <property name="fontFilters" >
-                 <set>QFontComboBox::MonospacedFonts</set>
+               <widget class="QLineEdit" name="shellFont" >
+                <property name="sizePolicy" >
+                 <sizepolicy>
+                  <hsizetype>7</hsizetype>
+                  <vsizetype>0</vsizetype>
+                  <horstretch>1</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="focusPolicy" >
+                 <enum>Qt::NoFocus</enum>
+                </property>
+                <property name="readOnly" >
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectShellFont" >
+                <property name="text" >
+                 <string>Select...</string>
                 </property>
                </widget>
               </item>

@@ -5,6 +5,8 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+import sys
+
 from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel)
@@ -111,18 +113,26 @@ class SessionTree(QFrame, Ui_SessionTree):
         connect = self.connect
         tree = self.treeView
         window = self.window()
-        connect(window, Signals.sessionCreated, self.on_sessionCreated)
+        connect(window, Signals.sessionCreated, self.on_session_created)
         connect(tree, Signals.modelDoubleClicked,
                 window, Signals.modelDoubleClicked)
         tree.header().hide()
         tree.setAnimated(True)
 
-    def on_sessionCreated(self, session):
+    def on_session_created(self, session):
         """ Signal handler called when new Session object is created.
 
         @param session new Session instance
         @return None
         """
         self.session = session
-        self.dataModel = SessionTreeModel(session, self)
-        self.treeView.setModel(self.dataModel)
+        self.dataModel = dataModel = SessionTreeModel(session, self)
+        view = self.treeView
+        view.setModel(dataModel)
+        if not sys.argv[1:]:
+            try:
+                item = dataModel.findItems('connection')[0]
+            except (IndexError, ):
+                pass
+            else:
+                view.emit(Signals.modelDoubleClicked, item.index())

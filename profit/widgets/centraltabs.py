@@ -47,7 +47,7 @@ class CentralTabs(QTabWidget):
         window = self.window()
         connect = self.connect
         connect(self, Signals.currentChanged, self.on_currentChanged)
-        connect(window, Signals.sessionCreated, self.on_sessionCreated)
+        connect(window, Signals.sessionCreated, self.on_session_created)
         connect(window, Signals.modelDoubleClicked, self.on_itemClicked)
         connect(closeTabButton, Signals.clicked,
                 self.on_closeTabButton_clicked)
@@ -73,7 +73,7 @@ class CentralTabs(QTabWidget):
         widget.close()
         self.on_currentChanged()
 
-    def on_sessionCreated(self, session):
+    def on_session_created(self, session):
         self.session = session
         connect = self.connect
         connect(session, Signals.connectedTWS, self.on_statusTWS)

@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import Qt, pyqtSignature
-from PyQt4.QtGui import QApplication, QColor, QColorDialog, QDialog, QFont
+from PyQt4.QtGui import QApplication, QColor, QColorDialog, QDialog, QFont, QFontDialog
 
 from profit.lib import Settings, colorIcon
 from profit.widgets.syspathdialog import SysPathDialog
@@ -32,11 +32,18 @@ def setIntValue(o, v):
     o.setValue(v.toInt()[0])
 
 def getFont(o):
-    return o.currentFont()
+    return QFont(o.font())
 
 def setFont(o, v):
-    font = QFont(v.toString())
-    o.setCurrentFont(font)
+    v = QFont(v)
+    try:
+        name = v.toString().split(',')[0]
+    except (IndexError, ):
+        name = v.rawName()
+    size = v.pointSize()
+    bold = 'Bold' if v.bold() else ''
+    o.setFont(v)
+    o.setText('%s %s %s' % (name, size, bold))
 
 def getColor(o):
     return o.color
@@ -68,7 +75,7 @@ schema[Settings.keys.strategy] = [
 
 schema[Settings.keys.appearance] = [
     ('shellFont', getFont, setFont, 'Monospace'),
-    ('increaseColor', getColor, colorSetter('increaseColor'), QColor(Qt.green)),
+    ('increaseColor', getColor, colorSetter('increaseColor'), QColor(Qt.darkGreen)),
     ('neutralColor', getColor, colorSetter('neutralColor'), QColor(Qt.blue)),
     ('decreaseColor', getColor, colorSetter('decreaseColor'), QColor(Qt.red)),
 ]
@@ -125,6 +132,14 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
     on_increaseColor_clicked = colorValueSelectMethod('increaseColor')
     on_neutralColor_clicked = colorValueSelectMethod('neutralColor')
     on_decreaseColor_clicked = colorValueSelectMethod('decreaseColor')
+
+    @pyqtSignature('')
+    def on_selectShellFont_clicked(self):
+        default = QFont(self.shellFont.font())
+        font, okay = QFontDialog.getFont(default, self, 'Select Shell Font')
+        if okay:
+            setFont(self.shellFont, font)
+
 
 if __name__ == '__main__':
     app = QApplication([])

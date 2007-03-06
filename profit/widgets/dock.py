@@ -30,6 +30,7 @@ class Dock(QDockWidget):
         @param features dock widget features
         """
         QDockWidget.__init__(self, title, parent)
+        self.setObjectName(title)
         self.setAllowedAreas(allowedAreas)
         self.setFeatures(features)
         self.setWidget(childType(self))
