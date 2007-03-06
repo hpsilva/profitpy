@@ -11,7 +11,7 @@ from cPickle import PicklingError, UnpicklingError, dump, load
 from itertools import ifilter
 from time import time
 
-from PyQt4.QtCore import QObject, SIGNAL
+from PyQt4.QtCore import QObject, QThread, SIGNAL
 
 from ib.ext.Contract import Contract
 from ib.ext.ExecutionFilter import ExecutionFilter
@@ -21,7 +21,7 @@ from ib.ext.TickType import TickType
 from ib.opt import ibConnection
 from ib.opt.message import registry
 
-from profit.lib import Signals
+from profit.lib import Signals, warningBox
 
 
 class Index(list):
@@ -254,24 +254,45 @@ class Session(QObject):
         self.nextId += 1
         return True
 
+    def saveFinished(self):
+        if self.saveThread.status:
+            count = self.saveThread.writeCount
+            self.savedLength = count
+            msg = 'Session file saved.  Wrote %s messages.' % count
+        else:
+            msg = 'Error saving file.'
+        self.emit(Signals.statusMessage, msg)
+
+    def exportFinished(self):
+        if self.exportThread.status:
+            count = self.exportThread.writeCount
+            msg = 'Session exported.  Wrote %s messages.' % count
+        else:
+            msg = 'Error exporting messages.'
+        self.emit(Signals.statusMessage, msg)
+
+    def saveTerminated(self):
+        self.emit(Signals.statusMessage, 'Session file save terminated.')
+
+    def exportTerminated(self):
+        self.emit(Signals.statusMessage, 'Session export terminated.')
+
     def save(self):
-        status = False
         try:
-            handle = open(self.filename, 'wb')
-        except (IOError, ):
+            thread = self.saveThread
+        except (AttributeError, ):
             pass
         else:
-            last = len(self.messages)
-            messages = self.messages[0:last]
-            try:
-                dump(messages, handle, protocol=-1)
-                self.savedLength = last
-                status = True
-            except (PicklingError, ):
-                pass
-            finally:
-                handle.close()
-        return status
+            if thread.isRunning():
+                warningBox('Save in Progress',
+                           'Session save already in progress.')
+                return
+        self.saveThread = thread = \
+            SaveThread(filename=self.filename, types=None, parent=self)
+        self.connect(thread, Signals.finished, self.saveFinished)
+        self.connect(thread, Signals.terminated, self.saveTerminated)
+        thread.start()
+        self.emit(Signals.statusMessage, 'Started session file save.')
 
     def load(self, filename):
         """ Restores session messages from file.
@@ -303,3 +324,71 @@ class Session(QObject):
                 self.savedLength = len(messages)
                 handle.close()
 
+    def importMessages(self, filename, types):
+        try:
+            handle = open(filename, 'rb')
+        except (IOError, ):
+            pass
+        else:
+            def messageFilter((mtime, message)):
+                return message.typeName in types
+            try:
+                messages = filter(messageFilter, load(handle))
+                yield len(messages)
+                for index, (mtime, message) in enumerate(messages):
+                    self.receiveMessage(message, lambda:mtime)
+                    yield index
+            except (UnpicklingError, ):
+                pass
+            finally:
+                handle.close()
+
+    def exportMessages(self, filename, types):
+        try:
+            thread = self.exportThread
+        except (AttributeError, ):
+            pass
+        else:
+            if thread.isRunning():
+                warningBox('Export in Progress',
+                           'Session export already in progress.')
+                return
+        self.exportThread = thread = \
+            SaveThread(filename=filename, types=types, parent=self)
+        self.connect(thread, Signals.finished, self.exportFinished)
+        self.connect(thread, Signals.terminated, self.exportTerminated)
+        thread.start()
+        self.emit(Signals.statusMessage, 'Started session export.')
+
+
+class SaveThread(QThread):
+    def __init__(self, filename, types, parent):
+        QThread.__init__(self, parent)
+        self.filename = filename
+        self.types = types
+
+    def run(self):
+        status = False
+        session = self.parent()
+        try:
+            handle = open(self.filename, 'wb')
+        except (IOError, ):
+            pass
+        else:
+            last = len(session.messages)
+            messages = session.messages[0:last]
+            types = self.types
+            if types:
+                def messageFilter((mtime, message)):
+                    return message.typeName in types
+                messages = filter(messageFilter, messages)
+                last = len(messages)
+            try:
+                dump(messages, handle, protocol=-1)
+                self.writeCount = last
+                status = True
+            except (PicklingError, ):
+                pass
+            finally:
+                handle.close()
+        self.status = status

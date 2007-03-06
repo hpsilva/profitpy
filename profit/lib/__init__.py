@@ -7,6 +7,7 @@
 
 from PyQt4.QtCore import QPoint, QSettings, QSize, QVariant, Qt, SIGNAL, SLOT
 from PyQt4.QtGui import QBrush, QColor, QIcon, QPixmap, QTableWidgetItem
+from PyQt4.QtGui import QMessageBox
 
 
 class Signals:
@@ -34,6 +35,9 @@ class Signals:
     tickerClicked = SIGNAL('tickerClicked')
     timeout = SIGNAL('timeout()')
     triggered = SIGNAL('triggered()')
+    terminated = SIGNAL('terminated()')
+    finished = SIGNAL('finished()')
+    statusMessage = SIGNAL('statusMessage')
 
 
 class Slots:
@@ -65,7 +69,7 @@ class Settings(QSettings):
         strategy = 'Strategy'
         winstate = 'Window State'
 
-    defaultSize = QSize(400, 400)
+    defaultSize = QSize(720, 560)
     defaultPosition = QPoint(200, 200)
 
     def __init__(self):
@@ -273,3 +277,8 @@ def nameIn(*names):
         except (AttributeError, ):
             return False
     return check
+
+
+def warningBox(title, text):
+    return QMessageBox.warning(None, title, text, QMessageBox.Close)
+

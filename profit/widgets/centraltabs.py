@@ -67,6 +67,8 @@ class CentralTabs(QTabWidget):
     @pyqtSignature('')
     def on_closeTabButton_clicked(self):
         index = self.currentIndex()
+        if index == getattr(self, 'connectionTabIndex', None):
+            delattr(self, 'connectionTabIndex')
         widget = self.widget(index)
         self.removeTab(index)
         widget.setAttribute(Qt.WA_DeleteOnClose)

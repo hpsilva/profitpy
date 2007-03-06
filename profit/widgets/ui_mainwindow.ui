@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>558</width>
-    <height>479</height>
+    <width>720</width>
+    <height>560</height>
    </rect>
   </property>
   <widget class="QWidget" name="centralwidget" >
@@ -27,10 +27,16 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>558</width>
+     <width>720</width>
      <height>28</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menEdit" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionSettings" />
+   </widget>
    <widget class="QMenu" name="menuFile" >
     <property name="title" >
      <string>&amp;File</string>
@@ -49,22 +55,20 @@
     <addaction name="actionSaveSession" />
     <addaction name="actionSaveSessionAs" />
     <addaction name="separator" />
+    <addaction name="actionImportSession" />
+    <addaction name="actionExportSession" />
+    <addaction name="separator" />
     <addaction name="actionCloseSession" />
     <addaction name="separator" />
     <addaction name="actionQuit" />
-   </widget>
-   <widget class="QMenu" name="menEdit" >
-    <property name="title" >
-     <string>&amp;Edit</string>
-    </property>
-    <addaction name="actionSettings" />
    </widget>
    <widget class="QMenu" name="menuHelp" >
     <property name="title" >
      <string>&amp;Help</string>
     </property>
-    <addaction name="actionAboutProfitDevice" />
     <addaction name="actionDocumentation" />
+    <addaction name="actionAboutProfitDevice" />
+    <addaction name="actionAboutQt" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menEdit" />
@@ -149,12 +153,27 @@
   </action>
   <action name="actionAboutProfitDevice" >
    <property name="text" >
-    <string>About Profit Device...</string>
+    <string>About Profit Device</string>
    </property>
   </action>
   <action name="actionDocumentation" >
    <property name="text" >
     <string>Documentation...</string>
+   </property>
+  </action>
+  <action name="actionImportSession" >
+   <property name="text" >
+    <string>Import...</string>
+   </property>
+  </action>
+  <action name="actionExportSession" >
+   <property name="text" >
+    <string>Export...</string>
+   </property>
+  </action>
+  <action name="actionAboutQt" >
+   <property name="text" >
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

@@ -10,8 +10,6 @@
 #    account display plots
 #    add prompts to close/quit if connected
 #    add setting saves for message display colors
-#    change "open" to "import"; provide actual "open" via
-#        new window (if existing window has session messages)
 #    modify orders display to use model/tree view
 #    add check and read of startup .py script
 #    write session collector script
@@ -21,6 +19,7 @@
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
+from os.path import abspath
 from signal import SIGQUIT
 from sys import argv
 
@@ -36,6 +35,7 @@ from profit.widgets import profit_rc
 from profit.widgets.accountsummary import AccountSummary
 from profit.widgets.aboutdialog import AboutDialog
 from profit.widgets.dock import Dock
+from profit.widgets.importexportdialog import ImportExportDialog
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.settingsdialog import SettingsDialog
@@ -57,8 +57,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.readSettings()
         title = '%s (0.2 alpha)' % QApplication.applicationName()
         self.setWindowTitle(title)
-        self.connect(self, Signals.settingsChanged, self.setupColors)
-        self.connect(self, Signals.settingsChanged, self.setupSysTray)
+        connect = self.connect
+        connect(self, Signals.settingsChanged, self.setupColors)
+        connect(self, Signals.settingsChanged, self.setupSysTray)
+        connect(QApplication.instance(), Signals.lastWindowClosed,
+                self.writeSettings)
         self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
@@ -86,7 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def setupSysTray(self):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
-        if settings.value('useSystemTrayIcon', QVariant()).toInt()[0]:
+        if settings.value('useSystemTrayIcon', QVariant(1)).toInt()[0]:
             icon = self.windowIcon()
             try:
                 trayIcon = self.trayIcon
@@ -124,11 +127,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ## lookup builder and pass instance here
         self.session = Session()
         self.emit(Signals.sessionCreated, self.session)
+        self.connect(self.session, Signals.statusMessage,
+                     self.statusBar().showMessage)
+        @nogc
+        def showStatus(msg):
+            try:
+                self.trayIcon.showMessage('Status Message', msg)
+            except (AttributeError, ):
+                pass
+        self.connect(self.session, Signals.statusMessage, showStatus)
 
     @pyqtSignature('')
     def on_actionAboutProfitDevice_triggered(self):
         dlg = AboutDialog(self)
         dlg.exec_()
+
+    @pyqtSignature('')
+    def on_actionAboutQt_triggered(self):
+        QMessageBox.aboutQt(self, 'About Qt')
 
     @pyqtSignature('')
     def on_actionDocumentation_triggered(self):
@@ -142,10 +158,75 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pid = spawnvp(P_NOWAIT, argv[0], argv)
 
     @pyqtSignature('')
+    def on_actionImportSession_triggered(self, filename=None):
+        if not filename:
+            filename = QFileDialog.getOpenFileName(self, 'Import Session')
+        if filename:
+            dlg = ImportExportDialog('Import', self)
+            if dlg.exec_() != dlg.Accepted:
+                return
+            types = dlg.selectedTypes()
+            if not types:
+                return
+            self.warningOpenTabs()
+            processEvents = QApplication.processEvents
+            progress = QProgressDialog(self)
+            progress.setLabelText('Reading session file.')
+            progress.setCancelButtonText('Abort')
+            progress.setWindowModality(Qt.WindowModal)
+            progress.setWindowTitle('Importing...')
+            processEvents()
+            progress.show()
+            processEvents()
+            try:
+                loadit = self.session.importMessages(str(filename), types)
+                count = loadit.next()
+                last = count - 1
+                if not count:
+                    raise StopIteration()
+            except (StopIteration, ):
+                msg = 'Warning messages not imported from "%s"' % filename
+                progress.close()
+            else:
+                progress.setLabelText('Importing session messages.')
+                progress.setWindowTitle('Importing...')
+                progress.setMaximum(last)
+                msgid = -1
+                for msgid in loadit:
+                    processEvents()
+                    progress.setValue(msgid)
+                    if progress.wasCanceled():
+                        progress.close()
+                        break
+                if msgid == last:
+                    msg = 'Imported %s messages from file "%s".'
+                    msg %= (count, filename)
+                else:
+                    msg = 'Import aborted; loaded %s messages of %s.'
+                    msg %= (msgid+1, count)
+            self.statusBar().showMessage(msg, 5000)
+
+    def warningOpenTabs(self):
+        if self.centralTabs.count():
+            QMessageBox.warning(self, 'Warning',
+                'Session loading is very slow with open tabs.\n'
+                'Close all tabs for fastest possible loading.')
+
+
+    @pyqtSignature('')
     def on_actionOpenSession_triggered(self, filename=None):
         if not filename:
-            filename = QFileDialog.getOpenFileName(self)
+            filename = QFileDialog.getOpenFileName(self, 'Open Session')
         if filename:
+            if self.session.messages:
+                args = argv[:]
+                if len(args) > 1:
+                    args[1] = filename
+                else:
+                    args.append(abspath(str(filename)))
+                pid = spawnvp(P_NOWAIT, args[0], args)
+                return
+            self.warningOpenTabs()
             processEvents = QApplication.processEvents
             progress = QProgressDialog(self)
             progress.setLabelText('Reading session file.')
@@ -204,10 +285,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('')
     def on_actionSaveSessionAs_triggered(self):
-        filename = QFileDialog.getSaveFileName(self)
+        filename = QFileDialog.getSaveFileName(self, 'Save Session As')
         if filename:
             self.session.filename = str(filename)
             self.actionSaveSession.trigger()
+
+    @pyqtSignature('')
+    def on_actionExportSession_triggered(self, filename=None):
+        if not filename:
+            filename = QFileDialog.getSaveFileName(self, 'Export Session As')
+        if filename:
+            dlg = ImportExportDialog('Export', self)
+            if dlg.exec_() != dlg.Accepted:
+                return
+            types = dlg.selectedTypes()
+            if not types:
+                return
+            self.session.exportMessages(filename, types)
 
     @pyqtSignature('')
     def on_actionCloseSession_triggered(self):
@@ -241,14 +335,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return check
 
     def groupClose(self):
+        self.writeSettings()
         try:
             killpg(getpgrp(), SIGQUIT)
         except (AttributeError, ):
             self.close()
-
-    def closeEvent(self, event):
-        self.writeSettings()
-        event.accept()
 
     def readSettings(self):
         settings = Settings()
@@ -274,7 +365,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings.setValue(settings.keys.maximized, self.isMaximized())
         settings.setValue(settings.keys.winstate, self.saveState())
         settings.endGroup()
-
 
     def setupColors(self):
         settings = Settings()
