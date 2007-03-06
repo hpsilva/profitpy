@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>384</width>
-    <height>384</height>
+    <width>480</width>
+    <height>360</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -107,14 +107,11 @@ About the Profit Device.</string>
         <number>6</number>
        </property>
        <item>
-        <widget class="QTextEdit" name="authorsText" >
-         <property name="verticalScrollBarPolicy" >
-          <enum>Qt::ScrollBarAlwaysOn</enum>
-         </property>
+        <widget class="QTextBrowser" name="authorsText" >
          <property name="lineWrapMode" >
           <enum>QTextEdit::NoWrap</enum>
          </property>
-         <property name="readOnly" >
+         <property name="openExternalLinks" >
           <bool>true</bool>
          </property>
         </widget>

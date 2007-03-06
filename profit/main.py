@@ -18,8 +18,6 @@
 #    create better defaults for plot colors
 #    add account, orders, and strategy supervisors
 #    fix zoom to (1000,1000) in plots
-#    finalize about dialog box content
-#    add help links to wiki
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
