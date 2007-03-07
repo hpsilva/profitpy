@@ -31,6 +31,14 @@
      <height>28</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuHelp" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionDocumentation" />
+    <addaction name="actionAboutProfitDevice" />
+    <addaction name="actionAboutQt" />
+   </widget>
    <widget class="QMenu" name="menEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
@@ -41,16 +49,15 @@
     <property name="title" >
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="menuRecent_Sessions" >
+    <widget class="QMenu" name="menuRecentSessions" >
      <property name="title" >
       <string>Recent Sessions</string>
      </property>
-     <addaction name="separator" />
      <addaction name="actionClearRecentMenu" />
     </widget>
     <addaction name="actionNewSession" />
     <addaction name="actionOpenSession" />
-    <addaction name="menuRecent_Sessions" />
+    <addaction name="menuRecentSessions" />
     <addaction name="separator" />
     <addaction name="actionSaveSession" />
     <addaction name="actionSaveSessionAs" />
@@ -61,14 +68,6 @@
     <addaction name="actionCloseSession" />
     <addaction name="separator" />
     <addaction name="actionQuit" />
-   </widget>
-   <widget class="QMenu" name="menuHelp" >
-    <property name="title" >
-     <string>&amp;Help</string>
-    </property>
-    <addaction name="actionDocumentation" />
-    <addaction name="actionAboutProfitDevice" />
-    <addaction name="actionAboutQt" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menEdit" />

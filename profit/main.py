@@ -18,16 +18,15 @@
 #    fix zoom to (1000,1000) in plots
 #    add strategy, account supervisor, order supervisor and indicator display
 #    move imports into signal handlers where possible
-#    implement recent file menu and clear recent file menu options
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
-from os.path import abspath
+from os.path import abspath, basename
 from signal import SIGQUIT
 from sys import argv
 
 from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
-from PyQt4.QtGui import QApplication, QColor, QMainWindow
+from PyQt4.QtGui import QAction, QApplication, QColor, QMainWindow
 from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
 from PyQt4.QtGui import QSystemTrayIcon
 from PyQt4.QtGui import QIcon, QDesktopServices
@@ -48,6 +47,7 @@ from profit.widgets.ui_mainwindow import Ui_MainWindow
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     iconName = ':images/icons/blockdevice.png'
+    maxRecentSessions = 5
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -55,6 +55,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupLeftDock()
         self.setupBottomDock()
         self.setupMainIcon()
+        self.setupRecentSessions()
         self.setupSysTray()
         self.setupColors()
         self.readSettings()
@@ -112,6 +113,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.connect(self.session, Signals.statusMessage, showStatus)
 
     @pyqtSignature('')
+    def openRecentSession(self):
+        filename = str(self.sender().data().toString())
+        self.on_actionOpenSession_triggered(filename)
+
+    @pyqtSignature('')
     def on_actionAboutProfitDevice_triggered(self):
         dlg = AboutDialog(self)
         dlg.exec_()
@@ -122,7 +128,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('bool')
     def on_actionClearRecentMenu_triggered(self, checked=False):
-        print '### clear recent menu', checked
+        for action in self.recentSessionsActions:
+            action.setVisible(False)
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        settings.remove('recentSessions')
 
     @pyqtSignature('')
     def on_actionCloseSession_triggered(self):
@@ -158,7 +168,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             types = dlg.selectedTypes()
             if not types:
                 return
-            self.warningOpenTabs()
+            if not self.warningOpenTabs():
+                return
             processEvents = QApplication.processEvents
             progress = QProgressDialog(self)
             progress.setLabelText('Reading session file.')
@@ -215,7 +226,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     args.append(abspath(str(filename)))
                 pid = spawnvp(P_NOWAIT, args[0], args)
                 return
-            self.warningOpenTabs()
+            if not self.warningOpenTabs():
+                return
             processEvents = QApplication.processEvents
             progress = QProgressDialog(self)
             progress.setLabelText('Reading session file.')
@@ -247,6 +259,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if msgid == last:
                     msg = 'Loaded all %s messages from file "%s".'
                     msg %= (count, filename)
+                    self.setCurrentSession(filename)
                 else:
                     msg = 'Load aborted; loaded %s messages of %s.'
                     msg %= (msgid+1, count)
@@ -290,6 +303,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 msg = 'Not Connected'
             self.trayIcon.showMessage('Connection Status:', msg)
 
+    def setCurrentSession(self, filename):
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        files = settings.value('recentSessions').toStringList()
+        files.removeAll(filename)
+        files.prepend(filename)
+        files = files[:self.maxRecentSessions]
+        settings.setValue('recentSessions', files)
+        self.updateRecentSessions()
+
     def setupBottomDock(self):
         area = Qt.BottomDockWidgetArea
         self.stdoutDock = Dock('Output', self, OutputWidget, area)
@@ -319,6 +342,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.accountDock = Dock('Account', self, AccountSummary)
         self.sessionDock = Dock('Session', self, SessionTree)
         self.tabifyDockWidget(self.sessionDock, self.accountDock)
+
+    def setupRecentSessions(self):
+        self.recentSessionsActions = actions = \
+            [QAction(self) for i in range(self.maxRecentSessions)]
+        for action in actions:
+            action.setVisible(False)
+            self.connect(action, Signals.triggered, self.openRecentSession)
+        menu = self.menuRecentSessions
+        menu.clear()
+        for action in actions:
+            menu.addAction(action)
+        self.recentSeparator = menu.addSeparator()
+        menu.addAction(self.actionClearRecentMenu)
+        self.updateRecentSessions()
 
     def setupSysTray(self):
         settings = Settings()
@@ -363,11 +400,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.restoreState(state.toByteArray())
         settings.endGroup()
 
+    def updateRecentSessions(self):
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        files = settings.value('recentSessions').toStringList()
+        files = set([abspath(str(s)) for s in files])
+        files = list(files)
+        count = min(len(files), self.maxRecentSessions)
+        for i in range(count):
+            text = files[i]
+            action = self.recentSessionsActions[i]
+            action.setText(basename(str(text)))
+            action.setData(QVariant(text))
+            action.setVisible(True)
+        for i in range(count, self.maxRecentSessions):
+            action = self.recentSessionsActions[i]
+            action.setVisible(False)
+        self.recentSeparator.setVisible(count > 0)
+
     def warningOpenTabs(self):
         if self.centralTabs.count():
-            QMessageBox.warning(self, 'Warning',
-                'Session loading is very slow with open tabs.\n'
-                'Close all tabs for fastest possible loading.')
+            button = QMessageBox.warning(self, 'Warning',
+                         'Session loading is very slow with open tabs.\n'
+                         'Close all tabs for fastest possible loading.',
+                          QMessageBox.Ignore|QMessageBox.Abort)
+            return button == QMessageBox.Ignore
+        return True
 
     def writeSettings(self):
         settings = Settings()

@@ -12,7 +12,7 @@ from os import listdir
 from os.path import basename, isdir, join, split, splitext
 from pyclbr import Class, Function, readmodule_ex, _modules as clbrcache
 
-from PyQt4.QtCore import QVariant
+from PyQt4.QtCore import QVariant, Qt
 from PyQt4.QtGui import QApplication, QDialog, QIcon
 from PyQt4.QtGui import QStandardItem, QStandardItemModel
 
@@ -85,6 +85,7 @@ class SysPathModel(QStandardItemModel):
             self.appendRow(row)
 
     def hasChildren(self, index):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         if index.isValid():
             item = self.itemFromIndex(index)
             path = item.path
@@ -109,6 +110,7 @@ class SysPathModel(QStandardItemModel):
                 children = False
         else:
             children = True
+        QApplication.restoreOverrideCursor()
         return children
 
     def dottedName(self, item):
