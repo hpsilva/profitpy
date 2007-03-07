@@ -16,6 +16,9 @@
 #    create better defaults for plot colors
 #    add account, orders, and strategy supervisors
 #    fix zoom to (1000,1000) in plots
+#    add strategy, account supervisor, order supervisor and indicator display
+#    move imports into signal handlers where possible
+#    implement recent file menu and clear recent file menu options
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -66,62 +69,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
 
-    def setupLeftDock(self):
-        self.accountDock = Dock('Account', self, AccountSummary)
-        self.sessionDock = Dock('Session', self, SessionTree)
-        self.tabifyDockWidget(self.sessionDock, self.accountDock)
-
-    def setupBottomDock(self):
-        area = Qt.BottomDockWidgetArea
-        self.stdoutDock = Dock('Output', self, OutputWidget, area)
-        self.stderrDock = Dock('Error', self, OutputWidget, area)
-        makeShell = partial(PythonShell,
-                            stdout=self.stdoutDock.widget(),
-                            stderr=self.stderrDock.widget())
-        self.shellDock = Dock('Shell', self, makeShell, area)
-        self.tabifyDockWidget(self.shellDock, self.stdoutDock)
-        self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
-
-    def setupMainIcon(self):
-        icon = QIcon(self.iconName)
-        self.setWindowIcon(icon)
-
-    def setupSysTray(self):
+    def checkClose(self):
+        check = True
         settings = Settings()
         settings.beginGroup(settings.keys.main)
-        if settings.value('useSystemTrayIcon', QVariant(1)).toInt()[0]:
-            icon = self.windowIcon()
-            try:
-                trayIcon = self.trayIcon
-            except (AttributeError, ):
-                self.trayIcon = trayIcon = QSystemTrayIcon(self)
-                self.trayMenu = trayMenu = QMenu()
-                trayIcon.setIcon(icon)
-                trayMenu.addAction(icon, QApplication.applicationName())
-                trayMenu.addSeparator()
-                for action in self.menuFile.actions():
-                    trayMenu.addAction(action)
-                    trayIcon.setContextMenu(trayMenu)
-                self.connect(trayIcon, Signals.activated,
-                             self.on_trayIcon_activated)
-            trayIcon.show()
-        else:
-            try:
-                trayIcon = self.trayIcon
-            except (AttributeError, ):
+        confirm = settings.value('confirmCloseWhenModified', QVariant(1))
+        confirm = confirm.toInt()[0]
+        if self.session.isModified and confirm:
+            buttons = QMessageBox.Save|QMessageBox.Discard|QMessageBox.Cancel
+            msg = QMessageBox.question(self, 'ProfitPy',
+                                       'This session has been modified.\n'
+                                       'Do you want to save your changes?',
+                                       buttons,
+                                       QMessageBox.Save)
+            if msg == QMessageBox.Discard:
                 pass
-            else:
-                trayIcon.hide()
+            elif msg == QMessageBox.Cancel:
+                check = False
+            elif msg == QMessageBox.Save:
+                self.actionSaveSession.trigger()
+        return check
 
-    def on_trayIcon_activated(self, reason):
-        if reason == QSystemTrayIcon.Trigger:
-            self.setVisible(not self.isVisible())
-        elif reason == QSystemTrayIcon.MiddleClick:
-            if self.session and self.session.isConnected:
-                msg = 'Connected'
-            else:
-                msg = 'Not Connected'
-            self.trayIcon.showMessage('Connection Status:', msg)
+    def closeProcessGroup(self):
+        self.writeSettings()
+        try:
+            killpg(getpgrp(), SIGQUIT)
+        except (AttributeError, ):
+            self.close()
 
     def createSession(self):
         ## lookup builder and pass instance here
@@ -146,16 +120,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_actionAboutQt_triggered(self):
         QMessageBox.aboutQt(self, 'About Qt')
 
+    @pyqtSignature('bool')
+    def on_actionClearRecentMenu_triggered(self, checked=False):
+        print '### clear recent menu', checked
+
+    @pyqtSignature('')
+    def on_actionCloseSession_triggered(self):
+        if self.checkClose():
+            self.close()
+
     @pyqtSignature('')
     def on_actionDocumentation_triggered(self):
         QDesktopServices.openUrl(
             QUrl('http://code.google.com/p/profitpy/w/list?q=label:Documentation'))
 
-    @pyqtSignature('bool')
-    def on_actionNewSession_triggered(self, checked=False):
-        if len(argv) > 1:
-            argv.remove(argv[1])
-        pid = spawnvp(P_NOWAIT, argv[0], argv)
+    @pyqtSignature('')
+    def on_actionExportSession_triggered(self, filename=None):
+        if not filename:
+            filename = QFileDialog.getSaveFileName(self, 'Export Session As')
+        if filename:
+            dlg = ImportExportDialog('Export', self)
+            if dlg.exec_() != dlg.Accepted:
+                return
+            types = dlg.selectedTypes()
+            if not types:
+                return
+            self.session.exportMessages(filename, types)
 
     @pyqtSignature('')
     def on_actionImportSession_triggered(self, filename=None):
@@ -206,12 +196,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     msg %= (msgid+1, count)
             self.statusBar().showMessage(msg, 5000)
 
-    def warningOpenTabs(self):
-        if self.centralTabs.count():
-            QMessageBox.warning(self, 'Warning',
-                'Session loading is very slow with open tabs.\n'
-                'Close all tabs for fastest possible loading.')
-
+    @pyqtSignature('bool')
+    def on_actionNewSession_triggered(self, checked=False):
+        if len(argv) > 1:
+            argv.remove(argv[1])
+        pid = spawnvp(P_NOWAIT, argv[0], argv)
 
     @pyqtSignature('')
     def on_actionOpenSession_triggered(self, filename=None):
@@ -264,17 +253,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusBar().showMessage(msg, 5000)
 
     @pyqtSignature('')
-    def on_actionSettings_triggered(self):
-        settings = Settings()
-        dlg = SettingsDialog()
-        dlg.readSettings(settings)
-        if dlg.exec_() == dlg.Accepted:
-            dlg.writeSettings(settings)
-            self.emit(Signals.settingsChanged)
-
-    @pyqtSignature('bool')
-    def on_actionClearRecentMenu_triggered(self, checked=False):
-        print '### clear recent menu', checked
+    def on_actionQuit_triggered(self):
+        if self.checkClose():
+            self.closeProcessGroup()
 
     @pyqtSignature('')
     def on_actionSaveSession_triggered(self):
@@ -291,55 +272,80 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionSaveSession.trigger()
 
     @pyqtSignature('')
-    def on_actionExportSession_triggered(self, filename=None):
-        if not filename:
-            filename = QFileDialog.getSaveFileName(self, 'Export Session As')
-        if filename:
-            dlg = ImportExportDialog('Export', self)
-            if dlg.exec_() != dlg.Accepted:
-                return
-            types = dlg.selectedTypes()
-            if not types:
-                return
-            self.session.exportMessages(filename, types)
+    def on_actionSettings_triggered(self):
+        settings = Settings()
+        dlg = SettingsDialog()
+        dlg.readSettings(settings)
+        if dlg.exec_() == dlg.Accepted:
+            dlg.writeSettings(settings)
+            self.emit(Signals.settingsChanged)
 
-    @pyqtSignature('')
-    def on_actionCloseSession_triggered(self):
-        if self.checkClose():
-            self.close()
+    def on_trayIcon_activated(self, reason):
+        if reason == QSystemTrayIcon.Trigger:
+            self.setVisible(not self.isVisible())
+        elif reason == QSystemTrayIcon.MiddleClick:
+            if self.session and self.session.isConnected:
+                msg = 'Connected'
+            else:
+                msg = 'Not Connected'
+            self.trayIcon.showMessage('Connection Status:', msg)
 
-    @pyqtSignature('')
-    def on_actionQuit_triggered(self):
-        if self.checkClose():
-            self.groupClose()
+    def setupBottomDock(self):
+        area = Qt.BottomDockWidgetArea
+        self.stdoutDock = Dock('Output', self, OutputWidget, area)
+        self.stderrDock = Dock('Error', self, OutputWidget, area)
+        makeShell = partial(PythonShell,
+                            stdout=self.stdoutDock.widget(),
+                            stderr=self.stderrDock.widget())
+        self.shellDock = Dock('Shell', self, makeShell, area)
+        self.tabifyDockWidget(self.shellDock, self.stdoutDock)
+        self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
 
-    def checkClose(self):
-        check = True
+    def setupColors(self):
+        settings = Settings()
+        settings.beginGroup(settings.keys.appearance)
+        cls = ValueColorItem
+        keys = ['increaseColor', 'neutralColor', 'decreaseColor']
+        attrs = [k.replace('Color', '') for k in keys]
+        values = [QColor(settings.value(key, getattr(cls, attr)))
+                     for key, attr in zip(keys, attrs)]
+        cls.setColors(*values)
+
+    def setupMainIcon(self):
+        icon = QIcon(self.iconName)
+        self.setWindowIcon(icon)
+
+    def setupLeftDock(self):
+        self.accountDock = Dock('Account', self, AccountSummary)
+        self.sessionDock = Dock('Session', self, SessionTree)
+        self.tabifyDockWidget(self.sessionDock, self.accountDock)
+
+    def setupSysTray(self):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
-        confirm = settings.value('confirmCloseWhenModified', QVariant(1))
-        confirm = confirm.toInt()[0]
-        if self.session.isModified and confirm:
-            buttons = QMessageBox.Save|QMessageBox.Discard|QMessageBox.Cancel
-            msg = QMessageBox.question(self, 'ProfitPy',
-                                       'This session has been modified.\n'
-                                       'Do you want to save your changes?',
-                                       buttons,
-                                       QMessageBox.Save)
-            if msg == QMessageBox.Discard:
+        if settings.value('useSystemTrayIcon', QVariant(1)).toInt()[0]:
+            icon = self.windowIcon()
+            try:
+                trayIcon = self.trayIcon
+            except (AttributeError, ):
+                self.trayIcon = trayIcon = QSystemTrayIcon(self)
+                self.trayMenu = trayMenu = QMenu()
+                trayIcon.setIcon(icon)
+                trayMenu.addAction(icon, QApplication.applicationName())
+                trayMenu.addSeparator()
+                for action in self.menuFile.actions():
+                    trayMenu.addAction(action)
+                    trayIcon.setContextMenu(trayMenu)
+                self.connect(trayIcon, Signals.activated,
+                             self.on_trayIcon_activated)
+            trayIcon.show()
+        else:
+            try:
+                trayIcon = self.trayIcon
+            except (AttributeError, ):
                 pass
-            elif msg == QMessageBox.Cancel:
-                check = False
-            elif msg == QMessageBox.Save:
-                self.actionSaveSession.trigger()
-        return check
-
-    def groupClose(self):
-        self.writeSettings()
-        try:
-            killpg(getpgrp(), SIGQUIT)
-        except (AttributeError, ):
-            self.close()
+            else:
+                trayIcon.hide()
 
     def readSettings(self):
         settings = Settings()
@@ -357,6 +363,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.restoreState(state.toByteArray())
         settings.endGroup()
 
+    def warningOpenTabs(self):
+        if self.centralTabs.count():
+            QMessageBox.warning(self, 'Warning',
+                'Session loading is very slow with open tabs.\n'
+                'Close all tabs for fastest possible loading.')
+
     def writeSettings(self):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
@@ -366,12 +378,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings.setValue(settings.keys.winstate, self.saveState())
         settings.endGroup()
 
-    def setupColors(self):
-        settings = Settings()
-        settings.beginGroup(settings.keys.appearance)
-        cls = ValueColorItem
-        keys = ['increaseColor', 'neutralColor', 'decreaseColor']
-        attrs = [k.replace('Color', '') for k in keys]
-        values = [QColor(settings.value(key, getattr(cls, attr)))
-                     for key, attr in zip(keys, attrs)]
-        cls.setColors(*values)
