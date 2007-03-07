@@ -13,6 +13,7 @@ Based on OpenAlea, Copyright Samuel Dufour-Kowalski, Christophe Pradal
 
 """
 import sys
+
 from code import InteractiveInterpreter
 from itertools import cycle
 from os.path import exists, expanduser
@@ -22,6 +23,12 @@ from PyQt4.QtCore import Qt, QString
 from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit
 
 from profit.lib import Settings, Signals
+
+
+# disable the help function because it reads directly from stdin.
+import __builtin__
+__builtin__.__dict__['_help'] = __builtin__.__dict__['help']
+del(__builtin__.__dict__['help'])
 
 
 class PythonInterpreter(InteractiveInterpreter):

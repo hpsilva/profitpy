@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 # todo:
-#    search bar for tickers, orders, account, etc.
+#    implement or disable search bar for tickers, orders, account, etc.
 #    account display plots
 #    add prompts to close/quit if connected
 #    add setting saves for message display colors
@@ -17,7 +17,6 @@
 #    add account, orders, and strategy supervisors
 #    fix zoom to (1000,1000) in plots; set both plots to max x and y
 #    add strategy, account supervisor, order supervisor and indicator display
-#    move imports into signal handlers where possible
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -31,7 +30,7 @@ from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
 from PyQt4.QtGui import QSystemTrayIcon
 from PyQt4.QtGui import QIcon, QDesktopServices
 
-from profit.lib import Signals, Settings, ValueColorItem, nogc
+from profit.lib import Signals, Settings, ValueColorItem, nogc, warningBox
 from profit.session import Session
 from profit.widgets import profit_rc
 from profit.widgets.accountsummary import AccountSummary
@@ -43,6 +42,9 @@ from profit.widgets.sessiontree import SessionTree
 from profit.widgets.settingsdialog import SettingsDialog
 from profit.widgets.shell import PythonShell
 from profit.widgets.ui_mainwindow import Ui_MainWindow
+
+
+processEvents = QApplication.processEvents
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -149,13 +151,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not filename:
             filename = QFileDialog.getSaveFileName(self, 'Export Session As')
         if filename:
-            dlg = ImportExportDialog('Export', self)
-            if dlg.exec_() != dlg.Accepted:
-                return
-            types = dlg.selectedTypes()
-            if not types:
-                return
-            self.session.exportMessages(filename, types)
+            if self.session.exportInProgress:
+                warningBox('Export in Progress',
+                           'Session export already in progress.')
+            else:
+                dlg = ImportExportDialog('Export', self)
+                if dlg.exec_() != dlg.Accepted:
+                    return
+                types = dlg.selectedTypes()
+                if not types:
+                    return
+                self.session.exportMessages(filename, types)
 
     @pyqtSignature('')
     def on_actionImportSession_triggered(self, filename=None):
@@ -170,14 +176,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             if not self.warningOpenTabs():
                 return
-            processEvents = QApplication.processEvents
-            progress = QProgressDialog(self)
-            progress.setLabelText('Reading session file.')
-            progress.setCancelButtonText('Abort')
-            progress.setWindowModality(Qt.WindowModal)
-            progress.setWindowTitle('Importing...')
+            dlg = QProgressDialog(self)
+            dlg.setLabelText('Reading session file.')
+            dlg.setCancelButtonText('Abort')
+            dlg.setWindowModality(Qt.WindowModal)
+            dlg.setWindowTitle('Importing...')
             processEvents()
-            progress.show()
+            dlg.show()
             processEvents()
             try:
                 loadit = self.session.importMessages(str(filename), types)
@@ -187,17 +192,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     raise StopIteration()
             except (StopIteration, ):
                 msg = 'Warning messages not imported from "%s"' % filename
-                progress.close()
+                dlg.close()
             else:
-                progress.setLabelText('Importing session messages.')
-                progress.setWindowTitle('Importing...')
-                progress.setMaximum(last)
+                dlg.setLabelText('Importing session messages.')
+                dlg.setWindowTitle('Importing...')
+                dlg.setMaximum(last)
                 msgid = -1
                 for msgid in loadit:
                     processEvents()
-                    progress.setValue(msgid)
-                    if progress.wasCanceled():
-                        progress.close()
+                    dlg.setValue(msgid)
+                    if dlg.wasCanceled():
+                        dlg.close()
                         break
                 if msgid == last:
                     msg = 'Imported %s messages from file "%s".'
@@ -228,15 +233,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             if not self.warningOpenTabs():
                 return
-            processEvents = QApplication.processEvents
-            progress = QProgressDialog(self)
-            progress.setLabelText('Reading session file.')
-            progress.setCancelButtonText('Abort')
-            progress.setWindowModality(Qt.WindowModal)
-            progress.setWindowTitle('Reading...')
+            dlg = QProgressDialog(self)
+            dlg.setLabelText('Reading session file.')
+            dlg.setCancelButtonText('Abort')
+            dlg.setWindowModality(Qt.WindowModal)
+            dlg.setWindowTitle('Reading...')
             self.show()
             processEvents()
-            progress.show()
+            dlg.show()
             processEvents()
             try:
                 loadit = self.session.load(str(filename))
@@ -244,17 +248,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 last = count - 1
             except (StopIteration, ):
                 msg = 'Warning session not loaded from "%s"' % filename
-                progress.close()
+                dlg.close()
             else:
-                progress.setLabelText('Loading session messages.')
-                progress.setWindowTitle('Loading...')
-                progress.setMaximum(last)
+                dlg.setLabelText('Loading session messages.')
+                dlg.setWindowTitle('Loading...')
+                dlg.setMaximum(last)
                 msgid = -1
                 for msgid in loadit:
                     processEvents()
-                    progress.setValue(msgid)
-                    if progress.wasCanceled():
-                        progress.close()
+                    dlg.setValue(msgid)
+                    if dlg.wasCanceled():
+                        dlg.close()
                         break
                 if msgid == last:
                     msg = 'Loaded all %s messages from file "%s".'
@@ -275,7 +279,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.session.filename is None:
             self.actionSaveSessionAs.trigger()
         else:
-            self.session.save()
+            if self.session.saveInProgress:
+                warningBox('Save in Progress',
+                           'Session save already in progress.')
+            else:
+                self.session.save()
 
     @pyqtSignature('')
     def on_actionSaveSessionAs_triggered(self):

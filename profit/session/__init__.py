@@ -21,7 +21,7 @@ from ib.ext.TickType import TickType
 from ib.opt import ibConnection
 from ib.opt.message import registry
 
-from profit.lib import Signals, warningBox
+from profit.lib import Signals
 
 
 class Index(list):
@@ -277,16 +277,18 @@ class Session(QObject):
     def exportTerminated(self):
         self.emit(Signals.statusMessage, 'Session export terminated.')
 
-    def save(self):
+    @property
+    def saveInProgress(self):
         try:
             thread = self.saveThread
         except (AttributeError, ):
-            pass
+            return False
         else:
-            if thread.isRunning():
-                warningBox('Save in Progress',
-                           'Session save already in progress.')
-                return
+            return thread.isRunning()
+
+    def save(self):
+        if self.saveInProgress:
+            return
         self.saveThread = thread = \
             SaveThread(filename=self.filename, types=None, parent=self)
         self.connect(thread, Signals.finished, self.saveFinished)
@@ -343,16 +345,18 @@ class Session(QObject):
             finally:
                 handle.close()
 
-    def exportMessages(self, filename, types):
+    @property
+    def exportInProgress(self):
         try:
             thread = self.exportThread
         except (AttributeError, ):
-            pass
+            return False
         else:
-            if thread.isRunning():
-                warningBox('Export in Progress',
-                           'Session export already in progress.')
-                return
+            return thread.isRunning()
+
+    def exportMessages(self, filename, types):
+        if self.exportInProgress:
+            return
         self.exportThread = thread = \
             SaveThread(filename=filename, types=types, parent=self)
         self.connect(thread, Signals.finished, self.exportFinished)
