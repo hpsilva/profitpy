@@ -8,19 +8,12 @@
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
 
-from profit.lib import Signals, tickerIdRole
-from profit.widgets.accountdisplay import AccountDisplay
-from profit.widgets.connectiondisplay import ConnectionDisplay
-from profit.widgets.executionsdisplay import ExecutionsDisplay
-from profit.widgets.messagedisplay import MessageDisplay
-from profit.widgets.orderdisplay import OrderDisplay
-from profit.widgets.plotdisplay import PlotDisplay
-from profit.widgets.portfoliodisplay import PortfolioDisplay
-from profit.widgets.tickerdisplay import TickerDisplay
+from profit.lib import Signals, importItem, tickerIdRole
 
 
-def tabWidgetMethod(cls):
+def tabWidgetMethod(name):
     def method(self, title):
+        cls = importItem(name)
         widget = cls(self.session, self)
         index = self.addTab(widget, title)
         return index
@@ -102,18 +95,28 @@ class CentralTabs(QTabWidget):
         try:
             index = self.connectionTabIndex
         except (AttributeError, ):
-            widget = ConnectionDisplay(self.session, self)
+            cls = importItem(
+                'profit.widgets.connectiondisplay.ConnectionDisplay')
+            widget = cls(self.session, self)
             index = self.connectionTabIndex = self.addTab(widget, text)
         return index
 
-    on_accountClicked = tabWidgetMethod(AccountDisplay)
-    on_executionsClicked = tabWidgetMethod(ExecutionsDisplay)
-    on_messagesClicked = tabWidgetMethod(MessageDisplay)
-    on_ordersClicked = tabWidgetMethod(OrderDisplay)
-    on_portfolioClicked = tabWidgetMethod(PortfolioDisplay)
+    on_accountClicked = \
+        tabWidgetMethod('profit.widgets.accountdisplay.AccountDisplay')
+    on_executionsClicked = \
+        tabWidgetMethod('profit.widgets.executionsdisplay.ExecutionsDisplay')
+    on_messagesClicked = \
+        tabWidgetMethod('profit.widgets.messagedisplay.MessageDisplay')
+    on_ordersClicked = \
+        tabWidgetMethod('profit.widgets.orderdisplay.OrderDisplay')
+    on_portfolioClicked = \
+        tabWidgetMethod('profit.widgets.portfoliodisplay.PortfolioDisplay')
+    on_strategyClicked = \
+        tabWidgetMethod('profit.widgets.strategydisplay.StrategyDisplay')
 
     def on_tickersClicked(self, text):
-        widget = TickerDisplay(self.session, self)
+        cls = importItem('profit.widgets.tickerdisplay.TickerDisplay')
+        widget = cls(self.session, self)
         index = self.addTab(widget, text)
         self.connect(widget, Signals.tickerClicked, self.on_symbolClicked)
         return index
@@ -124,7 +127,8 @@ class CentralTabs(QTabWidget):
             symbol = str(item.text())
             tickerId = item.tickerId
             icon = item.icon()
-        widget = PlotDisplay(self)
+        cls = importItem('profit.widgets.plotdisplay.PlotDisplay')
+        widget = cls(self)
         widget.setSession(self.session, tickerId, *args)
         index = self.addTab(widget, symbol)
         self.setTabIcon(index, icon)

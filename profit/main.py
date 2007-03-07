@@ -15,7 +15,7 @@
 #    write session collector script
 #    create better defaults for plot colors
 #    add account, orders, and strategy supervisors
-#    fix zoom to (1000,1000) in plots
+#    fix zoom to (1000,1000) in plots; set both plots to max x and y
 #    add strategy, account supervisor, order supervisor and indicator display
 #    move imports into signal handlers where possible
 
