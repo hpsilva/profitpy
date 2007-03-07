@@ -53,7 +53,7 @@ class IndexMapping(object):
             index = [i for i in indexes if i.key==key][0]
         else:
             index = func(*args, **kwds)
-            index.key = key
+            index.key = index.name = key
             indexes.append(index)
         return index
 

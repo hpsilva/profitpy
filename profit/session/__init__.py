@@ -22,28 +22,7 @@ from ib.opt import ibConnection
 from ib.opt.message import registry
 
 from profit.lib import Signals
-
-
-class Index(list):
-    def __init__(self, name):
-        list.__init__(self)
-        self.name = name
-
-
-class Series(list):
-    def __init__(self):
-        list.__init__(self)
-        self.indexes = [
-            Index('MACD'),
-            Index('EMA-20'),
-            Index('SMA-50'),
-            Index('KAMA'),
-        ]
-
-    def append(self, value):
-        list.append(self, value)
-        for index in self.indexes:
-            index.append(value)
+from profit.series import Series, MACDHistogram, EMA, KAMA
 
 
 class Ticker(object):
@@ -57,9 +36,10 @@ class TickerCollection(QObject):
     """
     def __init__(self, session):
         QObject.__init__(self)
+        self.session = session
         self.tickers = {}
         for tid in session.builder.symbols().values():
-            self[tid] = self.newTicker()
+            self[tid] = session.builder.ticker(tid)
         session.registerMeta(self)
 
     def __getitem__(self, name):
@@ -68,17 +48,13 @@ class TickerCollection(QObject):
     def __setitem__(self, name, value):
         self.tickers[name] = value
 
-    @classmethod
-    def newTicker(cls):
-        return Ticker()
-
     def on_session_TickPrice_TickSize(self, message):
         tickerId = message.tickerId
         field = message.field
         try:
             tickerdata = self.tickers[tickerId]
         except (KeyError, ):
-            tickerdata = self.tickers[tickerId] = self.newTicker()
+            tickerdata = self.tickers[tickerId] = self.session.builder.ticker(tickerId)
             self.emit(Signals.createdTicker, tickerId, tickerdata)
         try:
             value = message.price
@@ -87,7 +63,7 @@ class TickerCollection(QObject):
         try:
             seq = tickerdata.series[field]
         except (KeyError, ):
-            seq = tickerdata.series[field] = Series()
+            seq = tickerdata.series[field] = self.session.builder.series(tickerId, field)
             self.emit(Signals.createdSeries, tickerId, field)
         seq.append(value)
 
@@ -110,6 +86,16 @@ class SessionBuilder(object):
 
     def order(self):
         return Order()
+
+    def ticker(self, tickerId):
+        return Ticker()
+
+    def series(self, tickerId, field):
+        s = Series()
+        s.indexMap.set('EMA-20', EMA, s, 20)
+        s.indexMap.set('EMA-40', EMA, s, 40)
+        s.indexMap.set('KAMA-10', KAMA, s, 10)
+        return s
 
 
 class Session(QObject):

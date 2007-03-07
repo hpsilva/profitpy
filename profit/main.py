@@ -15,8 +15,11 @@
 #    write session collector script
 #    create better defaults for plot colors
 #    add account, orders, and strategy supervisors
-#    fix zoom to (1000,1000) in plots; set both plots to max x and y
 #    add strategy, account supervisor, order supervisor and indicator display
+#    add grid toggle to plot, background color, grid color
+#    move y axis scale to right
+#    add context menu to plot controls; settings for line style and width
+#    add context menu to ticker table with entries for news, charts, etc.
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -44,7 +47,10 @@ from profit.widgets.shell import PythonShell
 from profit.widgets.ui_mainwindow import Ui_MainWindow
 
 
+applicationName = QApplication.applicationName
 processEvents = QApplication.processEvents
+documentationUrl = \
+    'http://code.google.com/p/profitpy/w/list?q=label:Documentation'
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -61,7 +67,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupSysTray()
         self.setupColors()
         self.readSettings()
-        title = '%s (0.2 alpha)' % QApplication.applicationName()
+        title = '%s (0.2 alpha)' % applicationName()
         self.setWindowTitle(title)
         connect = self.connect
         connect(self, Signals.settingsChanged, self.setupColors)
@@ -80,7 +86,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm = confirm.toInt()[0]
         if self.session.isModified and confirm:
             buttons = QMessageBox.Save|QMessageBox.Discard|QMessageBox.Cancel
-            msg = QMessageBox.question(self, 'ProfitPy',
+            msg = QMessageBox.question(self, applicationName(),
                                        'This session has been modified.\n'
                                        'Do you want to save your changes?',
                                        buttons,
@@ -143,8 +149,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('')
     def on_actionDocumentation_triggered(self):
-        QDesktopServices.openUrl(
-            QUrl('http://code.google.com/p/profitpy/w/list?q=label:Documentation'))
+        QDesktopServices.openUrl(QUrl(documentationUrl))
 
     @pyqtSignature('')
     def on_actionExportSession_triggered(self, filename=None):
@@ -376,7 +381,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.trayIcon = trayIcon = QSystemTrayIcon(self)
                 self.trayMenu = trayMenu = QMenu()
                 trayIcon.setIcon(icon)
-                trayMenu.addAction(icon, QApplication.applicationName())
+                trayMenu.addAction(icon, applicationName())
                 trayMenu.addSeparator()
                 for action in self.menuFile.actions():
                     trayMenu.addAction(action)

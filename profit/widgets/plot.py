@@ -4,11 +4,13 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-from PyQt4.QtCore import QRectF, Qt
-from PyQt4.QtGui import (QColor, QColorDialog, QFrame, QPen,
-                         QStandardItem, QStandardItemModel, )
+from PyQt4.QtCore import QVariant, Qt, pyqtSignature
+from PyQt4.QtGui import (QColor, QColorDialog, QFrame, QPen, QInputDialog,
+                         QStandardItem, QStandardItemModel, QMenu, )
 from PyQt4.Qwt5 import (QwtPicker, QwtPlot, QwtPlotCurve,
-                        QwtPlotPicker, QwtPlotZoomer, )
+                        QwtPlotPicker, QwtPlotZoomer, QwtPlotGrid,
+                        QwtLegend,
+                        )
 
 from ib.ext.TickType import TickType
 
@@ -16,14 +18,21 @@ from profit.lib import Settings, Signals, colorIcon
 from profit.widgets.ui_plot import Ui_Plot
 
 
+"""
+set fill brush
+style:  Lines, Sticks, Steps, Dots
+toggle legend
+"""
+
+
 class PlotCurve(QwtPlotCurve):
-    """ Implement later.
+    """ Stub for future implementation.
 
     """
 
 
 class PlotPicker(QwtPlotPicker):
-    """ Implement later.
+    """ Stub for future implementation.
 
     """
 
@@ -45,6 +54,20 @@ class ControlTreeItem(QStandardItem):
         self.setIcon(icon)
 
 
+def complementColor(c):
+    hx = str(c.name())[1:]
+    comp = ['%.2X' % (255 - int(a, 16)) for a in (hx[0:2], hx[2:4], hx[4:6])]
+    return QColor('#' + str.join('', comp))
+
+
+def changeColor(self, getr, setr):
+    oldcolor = getr()
+    newcolor = QColorDialog.getColor(oldcolor, self)
+    if newcolor.isValid():
+        setr(newcolor)
+        self.plot.replot()
+
+
 class Plot(QFrame, Ui_Plot):
     """ Plot container.
 
@@ -60,9 +83,105 @@ class Plot(QFrame, Ui_Plot):
         self.colors = {}
         self.ydata = {}
         self.session = None
-        self.settings = Settings()
         self.tickerId = None
+        self.settings = Settings()
+        self.settings.beginGroup(self.settings.keys.plots)
+        self.setupOptionsMenu()
+        self.setupPlot()
+        self.setupZoomer()
+        self.controlTree.addActions([
+            self.actionLineColor,
+            self.actionLineStyle,
+            ])
+
+    def on_controlTree_customContextMenuRequested(self, pos):
+        tree = self.controlTree
+        index = tree.indexAt(pos)
+        if index.isValid():
+            item = self.dataModel.itemFromIndex(index)
+            actions = tree.actions()
+            for action in actions:
+                action.setData(QVariant(pos))
+            QMenu.exec_(actions, tree.mapToGlobal(pos))
+
+    @pyqtSignature('')
+    def on_actionLineStyle_triggered(self):
+        pos = self.actionLineStyle.data().toPoint()
+        index = self.controlTree.indexAt(pos)
+        if index.isValid():
+            value, okay = QInputDialog.getItem(
+                self, 'Select Line Style',
+                'Line Style:',
+                ['Line', 'Step', 'Dot', ],
+                0, # current
+                False, # editable
+            )
+            print str(value), okay
+
+    @pyqtSignature('')
+    def on_actionLineColor_triggered(self):
+        pos = self.actionLineColor.data().toPoint()
+        index = self.controlTree.indexAt(pos)
+        if index.isValid():
+            self.on_controlTree_doubleClicked(index)
+
+    def setupOptionsMenu(self):
+        optionsButton = self.optionsButton
+        pop = QMenu(optionsButton)
+        optionsButton.setMenu(pop)
+        pop.addAction(self.actionMajorEnable)
+        pop.addAction(self.actionMinorEnable)
+        pop.addAction(self.actionLegendEnable)
+        pop.addSeparator()
+        pop.addAction(self.actionCanvasColor)
+        pop.addAction(self.actionMajorColor)
+        pop.addAction(self.actionMinorColor)
+
+    def setupPlot(self):
+        plot = self.plot
+        plot.setFrameStyle(plot.NoFrame|plot.Plain)
         self.plotSplitter.setSizes([80, 300])
+        self.grid = grid = QwtPlotGrid()
+        grid.attach(plot)
+        self.legend = QwtLegend(plot)
+
+    @pyqtSignature('bool')
+    def on_actionLegendEnable_triggered(self, enable):
+        self.legend.setVisible(enable)
+
+    @pyqtSignature('bool')
+    def on_actionMajorEnable_triggered(self, enable):
+        grid = self.grid
+        grid.enableX(enable)
+        grid.enableY(enable)
+        self.plot.replot()
+
+    @pyqtSignature('bool')
+    def on_actionMinorEnable_triggered(self, enable):
+        grid = self.grid
+        grid.enableXMin(enable)
+        grid.enableYMin(enable)
+        self.plot.replot()
+
+    @pyqtSignature('')
+    def on_actionMajorColor_triggered(self):
+        grid = self.grid
+        changeColor(self, grid.majPen().color, grid.setMajPen)
+
+    @pyqtSignature('')
+    def on_actionMinorColor_triggered(self):
+        grid = self.grid
+        changeColor(self, grid.minPen().color, grid.setMinPen)
+
+    @pyqtSignature('')
+    def on_actionCanvasColor_triggered(self):
+        plot = self.plot
+        changeColor(self, plot.canvasBackground, plot.setCanvasBackground)
+        bg = plot.canvasBackground()
+        bg = complementColor(bg)
+        pen = QPen(bg)
+        self.zoomer.setRubberBandPen(pen)
+        self.picker.setTrackerPen(pen)
 
     def setSession(self, session, tickerId, *indexes):
         """ Associate a session with this instance.
@@ -77,7 +196,6 @@ class Plot(QFrame, Ui_Plot):
         self.tickerId = tickerId
         self.setupModel()
         self.setupTree()
-        self.setupZoomer()
         session.registerMeta(self)
 
     def setupModel(self):
@@ -105,21 +223,25 @@ class Plot(QFrame, Ui_Plot):
         for col in range(model.columnCount()):
             tree.resizeColumnToContents(col)
 
-
     def setupZoomer(self):
         """ Configures the zoomer and picker objects for this instance.
 
         @return None
         """
-        plot = self.plotWidget
+        plot = self.plot
+        plot.enableAxis(QwtPlot.yRight, True)
+        plot.enableAxis(QwtPlot.yLeft, False)
         canvas = plot.canvas()
+        layout = plot.plotLayout()
+        layout.setCanvasMargin(0)
+        layout.setAlignCanvasToScales(True)
         pen = QPen(Qt.black)
         self.zoomer = zoomer = \
-            QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yLeft,
+            QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yRight,
                           QwtPicker.DragSelection,
                           QwtPicker.AlwaysOff, canvas)
         self.picker = picker = \
-            PlotPicker(QwtPlot.xBottom, QwtPlot.yLeft,
+            PlotPicker(QwtPlot.xBottom, QwtPlot.yRight,
                           QwtPicker.NoSelection,
                           QwtPlotPicker.CrossRubberBand,
                           QwtPicker.AlwaysOn, canvas)
@@ -164,10 +286,6 @@ class Plot(QFrame, Ui_Plot):
             subrowcol = rowcol + (subitem.row(), subitem.column())
             self.addCurve(subrowcol, color, index)
 
-    defaultCurveColors = {
-        ('bidSize', ):'blue',
-        ('bidSize', 'MACD'):'black',
-    }
 
     def curveColor(self, *names):
         """ Loads color for named curve.
@@ -177,12 +295,30 @@ class Plot(QFrame, Ui_Plot):
         """
         names = tuple([str(name) for name in names])
         settings = self.settings
-        settings.beginGroup(settings.keys.plots)
         key = '%s:%s' % (self.tickerId, str.join(':', names))
-        default = self.defaultCurveColors.get(names, 'red')
+        default = self.defaultCurveColor(*names)
+        #print '### ', names, default
         value = settings.value(key, default)
-        settings.endGroup()
         return QColor(value)
+
+
+
+    defaultCurveColors = {
+        None : 'darkRed',
+        ('high', ) : 'red',
+        ('low', ) : 'blue',
+        ('volume', ) : 'green',
+        ('close', ) : 'black',
+        ('bidSize', ):'blue',
+        ('bidSize', 'MACD'):'black',
+    }
+
+    def defaultCurveColor(self, *names):
+        try:
+            return self.defaultCurveColors[names]
+        except (KeyError, ):
+            pass
+        return self.defaultCurveColors[None]
 
     def saveCurveColor(self, color, *names):
         """ Saves named curve color setting.
@@ -193,10 +329,8 @@ class Plot(QFrame, Ui_Plot):
         """
         names = [str(name) for name in names]
         settings = self.settings
-        settings.beginGroup(settings.keys.plots)
         key = '%s:%s' % (self.tickerId, str.join(':', names))
         settings.setValue(key, color)
-        settings.endGroup()
 
     def enableCurve(self, item, enable=True):
         """ Sets the visibility and style of a plot curve.
@@ -215,19 +349,27 @@ class Plot(QFrame, Ui_Plot):
         except (KeyError, ):
             pass
         else:
-            plot = self.plotWidget
+            plot = self.plot
             if enable:
-                y = self.ydata[key]
+                y = self.ydata[key][:]
                 x = range(len(y))
+                while y and y[0] is None:
+                    y.pop(0)
+                    x.pop(0)
                 curve.setData(x, y)
                 curve.setPen(QPen(self.colors[key]))
                 curve.setVisible(True)
+                curve.setYAxis(QwtPlot.yRight)
                 curve.attach(plot)
             else:
                 curve.setVisible(False)
                 curve.detach()
-            plot = self.plotWidget
+            plot = self.plot
+
+            plot.setAxisAutoScale(QwtPlot.xBottom)
+            plot.setAxisAutoScale(QwtPlot.yRight)
             plot.updateAxes()
+            self.zoomer.setZoomBase()
             plot.replot()
 
     def on_session_createdSeries(self, tickerId, field):
@@ -254,10 +396,13 @@ class Plot(QFrame, Ui_Plot):
         for key, curve in self.curves.items():
             if not curve.isVisible():
                 continue
-            y = ydata[key]
+            y = ydata[key][:]
             x = range(len(y))
+            while y and y[0] is None:
+                y.pop(0)
+                x.pop(0)
             curve.setData(x, y)
-        self.plotWidget.replot()
+        self.plot.replot()
 
     def on_controlTree_doubleClicked(self, index):
         """ Signal handler for controls tree double click.
@@ -294,7 +439,7 @@ class Plot(QFrame, Ui_Plot):
                 else:
                     curve.setPen(QPen(color))
                     if curve.isVisible:
-                        self.plotWidget.replot()
+                        self.plot.replot()
 
     def on_controlTree_itemChanged(self, item):
         """ Signal handler for all changes to control tree items.

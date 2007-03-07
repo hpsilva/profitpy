@@ -20,6 +20,8 @@ class Signals:
     createdSeries = SIGNAL('createdSeries')
     createdTicker = SIGNAL('createdTicker')
     currentChanged = SIGNAL('currentChanged(int)')
+    customContextMenuRequested = \
+        SIGNAL('customContextMenuRequested(const QPoint &)')
     dataChanged = \
         SIGNAL('dataChanged(const QModelIndex &, const QModelIndex &)')
     disconnectedTWS = SIGNAL('disconnectedTWS')

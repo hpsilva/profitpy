@@ -12,7 +12,7 @@
   <property name="windowTitle" >
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" >
+  <layout class="QVBoxLayout" >
    <property name="margin" >
     <number>9</number>
    </property>
@@ -24,15 +24,60 @@
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QTreeView" name="controlTree" >
-      <property name="uniformRowHeights" >
-       <bool>true</bool>
-      </property>
-      <property name="animated" >
-       <bool>true</bool>
-      </property>
+     <widget class="QWidget" name="layoutWidget" >
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QTreeView" name="controlTree" >
+         <property name="contextMenuPolicy" >
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="uniformRowHeights" >
+          <bool>true</bool>
+         </property>
+         <property name="animated" >
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="optionsButton" >
+           <property name="text" >
+            <string>Options</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
-     <widget class="QwtPlot" name="plotWidget" >
+     <widget class="QwtPlot" name="plot" >
       <property name="sizePolicy" >
        <sizepolicy>
         <hsizetype>5</hsizetype>
@@ -45,6 +90,64 @@
     </widget>
    </item>
   </layout>
+  <action name="actionLegendEnable" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Legend</string>
+   </property>
+  </action>
+  <action name="actionMajorEnable" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Major Grid</string>
+   </property>
+  </action>
+  <action name="actionMinorEnable" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Minor Grid</string>
+   </property>
+  </action>
+  <action name="actionMajorColor" >
+   <property name="text" >
+    <string>Major Color...</string>
+   </property>
+  </action>
+  <action name="actionMinorColor" >
+   <property name="text" >
+    <string>Minor Color...</string>
+   </property>
+  </action>
+  <action name="actionCanvasColor" >
+   <property name="text" >
+    <string>Background Color...</string>
+   </property>
+  </action>
+  <action name="actionLineColor" >
+   <property name="text" >
+    <string>Line Color...</string>
+   </property>
+  </action>
+  <action name="actionLineStyle" >
+   <property name="text" >
+    <string>Line Style...</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

@@ -124,7 +124,6 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
                 value = getr(obj)
                 settings.setValue(name, value)
             settings.endGroup()
-        settings.sync()
 
     on_selectAccountSupervisor_clicked = sysPathSelectMethod('accountSupervisor')
     on_selectOrderSupervisor_clicked = sysPathSelectMethod('orderSupervisor')

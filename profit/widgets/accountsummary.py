@@ -250,4 +250,3 @@ class AccountSummary(QFrame, Ui_AccountSummary):
         keys = [QVariant([key, currency]) for (key, currency), item in
                     self.sharedKeys.items() if item is not None]
         settings.setValue(self.settingKey, keys)
-        settings.sync()
