@@ -14,46 +14,31 @@ class Series(list):
     """ Series objects are lists that maintain indexes.
 
     """
-    def __init__(self, data=None):
-        list.__init__(self, data if data is not None else [])
-        self.indexes = indexes = []
-        self.indexMap = IndexMapping(indexes)
+    def __init__(self):
+        list.__init__(self)
+        self.indexes = []
+        self.x = []
+        self.y = []
 
-    def append(self, item):
-        """ append(item) -> append item to this series and update all indexes
+    def append(self, value):
+        """ append value to this series and update its indexes
 
         """
-        list.append(self, item)
-        for idx in self.indexes:
-            idx.reindex()
-
-
-class IndexMapping(object):
-    """ Partial dictionary emulator for Series clients.
-
-    """
-    def __init__(self, indexes):
-        self.indexes = indexes
-
-    def __getitem__(self, key):
+        list.append(self, value)
+        if value is not None:
+            self.y.append(value)
+            self.x.append(len(self))
         for index in self.indexes:
-            if index.key == key:
-                return index
-        raise IndexError("index out of range")
+            index.reindex()
 
-    def items(self):
-        return [(index.key, index) for index in self.indexes]
-
-    def keys(self):
-        return [i.key for i in self.indexes]
-
-    def set(self, key, func, *args, **kwds):
+    def addIndex(self, key, func, *args, **kwds):
         indexes = self.indexes
-        if key in self.keys():
+        keys = [i.key for i in indexes]
+        if key in keys:
             index = [i for i in indexes if i.key==key][0]
         else:
             index = func(*args, **kwds)
-            index.key = index.name = key
+            index.key = key
             indexes.append(index)
         return index
 
@@ -62,6 +47,20 @@ class BaseIndex(list):
     """ Base class for index types.
 
     """
+    def __init__(self):
+        list.__init__(self)
+        self.x = []
+        self.y = []
+
+
+    def append(self, value):
+        """ append value to this series and update its indexes
+
+        """
+        list.append(self, value)
+        if value is not None:
+            self.y.append(value)
+            self.x.append(len(self))
 
 
 class SeriesIndex(BaseIndex):

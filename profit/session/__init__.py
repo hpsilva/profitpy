@@ -92,9 +92,9 @@ class SessionBuilder(object):
 
     def series(self, tickerId, field):
         s = Series()
-        s.indexMap.set('EMA-20', EMA, s, 20)
-        s.indexMap.set('EMA-40', EMA, s, 40)
-        s.indexMap.set('KAMA-10', KAMA, s, 10)
+        s.addIndex('EMA-20', EMA, s, 20)
+        s.addIndex('EMA-40', EMA, s, 40)
+        s.addIndex('KAMA-10', KAMA, s, 10)
         return s
 
 

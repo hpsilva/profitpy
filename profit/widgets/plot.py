@@ -81,7 +81,7 @@ class Plot(QFrame, Ui_Plot):
         self.setupUi(self)
         self.curves = {}
         self.colors = {}
-        self.ydata = {}
+        self.data = {}
         self.session = None
         self.tickerId = None
         self.settings = Settings()
@@ -259,7 +259,7 @@ class Plot(QFrame, Ui_Plot):
         self.curves[key] = curve = PlotCurve()
         curve.setStyle(PlotCurve.Lines)
         self.colors[key] = color
-        self.ydata[key] = data
+        self.data[key] = data
 
     def addSeries(self, key):
         """ Creates new controls and curve for an individual series.
@@ -279,9 +279,9 @@ class Plot(QFrame, Ui_Plot):
         rowcol = item.row(), item.column()
         self.addCurve(rowcol, color, series)
         for index in series.indexes:
-            color = self.curveColor(name, index.name)
+            color = self.curveColor(name, index.key)
             icon = colorIcon(color)
-            subitem = ControlTreeItem(index.name, icon)
+            subitem = ControlTreeItem(index.key, icon)
             item.appendRow(subitem)
             subrowcol = rowcol + (subitem.row(), subitem.column())
             self.addCurve(subrowcol, color, index)
@@ -351,12 +351,7 @@ class Plot(QFrame, Ui_Plot):
         else:
             plot = self.plot
             if enable:
-                y = self.ydata[key][:]
-                x = range(len(y))
-                while y and y[0] is None:
-                    y.pop(0)
-                    x.pop(0)
-                curve.setData(x, y)
+                curve.setData(self.data[key].x, self.data[key].y)
                 curve.setPen(QPen(self.colors[key]))
                 curve.setVisible(True)
                 curve.setYAxis(QwtPlot.yRight)
@@ -392,16 +387,10 @@ class Plot(QFrame, Ui_Plot):
         """
         if message.tickerId != self.tickerId:
             return
-        ydata = self.ydata
+        data = self.data
         for key, curve in self.curves.items():
-            if not curve.isVisible():
-                continue
-            y = ydata[key][:]
-            x = range(len(y))
-            while y and y[0] is None:
-                y.pop(0)
-                x.pop(0)
-            curve.setData(x, y)
+            if curve.isVisible():
+                curve.setData(data[key].x, data[key].y)
         self.plot.replot()
 
     def on_controlTree_doubleClicked(self, index):
