@@ -6,7 +6,7 @@
 
 from PyQt4.QtGui import QFrame
 
-from profit.lib import Signals
+from profit.lib.core import Signals
 from profit.widgets.ui_plotdisplay import Ui_PlotDisplay
 
 

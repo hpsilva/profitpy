@@ -8,7 +8,7 @@
 import sys
 from PyQt4.QtGui import QApplication
 from profit.main import MainWindow
-from profit.lib import Settings
+from profit.lib.core import Settings
 
 app = QApplication(sys.argv)
 app.setApplicationName(Settings.keys.app)

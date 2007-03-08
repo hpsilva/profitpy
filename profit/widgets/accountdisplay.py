@@ -7,7 +7,7 @@
 from PyQt4.QtCore import QAbstractTableModel, QSize, QVariant, Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib import Signals, valueAlign
+from profit.lib.core import Signals, valueAlign
 from profit.widgets.ui_accountdisplay import Ui_AccountDisplay
 
 

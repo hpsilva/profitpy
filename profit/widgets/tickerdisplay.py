@@ -11,7 +11,8 @@ from PyQt4.QtGui import QFrame, QIcon
 
 from ib.ext.TickType import TickType
 
-from profit.lib import Signals, ValueTableItem, disabledUpdates, nameIn
+from profit.lib.core import Signals, disabledUpdates, nameIn
+from profit.lib.gui import ValueTableItem
 from profit.widgets.portfoliodisplay import replayPortfolio
 from profit.widgets.ui_tickerdisplay import Ui_TickerDisplay
 

@@ -9,7 +9,7 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib import disabledUpdates, nameIn
+from profit.lib.core import disabledUpdates, nameIn
 from profit.widgets.ui_orderdisplay import Ui_OrderDisplay
 
 

@@ -12,9 +12,9 @@ import signal
 import sys
 import time
 
-from PyQt4.QtCore import QCoreApplication, QObject, QThread, QTimer, SIGNAL
+from PyQt4.QtCore import QCoreApplication, QThread
 
-from profit.lib import Signals
+from profit.lib.core import Signals
 from profit.session import Session
 
 
@@ -28,7 +28,7 @@ class defaults:
     port = 7496
     start = 'immediate'
     stop = 'none'
-    verbose = True
+    verbose = False
 
 
 def check_duration(option, opt, value):
@@ -201,20 +201,21 @@ def main(options):
         startat = time.mktime(ymd+hms)
         startdelay = startat - now
         if startdelay < 0:
-            logging.warning('Start time in the past - will start tomorrow.')
+            logging.warning('Start time in the past - adjusted +24 hours.')
             ymd = (ymd[0], ymd[1]+1, ymd[2])
             startat = time.mktime(ymd+hms)
             startdelay = startat - time.time()
     if stop == defaults.stop and duration == defaults.duration:
         stopat = None
     elif duration != defaults.duration:
-        stopat = startat + (duration * 60)
+        offset = startat if startat else now
+        stopat = offset + (duration * 60)
     else:
         hms = time.strptime(stop, '%H:%M:%S')[3:]
         stopat = time.mktime(ymd+hms)
         if stopat < now:
             stopat += (60*60*24)
-            logging.warning('Stop time in the past - will stop tomorrow.')
+            logging.warning('Stop time in the past - adjusted +24 hours.')
     if startat:
         atdis = time.strftime('%H:%M:%S', time.localtime(startat))
         logging.debug('Collection will start at %s - delay %.2f seconds.',

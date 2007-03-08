@@ -14,7 +14,8 @@ from PyQt4.Qwt5 import (QwtPicker, QwtPlot, QwtPlotCurve,
 
 from ib.ext.TickType import TickType
 
-from profit.lib import Settings, Signals, colorIcon
+from profit.lib.core import Settings, Signals
+from profit.lib.gui import colorIcon
 from profit.widgets.ui_plot import Ui_Plot
 
 
@@ -144,6 +145,8 @@ class Plot(QFrame, Ui_Plot):
         self.grid = grid = QwtPlotGrid()
         grid.attach(plot)
         self.legend = QwtLegend(plot)
+        self.legend.setVisible(False)
+        self.actionLegendEnable.setChecked(False)
 
     @pyqtSignature('bool')
     def on_actionLegendEnable_triggered(self, enable):

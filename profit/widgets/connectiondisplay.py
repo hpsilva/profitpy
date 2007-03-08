@@ -17,7 +17,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qwt5 import QwtThermo
 QtGui.QwtThermo = QwtThermo
 
-from profit.lib import Signals
+from profit.lib.core import Signals
 from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
 

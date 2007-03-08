@@ -21,7 +21,7 @@ from ib.ext.TickType import TickType
 from ib.opt import ibConnection
 from ib.opt.message import registry
 
-from profit.lib import Signals
+from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram, EMA, KAMA
 
 

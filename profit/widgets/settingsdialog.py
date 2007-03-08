@@ -8,7 +8,8 @@
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QApplication, QColor, QColorDialog, QDialog, QFont, QFontDialog
 
-from profit.lib import Settings, colorIcon
+from profit.lib.core import Settings
+from profit.lib.gui import colorIcon
 from profit.widgets.syspathdialog import SysPathDialog
 from profit.widgets.ui_settingsdialog import Ui_SettingsDialog
 

@@ -11,7 +11,7 @@ from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel)
 
-from profit.lib import Signals, tickerIdRole
+from profit.lib.core import Signals, tickerIdRole
 from profit.widgets.ui_sessiontree import Ui_SessionTree
 
 

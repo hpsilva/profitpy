@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2007 Troy Melhase
+# Distributed under the terms of the GNU General Public License v2
+# Author: Troy Melhase <troy@gci.net>
+
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QBrush, QColor, QIcon, QPixmap, QTableWidgetItem
+from PyQt4.QtGui import QMessageBox
+
+from profit.lib.core import valueAlign
+
+class ValueColorItem(object):
+    increase = QBrush(QColor(Qt.darkGreen))
+    neutral = QBrush(QColor(Qt.blue))
+    decrease = QBrush(QColor(Qt.red))
+
+    @classmethod
+    def setColors(cls, increase, neutral, decrease):
+        cls.increase = QBrush(increase)
+        cls.neutral = QBrush(neutral)
+        cls.decrease = QBrush(decrease)
+
+
+class ValueTableItem(QTableWidgetItem, ValueColorItem):
+    """ Table item that changes colors based on value changes.
+
+    """
+    def __init__(self):
+        """ Constructor.
+
+        """
+        QTableWidgetItem.__init__(self, self.UserType)
+        self.setFlags(self.flags() & ~Qt.ItemIsEditable)
+        self.value = None
+
+    def setValue(self, value):
+        """ Sets value of item and updates text color (if possible).
+
+        @param string or number to set
+        @return None
+        """
+        try:
+            value = float(value)
+        except (ValueError, ):
+            self.setText(value)
+            return
+        current = self.value
+        if current is None:
+            self.value = value
+            self.setText(str(value))
+            return
+        if value < current:
+            self.setForeground(self.decrease)
+        elif value > current:
+            self.setForeground(self.increase)
+        else:
+            self.setForeground(self.neutral)
+        self.value = value
+        self.setText(str(value))
+
+    def setSymbol(self, symbol):
+        """ Sets the text and icon for a symbol-based item.
+
+        @param symbol ticker symbol as string
+        @return None
+        """
+        icon = symbolIcon(symbol)
+        self.setIcon(icon)
+        self.setText(symbol)
+
+    def setValueAlign(self, alignment=valueAlign):
+        """ Sets the text alignment of this item.
+
+        @param alignment Qt alignment flags
+        @return None
+        """
+        self.setTextAlignment(alignment)
+
+    def setText(self, text):
+        QTableWidgetItem.setText(self, str(text))
+
+
+def colorIcon(color, width=10, height=10):
+    """ Creates an icon filled with specified color.
+
+    @param color QColor instance
+    @param width width of icon in pixels
+    @param height of icon in pixels
+    @return QIcon instance
+    """
+    pixmap = QPixmap(width, height)
+    pixmap.fill(color)
+    return QIcon(pixmap)
+
+
+def symbolIcon(symbol):
+    """ Icon for a symbol.
+
+    @param symbol name of symbol
+    @return QIcon instance; transparent but valid if symbol icon not found
+    """
+    icon = QIcon(':images/tickers/%s.png' % (symbol.lower(), ))
+    if icon.pixmap(16,16).isNull():
+        pixmap = QPixmap(16, 16)
+        pixmap.fill(QColor(0, 0, 0, 0))
+        icon = QIcon(pixmap)
+    return icon
+
+
+def warningBox(title, text):
+    return QMessageBox.warning(None, title, text, QMessageBox.Close)

@@ -7,7 +7,7 @@
 
 from PyQt4.QtGui import QTableWidget
 
-from profit.lib import ValueTableItem
+from profit.lib.gui import ValueTableItem
 
 class LocalTable(QTableWidget):
     def __init__(self, parent=None):

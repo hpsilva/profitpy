@@ -12,14 +12,15 @@
 #    add setting saves for message display colors
 #    modify orders display to use model/tree view
 #    add check and read of startup .py script
-#    write session collector script
+#    write plot display script
 #    create better defaults for plot colors
 #    add account, orders, and strategy supervisors
 #    add strategy, account supervisor, order supervisor and indicator display
-#    add grid toggle to plot, background color, grid color
-#    move y axis scale to right
 #    add context menu to plot controls; settings for line style and width
 #    add context menu to ticker table with entries for news, charts, etc.
+#    move strategy and builders out of session module; implement user values
+#    add pen color and line type for maj/min grids
+#    fix plot + plot canvas frame styles
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -33,7 +34,8 @@ from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
 from PyQt4.QtGui import QSystemTrayIcon
 from PyQt4.QtGui import QIcon, QDesktopServices
 
-from profit.lib import Signals, Settings, ValueColorItem, nogc, warningBox
+from profit.lib.core import Signals, Settings, nogc
+from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
 from profit.widgets import profit_rc
 from profit.widgets.accountsummary import AccountSummary

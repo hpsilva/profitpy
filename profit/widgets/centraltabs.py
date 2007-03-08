@@ -8,7 +8,7 @@
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
 
-from profit.lib import Signals, importItem, tickerIdRole
+from profit.lib.core import Signals, importItem, tickerIdRole
 
 
 def tabWidgetMethod(name):

@@ -9,7 +9,8 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
-from profit.lib import ValueTableItem, disabledUpdates, nameIn
+from profit.lib.core import disabledUpdates, nameIn
+from profit.lib.gui import ValueTableItem
 from profit.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
 
 

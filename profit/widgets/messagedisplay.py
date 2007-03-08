@@ -13,7 +13,8 @@ from PyQt4.QtGui import QPixmap, QSortFilterProxyModel
 
 from ib.opt.message import registry
 
-from profit.lib import Signals, Slots, colorIcon, nogc
+from profit.lib.core import Signals, Slots, nogc
+from profit.lib.gui import colorIcon
 from profit.widgets.ui_messagedisplay import Ui_MessageDisplay
 
 

@@ -8,7 +8,8 @@ from PyQt4.QtCore import QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QItemDelegate, QStandardItem, QStandardItemModel
 from PyQt4.QtGui import QApplication, QFrame, QLCDNumber
 
-from profit.lib import Settings, Signals, ValueColorItem
+from profit.lib.core import Settings, Signals
+from profit.lib.gui import ValueColorItem
 from profit.widgets.accountkeysdialog import AccountKeysDialog
 from profit.widgets.ui_accountsummary import Ui_AccountSummary
 
