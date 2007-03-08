@@ -15,9 +15,9 @@ from PyQt4.Qwt5 import (QwtPicker, QwtPlot, QwtPlotCurve,
 from ib.ext.TickType import TickType
 
 from profit.lib.core import Settings, Signals
-from profit.lib.gui import colorIcon
+from profit.lib.gui import colorIcon, complementColor
+from profit.widgets.peneditdialog import PenEditDialog
 from profit.widgets.ui_plot import Ui_Plot
-
 
 """
 set fill brush
@@ -55,10 +55,13 @@ class ControlTreeItem(QStandardItem):
         self.setIcon(icon)
 
 
-def complementColor(c):
-    hx = str(c.name())[1:]
-    comp = ['%.2X' % (255 - int(a, 16)) for a in (hx[0:2], hx[2:4], hx[4:6])]
-    return QColor('#' + str.join('', comp))
+def changePen(self, getr, setr):
+    oldpen = getr()
+    dlg = PenEditDialog(oldpen, self)
+    if dlg.exec_() == dlg.Accepted:
+        newpen = QPen(dlg.selectedPen)
+        setr(newpen)
+        self.plot.replot()
 
 
 def changeColor(self, getr, setr):
@@ -66,7 +69,7 @@ def changeColor(self, getr, setr):
     newcolor = QColorDialog.getColor(oldcolor, self)
     if newcolor.isValid():
         setr(newcolor)
-        self.plot.replot()
+        return True
 
 
 class Plot(QFrame, Ui_Plot):
@@ -91,8 +94,7 @@ class Plot(QFrame, Ui_Plot):
         self.setupPlot()
         self.setupZoomer()
         self.controlTree.addActions([
-            self.actionLineColor,
-            self.actionLineStyle,
+            self.actionChangePenStyle,
             ])
 
     def on_controlTree_customContextMenuRequested(self, pos):
@@ -106,25 +108,17 @@ class Plot(QFrame, Ui_Plot):
             QMenu.exec_(actions, tree.mapToGlobal(pos))
 
     @pyqtSignature('')
-    def on_actionLineStyle_triggered(self):
-        pos = self.actionLineStyle.data().toPoint()
+    def on_actionChangePenStyle_triggered(self):
+        pos = self.sender().data().toPoint()
         index = self.controlTree.indexAt(pos)
         if index.isValid():
-            value, okay = QInputDialog.getItem(
-                self, 'Select Line Style',
-                'Line Style:',
-                ['Line', 'Step', 'Dot', ],
-                0, # current
-                False, # editable
-            )
-            print str(value), okay
-
-    @pyqtSignature('')
-    def on_actionLineColor_triggered(self):
-        pos = self.actionLineColor.data().toPoint()
-        index = self.controlTree.indexAt(pos)
-        if index.isValid():
-            self.on_controlTree_doubleClicked(index)
+            item = self.dataModel.itemFromIndex(index)
+            dlg = PenEditDialog(None, self)
+            if dlg.exec_() == dlg.Accepted:
+                item.pen = pen = QPen(dlg.selectedPen)
+                color = pen.color()
+                item.setIcon(colorIcon(color))
+                self.enableCurve(item, enable=item.checkState()==Qt.Checked)
 
     def setupOptionsMenu(self):
         optionsButton = self.optionsButton
@@ -135,12 +129,13 @@ class Plot(QFrame, Ui_Plot):
         pop.addAction(self.actionLegendEnable)
         pop.addSeparator()
         pop.addAction(self.actionCanvasColor)
-        pop.addAction(self.actionMajorColor)
-        pop.addAction(self.actionMinorColor)
+        pop.addAction(self.actionMajorStyle)
+        pop.addAction(self.actionMinorStyle)
 
     def setupPlot(self):
         plot = self.plot
         plot.setFrameStyle(plot.NoFrame|plot.Plain)
+        plot.canvas().setFrameStyle(plot.NoFrame|plot.Plain)
         self.plotSplitter.setSizes([80, 300])
         self.grid = grid = QwtPlotGrid()
         grid.attach(plot)
@@ -167,24 +162,23 @@ class Plot(QFrame, Ui_Plot):
         self.plot.replot()
 
     @pyqtSignature('')
-    def on_actionMajorColor_triggered(self):
-        grid = self.grid
-        changeColor(self, grid.majPen().color, grid.setMajPen)
+    def on_actionMajorStyle_triggered(self):
+        changePen(self, self.grid.majPen, self.grid.setMajPen)
 
     @pyqtSignature('')
-    def on_actionMinorColor_triggered(self):
-        grid = self.grid
-        changeColor(self, grid.minPen().color, grid.setMinPen)
+    def on_actionMinorStyle_triggered(self):
+        changePen(self, self.grid.minPen, self.grid.setMinPen)
 
     @pyqtSignature('')
     def on_actionCanvasColor_triggered(self):
         plot = self.plot
-        changeColor(self, plot.canvasBackground, plot.setCanvasBackground)
-        bg = plot.canvasBackground()
-        bg = complementColor(bg)
-        pen = QPen(bg)
-        self.zoomer.setRubberBandPen(pen)
-        self.picker.setTrackerPen(pen)
+        if changeColor(self, plot.canvasBackground, plot.setCanvasBackground):
+            bg = plot.canvasBackground()
+            bg = complementColor(bg)
+            pen = QPen(bg)
+            self.zoomer.setRubberBandPen(pen)
+            self.picker.setTrackerPen(pen)
+            plot.replot()
 
     def setSession(self, session, tickerId, *indexes):
         """ Associate a session with this instance.
@@ -335,6 +329,14 @@ class Plot(QFrame, Ui_Plot):
         key = '%s:%s' % (self.tickerId, str.join(':', names))
         settings.setValue(key, color)
 
+    def itemKey(self, item):
+        key = []
+        while item:
+            key.append(item.column())
+            key.append(item.row())
+            item = item.parent()
+        return tuple(reversed(key))
+
     def enableCurve(self, item, enable=True):
         """ Sets the visibility and style of a plot curve.
 
@@ -343,10 +345,7 @@ class Plot(QFrame, Ui_Plot):
                        otherwise curve is set invisible
         @return None
         """
-        key = (item.row(), item.column())
-        parent = item.parent()
-        if parent:
-            key = (parent.row(), parent.column()) + key
+        key = self.itemKey(item)
         try:
             curve = self.curves[key]
         except (KeyError, ):
@@ -355,7 +354,11 @@ class Plot(QFrame, Ui_Plot):
             plot = self.plot
             if enable:
                 curve.setData(self.data[key].x, self.data[key].y)
-                curve.setPen(QPen(self.colors[key]))
+                try:
+                    pen = item.pen
+                except (AttributeError, ):
+                    pen = QPen(self.colors[key])
+                curve.setPen(pen)
                 curve.setVisible(True)
                 curve.setYAxis(QwtPlot.yRight)
                 curve.attach(plot)

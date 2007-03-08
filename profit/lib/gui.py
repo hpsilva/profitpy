@@ -111,3 +111,9 @@ def symbolIcon(symbol):
 
 def warningBox(title, text):
     return QMessageBox.warning(None, title, text, QMessageBox.Close)
+
+
+def complementColor(c):
+    hx = str(c.name())[1:]
+    comp = ['%.2X' % (255 - int(a, 16)) for a in (hx[0:2], hx[2:4], hx[4:6])]
+    return QColor('#' + str.join('', comp))

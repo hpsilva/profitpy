@@ -123,14 +123,14 @@
     <string>Minor Grid</string>
    </property>
   </action>
-  <action name="actionMajorColor" >
+  <action name="actionMajorStyle" >
    <property name="text" >
-    <string>Major Color...</string>
+    <string>Major Grid Style...</string>
    </property>
   </action>
-  <action name="actionMinorColor" >
+  <action name="actionMinorStyle" >
    <property name="text" >
-    <string>Minor Color...</string>
+    <string>Minor Grid Style...</string>
    </property>
   </action>
   <action name="actionCanvasColor" >
@@ -138,14 +138,9 @@
     <string>Background Color...</string>
    </property>
   </action>
-  <action name="actionLineColor" >
+  <action name="actionChangePenStyle" >
    <property name="text" >
-    <string>Line Color...</string>
-   </property>
-  </action>
-  <action name="actionLineStyle" >
-   <property name="text" >
-    <string>Line Style...</string>
+    <string>Change Style...</string>
    </property>
   </action>
  </widget>

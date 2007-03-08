@@ -21,6 +21,8 @@
 #    move strategy and builders out of session module; implement user values
 #    add pen color and line type for maj/min grids
 #    fix plot + plot canvas frame styles
+#    add file selector buttons to connection commands
+#    add setting/selection to adjust plot scale font, color
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
