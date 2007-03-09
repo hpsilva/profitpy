@@ -4,6 +4,12 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
+"""
+set fill brush
+style:  Lines, Sticks, Steps, Dots
+toggle legend
+"""
+
 from PyQt4.QtCore import QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import (QColor, QColorDialog, QFrame, QPen, QInputDialog,
                          QStandardItem, QStandardItemModel, QMenu, )
@@ -19,11 +25,22 @@ from profit.lib.gui import colorIcon, complementColor
 from profit.widgets.peneditdialog import PenEditDialog
 from profit.widgets.ui_plot import Ui_Plot
 
-"""
-set fill brush
-style:  Lines, Sticks, Steps, Dots
-toggle legend
-"""
+
+def changePen(parent, getr, setr):
+    oldpen = QPen(getr())
+    dlg = PenEditDialog(oldpen, parent)
+    if dlg.exec_() == dlg.Accepted:
+        newpen = QPen(dlg.selectedPen)
+        setr(newpen)
+        return True
+
+
+def changeColor(parent, getr, setr):
+    oldcolor = QColor(getr())
+    newcolor = QColorDialog.getColor(oldcolor, parent)
+    if newcolor.isValid():
+        setr(newcolor)
+        return True
 
 
 class PlotCurve(QwtPlotCurve):
@@ -42,34 +59,33 @@ class ControlTreeItem(QStandardItem):
     """ Self-configuring control tree item.
 
     """
-    def __init__(self, text, icon):
+    def __init__(self, text, data):
         """ Constructor.
 
-        @param text string for first column
-        @param icon QIcon instance for first column
         """
         QStandardItem.__init__(self, text)
         self.setCheckable(True)
         self.setCheckState(Qt.Unchecked)
         self.setEditable(False)
-        self.setIcon(icon)
+        self.curve = PlotCurve(text)
+        self.data = data
+        self.pen = QPen(QColor('black'))
 
+    def setColor(self, color):
+        self.color = color
+        self.setIcon(colorIcon(color))
 
-def changePen(self, getr, setr):
-    oldpen = getr()
-    dlg = PenEditDialog(oldpen, self)
-    if dlg.exec_() == dlg.Accepted:
-        newpen = QPen(dlg.selectedPen)
-        setr(newpen)
-        self.plot.replot()
+    def setPen(self, pen):
+        self.pen = pen
+        self.setColor(pen.color())
 
-
-def changeColor(self, getr, setr):
-    oldcolor = getr()
-    newcolor = QColorDialog.getColor(oldcolor, self)
-    if newcolor.isValid():
-        setr(newcolor)
-        return True
+    @property
+    def name(self):
+        names = []
+        while self:
+            names.append(str(self.text()))
+            self = self.parent()
+        return str.join(':', reversed(names))
 
 
 class Plot(QFrame, Ui_Plot):
@@ -83,42 +99,12 @@ class Plot(QFrame, Ui_Plot):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.curves = {}
-        self.colors = {}
-        self.data = {}
-        self.session = None
-        self.tickerId = None
         self.settings = Settings()
         self.settings.beginGroup(self.settings.keys.plots)
         self.setupOptionsMenu()
         self.setupPlot()
-        self.setupZoomer()
-        self.controlTree.addActions([
-            self.actionChangePenStyle,
-            ])
+        self.controlsTree.addActions([self.actionChangePenStyle, ])
 
-    def on_controlTree_customContextMenuRequested(self, pos):
-        tree = self.controlTree
-        index = tree.indexAt(pos)
-        if index.isValid():
-            item = self.dataModel.itemFromIndex(index)
-            actions = tree.actions()
-            for action in actions:
-                action.setData(QVariant(pos))
-            QMenu.exec_(actions, tree.mapToGlobal(pos))
-
-    @pyqtSignature('')
-    def on_actionChangePenStyle_triggered(self):
-        pos = self.sender().data().toPoint()
-        index = self.controlTree.indexAt(pos)
-        if index.isValid():
-            item = self.dataModel.itemFromIndex(index)
-            dlg = PenEditDialog(None, self)
-            if dlg.exec_() == dlg.Accepted:
-                item.pen = pen = QPen(dlg.selectedPen)
-                color = pen.color()
-                item.setIcon(colorIcon(color))
-                self.enableCurve(item, enable=item.checkState()==Qt.Checked)
 
     def setupOptionsMenu(self):
         optionsButton = self.optionsButton
@@ -133,15 +119,39 @@ class Plot(QFrame, Ui_Plot):
         pop.addAction(self.actionMinorStyle)
 
     def setupPlot(self):
+        self.plotSplitter.setSizes([80, 300])
+
         plot = self.plot
         plot.setFrameStyle(plot.NoFrame|plot.Plain)
-        plot.canvas().setFrameStyle(plot.NoFrame|plot.Plain)
-        self.plotSplitter.setSizes([80, 300])
+        plot.enableAxis(QwtPlot.yRight, True)
+        plot.enableAxis(QwtPlot.yLeft, False)
+
+        canvas = plot.canvas()
+        canvas.setFrameStyle(plot.NoFrame|plot.Plain)
+
+        layout = plot.plotLayout()
+        layout.setCanvasMargin(0)
+        layout.setAlignCanvasToScales(True)
+
         self.grid = grid = QwtPlotGrid()
         grid.attach(plot)
+
         self.legend = QwtLegend(plot)
         self.legend.setVisible(False)
         self.actionLegendEnable.setChecked(False)
+
+        pen = QPen(Qt.black)
+        self.zoomer = zoomer = \
+            QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yRight,
+                          QwtPicker.DragSelection,
+                          QwtPicker.AlwaysOff, canvas)
+        self.picker = picker = \
+            PlotPicker(QwtPlot.xBottom, QwtPlot.yRight,
+                          QwtPicker.NoSelection,
+                          QwtPlotPicker.CrossRubberBand,
+                          QwtPicker.AlwaysOn, canvas)
+        zoomer.setRubberBandPen(pen)
+        picker.setTrackerPen(pen)
 
     @pyqtSignature('bool')
     def on_actionLegendEnable_triggered(self, enable):
@@ -163,19 +173,23 @@ class Plot(QFrame, Ui_Plot):
 
     @pyqtSignature('')
     def on_actionMajorStyle_triggered(self):
-        changePen(self, self.grid.majPen, self.grid.setMajPen)
+        if changePen(self, self.grid.majPen, self.grid.setMajPen):
+            self.savePen('gridmaj', self.grid.majPen())
+            self.plot.replot()
 
     @pyqtSignature('')
     def on_actionMinorStyle_triggered(self):
-        changePen(self, self.grid.minPen, self.grid.setMinPen)
+        if changePen(self, self.grid.minPen, self.grid.setMinPen):
+            self.savePen('gridmin', self.grid.minPen())
+            self.plot.replot()
 
     @pyqtSignature('')
     def on_actionCanvasColor_triggered(self):
         plot = self.plot
         if changeColor(self, plot.canvasBackground, plot.setCanvasBackground):
             bg = plot.canvasBackground()
-            bg = complementColor(bg)
-            pen = QPen(bg)
+            self.saveColor('background', bg)
+            pen = QPen(complementColor(bg))
             self.zoomer.setRubberBandPen(pen)
             self.picker.setTrackerPen(pen)
             plot.replot()
@@ -188,117 +202,94 @@ class Plot(QFrame, Ui_Plot):
         @param *indexes unused
         @return None
         """
+        self.controlsTreeItems = []
         self.session = session
         self.tickerCollection = session.tickerCollection
         self.tickerId = tickerId
-        self.setupModel()
         self.setupTree()
         session.registerMeta(self)
+        plot = self.plot
+        grid = self.grid
+        plot.setCanvasBackground(
+            self.loadColor('background', QColor('#A9A9A9')))
+        grid.setMajPen(self.loadPen('gridmaj', QPen(QColor('#c0c0c0'))))
+        grid.setMinPen(self.loadPen('gridmin', QPen(QColor('#070707'))))
+        plot.replot()
 
-    def setupModel(self):
+    def setupTree(self):
         """ Configure the model and initial items for this instance.
 
         @return None
         """
-        self.dataModel = dataModel = QStandardItemModel(self)
+        self.controlsTreeModel = controlsTreeModel = QStandardItemModel(self)
         ticker = self.tickerCollection[self.tickerId]
-        root = dataModel.invisibleRootItem()
-        for key in sorted(ticker.series):
-            self.addSeries(key)
-        self.connect(dataModel, Signals.standardItemChanged,
-                     self.on_controlTree_itemChanged)
-
-    def setupTree(self):
-        """ Configures the controls tree for this instance.
-
-        @return None
-        """
-        tree = self.controlTree
+        root = controlsTreeModel.invisibleRootItem()
+        for field, series in ticker.series.items():
+            self.addSeries(TickType.getField(field), series)
+        self.connect(controlsTreeModel, Signals.standardItemChanged,
+                     self.on_controlsTree_itemChanged)
+        tree = self.controlsTree
         tree.header().hide()
-        model = self.dataModel
+        model = self.controlsTreeModel
         tree.setModel(model)
         for col in range(model.columnCount()):
             tree.resizeColumnToContents(col)
+        self.controlsTree.sortByColumn(0, Qt.AscendingOrder)
 
-    def setupZoomer(self):
-        """ Configures the zoomer and picker objects for this instance.
-
-        @return None
-        """
-        plot = self.plot
-        plot.enableAxis(QwtPlot.yRight, True)
-        plot.enableAxis(QwtPlot.yLeft, False)
-        canvas = plot.canvas()
-        layout = plot.plotLayout()
-        layout.setCanvasMargin(0)
-        layout.setAlignCanvasToScales(True)
-        pen = QPen(Qt.black)
-        self.zoomer = zoomer = \
-            QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yRight,
-                          QwtPicker.DragSelection,
-                          QwtPicker.AlwaysOff, canvas)
-        self.picker = picker = \
-            PlotPicker(QwtPlot.xBottom, QwtPlot.yRight,
-                          QwtPicker.NoSelection,
-                          QwtPlotPicker.CrossRubberBand,
-                          QwtPicker.AlwaysOn, canvas)
-        zoomer.setRubberBandPen(pen)
-        picker.setTrackerPen(pen)
-
-    def addCurve(self, key, color, data):
-        """ Creates a new, empty plot curve for the given key.
-
-        @param key curve key
-        @param color QColor instance associated with curve
-        @param data sequence associated with curve
-        @return None
-        """
-        self.curves[key] = curve = PlotCurve()
-        curve.setStyle(PlotCurve.Lines)
-        self.colors[key] = color
-        self.data[key] = data
-
-    def addSeries(self, key):
+    def addSeries(self, name, series, parent=None):
         """ Creates new controls and curve for an individual series.
 
-        @param key series key
+        @param name series key
         @return None
         """
-        dataModel = self.dataModel
-        ticker = self.tickerCollection[self.tickerId]
-        series = ticker.series[key]
-        root = dataModel.invisibleRootItem()
-        name = TickType.getField(key)
-        color = self.curveColor(name)
-        icon = colorIcon(color)
-        item = ControlTreeItem(name, icon)
-        root.appendRow(item)
-        rowcol = item.row(), item.column()
-        self.addCurve(rowcol, color, series)
-        for index in series.indexes:
-            color = self.curveColor(name, index.key)
-            icon = colorIcon(color)
-            subitem = ControlTreeItem(index.key, icon)
-            item.appendRow(subitem)
-            subrowcol = rowcol + (subitem.row(), subitem.column())
-            self.addCurve(subrowcol, color, index)
+        if parent is None:
+            parent = self.controlsTreeModel.invisibleRootItem()
+        item = ControlTreeItem(name, series)
+        parent.appendRow(item)
+        pen = self.loadItemPen(item)
+        item.setPen(pen)
+        self.controlsTreeItems.append(item)
+        for index in getattr(series, 'indexes', []):
+            self.addSeries(index.key, index, parent=item)
 
+    def plotName(self):
+        return '%s:%s' % (self.tickerId, self.objectName(), )
 
-    def curveColor(self, *names):
-        """ Loads color for named curve.
+    def itemName(self, item):
+        return '%s:%s' % (self.plotName(), item.name)
 
-        @param *names one or more strings to form settings key
-        @return QColor instance
-        """
-        names = tuple([str(name) for name in names])
-        settings = self.settings
-        key = '%s:%s' % (self.tickerId, str.join(':', names))
-        default = self.defaultCurveColor(*names)
-        #print '### ', names, default
-        value = settings.value(key, default)
+    def saveColor(self, name, color):
+        key = '%s:%s' % (self.plotName(), name)
+        self.settings.setValue(key, color)
+
+    def loadColor(self, name, default):
+        key = '%s:%s' % (self.plotName(), name)
+        value = self.settings.value(key, default)
         return QColor(value)
 
+    def savePen(self, name, pen):
+        key = '%s:%s' % (self.plotName(), name)
+        self.settings.setValue(key, pen)
 
+    def loadPen(self, name, default):
+        key = '%s:%s' % (self.plotName(), name)
+        value = self.settings.value(key, default)
+        return QPen(value)
+
+    def saveItemPen(self, item):
+        name = self.itemName(item)
+        settings = self.settings
+        settings.setValue('%s:pen' % name, item.pen)
+
+    def loadItemPen(self, item):
+        default = QPen()
+        penkey = '%s:pen' % self.itemName(item)
+        pen = self.settings.value(penkey)
+        if pen.isValid():
+            pen = QPen(pen)
+        else:
+            pen = QPen() # lookup
+        return pen
 
     defaultCurveColors = {
         None : 'darkRed',
@@ -317,25 +308,6 @@ class Plot(QFrame, Ui_Plot):
             pass
         return self.defaultCurveColors[None]
 
-    def saveCurveColor(self, color, *names):
-        """ Saves named curve color setting.
-
-        @param color QColor instance
-        @param *names one or more strings to form settings key
-        @return None
-        """
-        names = [str(name) for name in names]
-        settings = self.settings
-        key = '%s:%s' % (self.tickerId, str.join(':', names))
-        settings.setValue(key, color)
-
-    def itemKey(self, item):
-        key = []
-        while item:
-            key.append(item.column())
-            key.append(item.row())
-            item = item.parent()
-        return tuple(reversed(key))
 
     def enableCurve(self, item, enable=True):
         """ Sets the visibility and style of a plot curve.
@@ -345,33 +317,22 @@ class Plot(QFrame, Ui_Plot):
                        otherwise curve is set invisible
         @return None
         """
-        key = self.itemKey(item)
-        try:
-            curve = self.curves[key]
-        except (KeyError, ):
-            pass
+        curve = item.curve
+        plot = self.plot
+        if enable:
+            curve.setData(item.data.x, item.data.y)
+            curve.setPen(item.pen)
+            curve.setVisible(True)
+            curve.setYAxis(QwtPlot.yRight)
+            curve.attach(plot)
         else:
-            plot = self.plot
-            if enable:
-                curve.setData(self.data[key].x, self.data[key].y)
-                try:
-                    pen = item.pen
-                except (AttributeError, ):
-                    pen = QPen(self.colors[key])
-                curve.setPen(pen)
-                curve.setVisible(True)
-                curve.setYAxis(QwtPlot.yRight)
-                curve.attach(plot)
-            else:
-                curve.setVisible(False)
-                curve.detach()
-            plot = self.plot
-
-            plot.setAxisAutoScale(QwtPlot.xBottom)
-            plot.setAxisAutoScale(QwtPlot.yRight)
-            plot.updateAxes()
-            self.zoomer.setZoomBase()
-            plot.replot()
+            curve.setVisible(False)
+            curve.detach()
+        plot.setAxisAutoScale(QwtPlot.xBottom)
+        plot.setAxisAutoScale(QwtPlot.yRight)
+        plot.updateAxes()
+        self.zoomer.setZoomBase()
+        plot.replot()
 
     def on_session_createdSeries(self, tickerId, field):
         """ Signal handler called when new Series objects are created.
@@ -381,9 +342,11 @@ class Plot(QFrame, Ui_Plot):
         """
         if tickerId != self.tickerId:
             return
-        if field not in self.tickerCollection[tickerId].series:
-            return
-        self.addSeries(field)
+        #if field not in self.tickerCollection[tickerId].series:
+        #    return
+        series = self.tickerCollection[self.tickerId].series[field]
+        self.addSeries(TickType.getField(field), series)
+        self.controlsTree.sortByColumn(0, Qt.AscendingOrder)
 
     def on_session_TickPrice_TickSize(self, message):
         """ Signal handler for TickPrice and TickSize session messages.
@@ -393,53 +356,52 @@ class Plot(QFrame, Ui_Plot):
         """
         if message.tickerId != self.tickerId:
             return
-        data = self.data
-        for key, curve in self.curves.items():
-            if curve.isVisible():
-                curve.setData(data[key].x, data[key].y)
+        for i in [i for i in self.controlsTreeItems if i.curve.isVisible()]:
+            i.curve.setData(i.data.x, i.data.y)
         self.plot.replot()
 
-    def on_controlTree_doubleClicked(self, index):
+    @pyqtSignature('')
+    def on_actionChangePenStyle_triggered(self):
+        pos = self.sender().data().toPoint()
+        index = self.controlsTree.indexAt(pos)
+        if index.isValid():
+            item = self.controlsTreeModel.itemFromIndex(index)
+            dlg = PenEditDialog(QPen(item.pen), self)
+            if dlg.exec_() == dlg.Accepted:
+                item.setPen(QPen(dlg.selectedPen))
+                self.saveItemPen(item)
+                self.enableCurve(item, enable=item.checkState()==Qt.Checked)
+
+    def on_controlsTree_doubleClicked(self, index):
         """ Signal handler for controls tree double click.
 
         @param index QModelIndex instance
         @return None
         """
-        parent = index.parent()
-        key = index.row(), index.column()
-        model = self.controlTree.model()
-        if parent.isValid():
-            parentkey = (parent.row(), parent.column())
-            parentitem = model.item(*parentkey)
-            item = parentitem.child(*key)
-            key = parentkey + key
-            names = (parentitem.text(), item.text(), )
-        else:
-            item = model.item(*key)
-            names = (item.text(), )
-        try:
-            itemcolor = self.colors[key]
-        except (AttributeError, ):
-            pass
-        else:
-            color = QColorDialog.getColor(itemcolor, self)
-            if color.isValid():
-                self.colors[key] = color
-                item.setIcon(colorIcon(color))
-                self.saveCurveColor(color, *names)
-                try:
-                    curve = self.curves[key]
-                except (KeyError, ):
-                    pass
-                else:
-                    curve.setPen(QPen(color))
-                    if curve.isVisible:
-                        self.plot.replot()
+        tree = self.controlsTree
+        if index.isValid():
+            pos = tree.visualRect(index).center()
+            actions = tree.actions()
+            for action in actions:
+                action.setData(QVariant(pos))
+            self.actionChangePenStyle.trigger()
 
-    def on_controlTree_itemChanged(self, item):
+    def on_controlsTree_itemChanged(self, item):
         """ Signal handler for all changes to control tree items.
 
         @param item changed tree widget item
         @return None
         """
         self.enableCurve(item, enable=item.checkState()==Qt.Checked)
+
+
+    def on_controlsTree_customContextMenuRequested(self, pos):
+        tree = self.controlsTree
+        index = tree.indexAt(pos)
+        if index.isValid():
+            item = self.controlsTreeModel.itemFromIndex(index)
+            actions = tree.actions()
+            for action in actions:
+                action.setData(QVariant(pos))
+            QMenu.exec_(actions, tree.mapToGlobal(pos))
+

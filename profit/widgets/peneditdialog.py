@@ -45,11 +45,15 @@ class PenEditDialog(QDialog, Ui_PenEditDialog):
         self.setupStyleCombo()
         self.setupColorButton()
         self.setupWidthSpin()
-        self.sampleDisplay.installEventFilter(self)
+        self.penSample.installEventFilter(self)
+        self.enableAdvanced(False)
+
+    def enableAdvanced(self, enable=True):
+        self.tabs.setTabEnabled(1, enable)
 
     def setupStyleCombo(self):
         current = self.selectedPen.style()
-        combo = self.styleCombo
+        combo = self.penStyle
         painter = QPainter()
         for index, (style, name) in enumerate(styleItems):
             pixmap = PenPixmap()
@@ -60,36 +64,36 @@ class PenEditDialog(QDialog, Ui_PenEditDialog):
         combo.setIconSize(pixmap.size())
 
     def setupColorButton(self):
-        self.colorButton.color = color = self.selectedPen.color()
-        self.colorButton.setIcon(colorIcon(color))
+        self.penColor.color = color = self.selectedPen.color()
+        self.penColor.setIcon(colorIcon(color))
 
     def setupWidthSpin(self):
-        self.widthSpin.setValue(self.selectedPen.width())
+        self.penWidth.setValue(self.selectedPen.width())
 
     @pyqtSignature('int')
-    def on_styleCombo_activated(self, index):
-        value, okay = self.styleCombo.itemData(index).toInt()
+    def on_penStyle_activated(self, index):
+        value, okay = self.penStyle.itemData(index).toInt()
         if okay:
             self.selectedPen.setStyle(Qt.PenStyle(value))
-            self.sampleDisplay.update()
+            self.penSample.update()
 
     @pyqtSignature('int')
-    def on_widthSpin_valueChanged(self, value):
+    def on_penWidth_valueChanged(self, value):
         self.selectedPen.setWidth(value)
-        self.sampleDisplay.update()
+        self.penSample.update()
 
     @pyqtSignature('')
-    def on_colorButton_clicked(self):
-        widget = self.colorButton
+    def on_penColor_clicked(self):
+        widget = self.penColor
         color = QColorDialog.getColor(widget.color, self)
         if color.isValid():
             widget.color = color
             widget.setIcon(colorIcon(color))
             self.selectedPen.setColor(color)
-            self.sampleDisplay.update()
+            self.penSample.update()
 
     def eventFilter(self, obj, event):
-        if obj == self.sampleDisplay:
+        if obj == self.penSample:
             if event.type() == event.Paint:
                 obj.paintEvent(event)
                 rect = obj.rect()
@@ -107,3 +111,12 @@ class PenEditDialog(QDialog, Ui_PenEditDialog):
                 return False
         else:
             return QDialog.eventFilter(self, obj, event)
+
+
+if __name__ == "__main__":
+    import sys
+    from PyQt4.QtGui import QApplication
+    app = QApplication(sys.argv)
+    dlg = PenEditDialog()
+    dlg.show()
+    sys.exit(app.exec_())
