@@ -4,11 +4,7 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-"""
-set fill brush
-style:  Lines, Sticks, Steps, Dots
-toggle legend
-"""
+
 
 from PyQt4.QtCore import QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import (QColor, QColorDialog, QFrame, QPen, QInputDialog,
@@ -24,6 +20,11 @@ from profit.lib.core import Settings, Signals
 from profit.lib.gui import colorIcon, complementColor
 from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
+
+
+## toggle legend
+## fix major/minor check
+## save/restore all curve data
 
 
 def changePen(parent, getr, setr):

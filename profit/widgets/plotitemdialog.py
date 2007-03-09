@@ -7,15 +7,13 @@
 from PyQt4.QtCore import QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QBrush, QColor, QColorDialog, QDialog, QIcon, QPixmap
 from PyQt4.QtGui import QPainter, QPen
-from PyQt4.Qwt5 import QwtPlotCurve, QwtSymbol
+from PyQt4.Qwt5 import QwtPlot, QwtPlotCurve, QwtSymbol
 
 from profit.lib.core import Settings
 from profit.lib.gui import colorIcon, complementColor
 from profit.widgets.ui_plotitemdialog import Ui_PlotItemDialog
 
 ## include plot samples
-## add brush icons
-## add line style icons (??)
 
 
 penStyles = [
@@ -75,32 +73,9 @@ brushStyles = [
 ]
 
 
-def fillStyleCombo(combo, styles, current):
-    for index, (style, name) in enumerate(styles):
-        combo.addItem(name, QVariant(style))
-        if style == current:
-            combo.setCurrentIndex(index)
-
-
-def fillPenStyleCombo(combo, styles, current):
-    painter = QPainter()
-    for index, (style, name) in enumerate(styles):
-        pixmap = PenStylePixmap()
-        pixmap.drawStyle(style, painter)
-        combo.addItem(QIcon(pixmap), name, QVariant(style))
-        if style == current:
-            combo.setCurrentIndex(index)
-    combo.setIconSize(pixmap.size())
-
-
-def comboCurrentData(combo, cast):
-    data = combo.itemData(combo.currentIndex()).toInt()[0]
-    return cast(data)
-
-
 class PenStylePixmap(QPixmap):
     def __init__(self):
-        QPixmap.__init__(self, 64, 16)
+        QPixmap.__init__(self, 32, 18)
         self.fill(QColor('white'))
 
     def drawStyle(self, style, painter):
@@ -114,12 +89,97 @@ class PenStylePixmap(QPixmap):
 
 
 class BrushStylePixmap(QPixmap):
-    pass
+    def __init__(self):
+        QPixmap.__init__(self, 32, 18)
+        self.fill(QColor('black'))
+
+    def drawStyle(self, style, painter):
+        white = QColor('white')
+        brush = QBrush(style)
+        brush.setColor(white)
+        pen = QPen(white)
+        pen.setWidth(2)
+        painter.begin(self)
+        painter.setBrush(brush)
+        painter.setPen(pen)
+        painter.drawRect(0, 0, self.width(), self.height())
+        painter.end()
+
+
+class SymbolStylePixmap(QPixmap):
+    def __init__(self):
+        QPixmap.__init__(self, 18, 18)
+        self.fill(QColor('white'))
+
+    def drawStyle(self, style, painter):
+        brush = QBrush(QColor('white'))
+        pen = QPen(QColor('black'))
+        size = self.size()
+        symbol = QwtSymbol(style, brush, pen, size)
+        painter.begin(self)
+        rect = self.rect()
+        rect.adjust(2, 2, -2, -2)
+        symbol.draw(painter, rect)
+        painter.end()
+
+
+class LineStyleIconPlot(QwtPlot):
+    y = [0, 1, 0.5, 1.5]
+    x = range(len(y))
+
+    def __init__(self):
+        QwtPlot.__init__(self)
+        self.enableAxis(self.yLeft, False)
+        self.enableAxis(self.xBottom, False)
+        self.setCanvasBackground(QColor(Qt.white))
+        canvas = self.canvas()
+        canvas.setFrameStyle(canvas.NoFrame)
+
+    def setStyle(self, style, size):
+        self.curve = QwtPlotCurve()
+        self.resize(size)
+        self.curve.attach(self)
+        self.curve.setStyle(style)
+        self.curve.setData(self.x, self.y)
+        pen = QPen(Qt.black)
+        pen.setWidth(0)
+        self.curve.setPen(pen)
+        self.replot()
 
 
 class LineStylePixmap(QPixmap):
-    pass
+    def __init__(self):
+        QPixmap.__init__(self, 18, 18)
+        self.fill(QColor('white'))
 
+    def drawStyle(self, style, painter):
+        widget = LineStyleIconPlot()
+        widget.setStyle(style, self.size())
+        widget.print_(self)
+
+
+def comboCurrentData(combo, cast):
+    data = combo.itemData(combo.currentIndex()).toInt()[0]
+    return cast(data)
+
+
+def fillStyleFunction(pixmapType, stylesDefault):
+    def fillFunction(combo, current, styles=stylesDefault):
+        painter = QPainter()
+        for index, (style, name) in enumerate(styles):
+            pixmap = pixmapType()
+            pixmap.drawStyle(style, painter)
+            combo.addItem(QIcon(pixmap), name, QVariant(style))
+            if style == current:
+                combo.setCurrentIndex(index)
+        combo.setIconSize(pixmap.size())
+    return fillFunction
+
+
+fillLineStyles = fillStyleFunction(LineStylePixmap, lineStyles)
+fillPenStyles = fillStyleFunction(PenStylePixmap, penStyles)
+fillBrushStyles = fillStyleFunction(BrushStylePixmap, brushStyles)
+fillSymbolStyles = fillStyleFunction(SymbolStylePixmap, symbolStyles)
 
 
 class PlotItemDialog(QDialog, Ui_PlotItemDialog):
@@ -182,7 +242,7 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
 
     def setupPenPage(self, pen):
         self.selectedPen = pen or QPen()
-        fillPenStyleCombo(self.penStyle, penStyles, pen.style())
+        fillPenStyles(self.penStyle, pen.style())
         self.penColor.color = color = pen.color()
         self.penColor.setIcon(colorIcon(color))
         self.penWidth.setValue(pen.width())
@@ -194,8 +254,8 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
             return
         brush = curve.brush()
         current = brush.style()
-        fillStyleCombo(self.lineStyle, lineStyles, curve.style())
-        fillStyleCombo(self.areaFillStyle, brushStyles, current)
+        fillLineStyles(self.lineStyle, curve.style())
+        fillBrushStyles(self.areaFillStyle, current)
         self.areaFill.setChecked(current != Qt.NoBrush)
         self.areaFillColor.color = color = curve.brush().color()
         self.areaFillColor.setIcon(colorIcon(color))
@@ -215,25 +275,21 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         symbol = curve.symbol()
         brush = symbol.brush()
         pen = symbol.pen()
-        fillStyleCombo(self.symbolStyle, symbolStyles, symbol.style())
-        fillStyleCombo(self.symbolFillStyle, brushStyles, brush.style())
-
+        fillSymbolStyles(self.symbolStyle, symbol.style())
+        fillBrushStyles(self.symbolFillStyle, brush.style())
         self.symbolFillColor.color = color = brush.color()
         self.symbolFillColor.setIcon(colorIcon(color))
         self.symbolFill.setChecked(brush != Qt.NoBrush)
-
-        fillPenStyleCombo(self.symbolPenStyle, penStyles, pen.style())
+        fillPenStyles(self.symbolPenStyle, pen.style())
         self.symbolPenColor.color = color = pen.color()
         self.symbolPenColor.setIcon(colorIcon(color))
         self.symbolPenWidth.setValue(pen.width())
-
         size = symbol.size()
         w = size.width()
         h = size.height()
         self.symbolWidth.setValue(w)
         self.symbolHeight.setValue(h)
         self.symbolSyncSize.setChecked(w==h)
-
         havesymbol = symbol.style() != QwtSymbol.NoSymbol
         self.symbolFill.setEnabled(havesymbol)
         self.symbolSizeGroup.setEnabled(havesymbol)
@@ -253,42 +309,33 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
 
     @pyqtSignature('')
     def on_penColor_clicked(self):
-        widget = self.penColor
-        color = QColorDialog.getColor(widget.color, self)
-        if color.isValid():
-            widget.color = color
-            widget.setIcon(colorIcon(color))
+        color = self.selectColor(self.penColor)
+        if color:
             self.selectedPen.setColor(color)
             self.penSample.update()
 
     @pyqtSignature('')
     def on_areaFillColor_clicked(self):
-        widget = self.areaFillColor
-        color = QColorDialog.getColor(widget.color, self)
-        if color.isValid():
-            widget.color = color
-            widget.setIcon(colorIcon(color))
+        self.selectColor(self.areaFillColor)
 
     @pyqtSignature('')
     def on_symbolFillColor_clicked(self):
-        widget = self.symbolFillColor
-        color = QColorDialog.getColor(widget.color, self)
-        if color.isValid():
-            widget.color = color
-            widget.setIcon(colorIcon(color))
+        self.selectColor(self.symbolFillColor)
 
     @pyqtSignature('')
     def on_symbolPenColor_clicked(self):
-        widget = self.symbolPenColor
+        self.selectColor(self.symbolPenColor)
+
+    def selectColor(self, widget):
         color = QColorDialog.getColor(widget.color, self)
         if color.isValid():
             widget.color = color
             widget.setIcon(colorIcon(color))
+            return color
 
     def on_symbolSyncSize_stateChanged(self, state):
-        check = state == Qt.Checked
-        if check:
-            value = min(self.symbolWidth.value(), self.symbolHeight.value())
+        if state == Qt.Checked:
+            value = max(self.symbolWidth.value(), self.symbolHeight.value())
             self.symbolWidth.setValue(value)
             self.symbolHeight.setValue(value)
 
@@ -315,14 +362,11 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
     def on_lineStyle_currentIndexChanged(self, index):
         value, okay = self.lineStyle.itemData(index).toInt()
         if okay:
-            isline = value == QwtPlotCurve.Lines
-            isstep = value == QwtPlotCurve.Steps
-            isnone = value == QwtPlotCurve.NoCurve
-            self.curveAttributeInverted.setEnabled(isstep)
-            self.curveAttributeFitted.setEnabled(isline)
-            self.areaFill.setEnabled(not isnone)
-            self.curveAttributesGroup.setEnabled(not isnone)
-
+            self.curveAttributeInverted.setEnabled(value==QwtPlotCurve.Steps)
+            self.curveAttributeFitted.setEnabled(value==QwtPlotCurve.Lines)
+            hascurve = value != QwtPlotCurve.NoCurve
+            self.areaFill.setEnabled(hascurve)
+            self.curveAttributesGroup.setEnabled(hascurve)
 
     def eventFilter(self, obj, event):
         if obj == self.penSample:
