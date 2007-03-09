@@ -22,13 +22,13 @@ from ib.ext.TickType import TickType
 
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import colorIcon, complementColor
-from profit.widgets.peneditdialog import PenEditDialog
+from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
 
 
 def changePen(parent, getr, setr):
     oldpen = QPen(getr())
-    dlg = PenEditDialog(oldpen, parent)
+    dlg = PlotItemDialog(oldpen, parent)
     if dlg.exec_() == dlg.Accepted:
         newpen = QPen(dlg.selectedPen)
         setr(newpen)
@@ -366,7 +366,7 @@ class Plot(QFrame, Ui_Plot):
         index = self.controlsTree.indexAt(pos)
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
-            dlg = PenEditDialog(QPen(item.pen), self)
+            dlg = PlotItemDialog(QPen(item.pen), self)
             if dlg.exec_() == dlg.Accepted:
                 item.setPen(QPen(dlg.selectedPen))
                 self.saveItemPen(item)

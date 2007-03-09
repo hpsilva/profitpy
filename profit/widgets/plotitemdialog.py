@@ -10,7 +10,7 @@ from PyQt4.QtGui import QPainter, QPen
 
 from profit.lib.core import Settings
 from profit.lib.gui import colorIcon, complementColor
-from profit.widgets.ui_peneditdialog import Ui_PenEditDialog
+from profit.widgets.ui_plotitemdialog import Ui_PlotItemDialog
 
 
 class PenPixmap(QPixmap):
@@ -37,7 +37,7 @@ styleItems = [
 ]
 
 
-class PenEditDialog(QDialog, Ui_PenEditDialog):
+class PlotItemDialog(QDialog, Ui_PlotItemDialog):
     def __init__(self, pen=None, parent=None):
         QDialog.__init__(self, parent)
         self.selectedPen = pen or QPen()
@@ -117,6 +117,6 @@ if __name__ == "__main__":
     import sys
     from PyQt4.QtGui import QApplication
     app = QApplication(sys.argv)
-    dlg = PenEditDialog()
+    dlg = PlotItemDialog()
     dlg.show()
     sys.exit(app.exec_())

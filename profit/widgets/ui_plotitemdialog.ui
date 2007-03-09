@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>PenEditDialog</class>
- <widget class="QDialog" name="PenEditDialog" >
+ <class>PlotItemDialog</class>
+ <widget class="QDialog" name="PlotItemDialog" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Edit Pen</string>
+   <string>Edit Plot Item</string>
   </property>
   <layout class="QVBoxLayout" >
    <property name="margin" >
@@ -47,7 +47,7 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="" >
+          <widget class="QLabel" name="label" >
            <property name="text" >
             <string>Pen Style:</string>
            </property>
@@ -73,7 +73,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="" >
+          <widget class="QLabel" name="label" >
            <property name="text" >
             <string>Pen Color:</string>
            </property>
@@ -103,7 +103,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="" >
+          <widget class="QLabel" name="label" >
            <property name="text" >
             <string>Pen Width:</string>
            </property>
@@ -149,7 +149,7 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="" >
+          <widget class="QLabel" name="label" >
            <property name="sizePolicy" >
             <sizepolicy>
              <hsizetype>5</hsizetype>
@@ -203,7 +203,7 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="" >
+          <widget class="QLabel" name="label" >
            <property name="text" >
             <string>Line Style:</string>
            </property>
@@ -229,7 +229,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="" >
+          <widget class="QLabel" name="label" >
            <property name="text" >
             <string>Fill Color:</string>
            </property>
@@ -261,7 +261,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QGroupBox" name="" >
+        <widget class="QGroupBox" name="groupBox" >
          <property name="sizePolicy" >
           <sizepolicy>
            <hsizetype>7</hsizetype>
@@ -301,7 +301,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="" >
+        <widget class="QGroupBox" name="groupBox" >
          <property name="title" >
           <string>Paint Attributes</string>
          </property>
@@ -368,7 +368,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>PenEditDialog</receiver>
+   <receiver>PlotItemDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel" >
@@ -384,7 +384,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>PenEditDialog</receiver>
+   <receiver>PlotItemDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel" >
