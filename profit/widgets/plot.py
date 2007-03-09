@@ -28,7 +28,7 @@ from profit.widgets.ui_plot import Ui_Plot
 
 def changePen(parent, getr, setr):
     oldpen = QPen(getr())
-    dlg = PlotItemDialog(oldpen, parent)
+    dlg = PlotItemDialog(pen=oldpen, parent=parent)
     if dlg.exec_() == dlg.Accepted:
         newpen = QPen(dlg.selectedPen)
         setr(newpen)
@@ -366,8 +366,9 @@ class Plot(QFrame, Ui_Plot):
         index = self.controlsTree.indexAt(pos)
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
-            dlg = PlotItemDialog(QPen(item.pen), self)
+            dlg = PlotItemDialog(curve=item.curve, parent=self)
             if dlg.exec_() == dlg.Accepted:
+                dlg.applyToCurve(item.curve)
                 item.setPen(QPen(dlg.selectedPen))
                 self.saveItemPen(item)
                 self.enableCurve(item, enable=item.checkState()==Qt.Checked)

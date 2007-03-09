@@ -74,6 +74,9 @@
            <property name="text" >
             <string>Options</string>
            </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
+           </property>
           </widget>
          </item>
         </layout>
@@ -142,6 +145,9 @@
    </property>
   </action>
   <action name="actionChangePenStyle" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
+   </property>
    <property name="text" >
     <string>Change Style...</string>
    </property>
@@ -154,6 +160,8 @@
    <header>qwt_plot.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="profit.qrc" />
+ </resources>
  <connections/>
 </ui>
