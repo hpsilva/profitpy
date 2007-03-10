@@ -5,14 +5,11 @@
 # Distributed under the terms of the GNU General Public License v2
 
 
-
 from PyQt4.QtCore import QVariant, Qt, pyqtSignature
-from PyQt4.QtGui import (QColor, QColorDialog, QFrame, QPen, QInputDialog,
-                         QStandardItem, QStandardItemModel, QMenu, )
-from PyQt4.Qwt5 import (QwtPicker, QwtPlot, QwtPlotCurve,
-                        QwtPlotPicker, QwtPlotZoomer, QwtPlotGrid,
-                        QwtLegend,
-                        )
+from PyQt4.QtGui import QBrush, QColor, QColorDialog, QFrame, QPen
+from PyQt4.QtGui import QStandardItem, QStandardItemModel, QMenu
+from PyQt4.Qwt5 import QwtLegend, QwtPicker, QwtPlot, QwtPlotCurve
+from PyQt4.Qwt5 import QwtPlotGrid, QwtPlotPicker, QwtPlotZoomer
 
 from ib.ext.TickType import TickType
 
@@ -21,10 +18,10 @@ from profit.lib.gui import colorIcon, complementColor
 from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
 
-
-## toggle legend
-## fix major/minor check
-## save/restore all curve data
+# TODO: toggle legend
+# TODO: left/right yaxis setting
+# TODO: save and restore selected items
+# TODO: save and restore selected grids
 
 
 def changePen(parent, getr, setr):
@@ -48,6 +45,11 @@ class PlotCurve(QwtPlotCurve):
     """ Stub for future implementation.
 
     """
+    settingsLoaded = False
+
+    def updateLegend(self, legend):
+        if self.item.isChecked() and legend.isVisible():
+            return QwtPlotCurve.updateLegend(self, legend)
 
 
 class PlotPicker(QwtPlotPicker):
@@ -69,6 +71,7 @@ class ControlTreeItem(QStandardItem):
         self.setCheckState(Qt.Unchecked)
         self.setEditable(False)
         self.curve = PlotCurve(text)
+        self.curve.item = self
         self.data = data
         self.pen = QPen(QColor('black'))
 
@@ -79,6 +82,9 @@ class ControlTreeItem(QStandardItem):
     def setPen(self, pen):
         self.pen = pen
         self.setColor(pen.color())
+
+    def isChecked(self):
+        return self.checkState() == Qt.Checked
 
     @property
     def name(self):
@@ -137,8 +143,7 @@ class Plot(QFrame, Ui_Plot):
         self.grid = grid = QwtPlotGrid()
         grid.attach(plot)
 
-        self.legend = QwtLegend(plot)
-        self.legend.setVisible(False)
+        plot.insertLegend(QwtLegend(), plot.LeftLegend)
         self.actionLegendEnable.setChecked(False)
 
         pen = QPen(Qt.black)
@@ -156,32 +161,59 @@ class Plot(QFrame, Ui_Plot):
 
     @pyqtSignature('bool')
     def on_actionLegendEnable_triggered(self, enable):
-        self.legend.setVisible(enable)
+        legend = self.plot.legend()
+        legend.setVisible(enable)
+        if enable:
+            items = [i for i in self.controlsTreeItems if i.isChecked()]
+            if items:
+                for item in items:
+                    item.curve.updateLegend(legend)
+            else:
+                ## should inform the user of what's going on here.
+                self.actionLegendEnable.setChecked(False)
+        else:
+            legend.clear()
 
     @pyqtSignature('bool')
     def on_actionMajorEnable_triggered(self, enable):
         grid = self.grid
         grid.enableX(enable)
         grid.enableY(enable)
+
+        ## disable the minor grid if the major is disabled.  the minor
+        ## grid won't be drawn anyway, but this block is needed to
+        ## uncheck the action.
+        if not enable:
+            minor = self.actionMinorEnable
+            if minor.isChecked():
+                minor.activate(minor.Trigger)
         self.plot.replot()
+
 
     @pyqtSignature('bool')
     def on_actionMinorEnable_triggered(self, enable):
         grid = self.grid
         grid.enableXMin(enable)
         grid.enableYMin(enable)
+
+        ## enable the major grid if the minor is enabled.  the minor
+        ## grid won't be shown without the major grid shown as well.
+        if enable:
+            major = self.actionMajorEnable
+            if not major.isChecked():
+                major.activate(major.Trigger)
         self.plot.replot()
 
     @pyqtSignature('')
     def on_actionMajorStyle_triggered(self):
         if changePen(self, self.grid.majPen, self.grid.setMajPen):
-            self.savePen('gridmaj', self.grid.majPen())
+            self.savePen('majorgrid/pen', self.grid.majPen())
             self.plot.replot()
 
     @pyqtSignature('')
     def on_actionMinorStyle_triggered(self):
         if changePen(self, self.grid.minPen, self.grid.setMinPen):
-            self.savePen('gridmin', self.grid.minPen())
+            self.savePen('minorgrid/pen', self.grid.minPen())
             self.plot.replot()
 
     @pyqtSignature('')
@@ -213,8 +245,8 @@ class Plot(QFrame, Ui_Plot):
         grid = self.grid
         plot.setCanvasBackground(
             self.loadColor('background', QColor('#A9A9A9')))
-        grid.setMajPen(self.loadPen('gridmaj', QPen(QColor('#c0c0c0'))))
-        grid.setMinPen(self.loadPen('gridmin', QPen(QColor('#070707'))))
+        grid.setMajPen(self.loadPen('majorgrid/pen', QPen(QColor('#c0c0c0'))))
+        grid.setMinPen(self.loadPen('minorgrid/pen', QPen(QColor('#070707'))))
         plot.replot()
 
     def setupTree(self):
@@ -246,46 +278,99 @@ class Plot(QFrame, Ui_Plot):
         if parent is None:
             parent = self.controlsTreeModel.invisibleRootItem()
         item = ControlTreeItem(name, series)
+        item.curve.setYAxis(QwtPlot.yRight)
         item.curve.attach(self.plot)
+        item.setPen(self.loadItemPen(item))
         parent.appendRow(item)
-        pen = self.loadItemPen(item)
-        item.setPen(pen)
         self.controlsTreeItems.append(item)
         for index in getattr(series, 'indexes', []):
             self.addSeries(index.key, index, parent=item)
 
     def plotName(self):
-        return '%s:%s' % (self.tickerId, self.objectName(), )
+        return '%s/%s' % (self.tickerId, self.objectName())
 
     def itemName(self, item):
-        return '%s:%s' % (self.plotName(), item.name)
+        return '%s/%s' % (self.plotName(), item.name)
 
     def saveColor(self, name, color):
-        key = '%s:%s' % (self.plotName(), name)
+        key = '%s/%s' % (self.plotName(), name)
         self.settings.setValue(key, color)
 
     def loadColor(self, name, default):
-        key = '%s:%s' % (self.plotName(), name)
+        key = '%s/%s' % (self.plotName(), name)
         value = self.settings.value(key, default)
         return QColor(value)
 
     def savePen(self, name, pen):
-        key = '%s:%s' % (self.plotName(), name)
+        key = '%s/%s' % (self.plotName(), name)
         self.settings.setValue(key, pen)
 
     def loadPen(self, name, default):
-        key = '%s:%s' % (self.plotName(), name)
+        key = '%s/%s' % (self.plotName(), name)
         value = self.settings.value(key, default)
         return QPen(value)
 
     def saveItemPen(self, item):
         name = self.itemName(item)
         settings = self.settings
-        settings.setValue('%s:pen' % name, item.pen)
+        settings.setValue('%s/pen' % name, item.pen)
+
+    def saveItemCurve(self, item, curve):
+        prefix = self.itemName(item)
+        setValue = self.settings.setValue
+        setValue('%s/brush' % prefix, curve.brush())
+        setValue('%s/pen' % prefix, curve.pen())
+        setValue('%s/style' % prefix, curve.style())
+        setValue('%s/inverted' % prefix,
+                 curve.testCurveAttribute(curve.Inverted))
+        setValue('%s/fitted' % prefix,
+                 curve.testCurveAttribute(curve.Fitted))
+        setValue('%s/filtered' % prefix,
+                 curve.testPaintAttribute(curve.PaintFiltered))
+        setValue('%s/clippoly' % prefix,
+                 curve.testPaintAttribute(curve.ClipPolygons))
+        prefix = '%s/symbol' % prefix
+        symbol = curve.symbol()
+        setValue('%s/brush' % prefix, symbol.brush())
+        setValue('%s/pen' % prefix, symbol.pen())
+        setValue('%s/style' % prefix, symbol.style())
+        setValue('%s/size' % prefix, symbol.size())
+
+    def loadItemCurve(self, item):
+        prefix = self.itemName(item)
+        curve = item.curve
+        value = self.settings.value
+        curve.setBrush(
+            QBrush(value('%s/brush' % prefix, QBrush())))
+        curve.setPen(
+            QPen(value('%s/pen' % prefix, QPen())))
+        curve.setStyle(
+            curve.CurveStyle(value('%s/style' % prefix,
+                                   QVariant(curve.Lines)).toInt()[0]))
+        curve.setCurveAttribute(curve.Inverted,
+            value('%s/inverted' % prefix, QVariant()).toBool())
+        curve.setCurveAttribute(curve.Fitted,
+            value('%s/fitted' % prefix, QVariant()).toBool())
+        curve.setPaintAttribute(curve.PaintFiltered,
+            value('%s/filtered' % prefix, QVariant()).toBool())
+        curve.setPaintAttribute(curve.ClipPolygons,
+            value('%s/clippoly' % prefix, QVariant()).toBool())
+        prefix = '%s/symbol' % prefix
+        symbol = curve.symbol()
+        symbol.setBrush(
+            QBrush(value('%s/brush' % prefix, QBrush())))
+        symbol.setPen(
+            QPen(value('%s/pen' % prefix, QPen())))
+        symbol.setStyle(
+            symbol.Style(value('%s/style' % prefix,
+                                   QVariant(symbol.NoSymbol)).toInt()[0]))
+        symbol.setSize(
+            value('%s/size' % prefix, QVariant()).toSize())
+        curve.settingsLoaded = True
 
     def loadItemPen(self, item):
         default = QPen()
-        penkey = '%s:pen' % self.itemName(item)
+        penkey = '%s/pen' % self.itemName(item)
         pen = self.settings.value(penkey)
         if pen.isValid():
             pen = QPen(pen)
@@ -310,6 +395,7 @@ class Plot(QFrame, Ui_Plot):
             pass
         return self.defaultCurveColors[None]
 
+    frames = []
 
     def enableCurve(self, item, enable=True):
         """ Sets the visibility and style of a plot curve.
@@ -322,14 +408,15 @@ class Plot(QFrame, Ui_Plot):
         curve = item.curve
         plot = self.plot
         if enable:
+            if not curve.settingsLoaded:
+                self.loadItemCurve(item)
             curve.setData(item.data.x, item.data.y)
-            curve.setPen(item.pen)
             curve.setVisible(True)
-            curve.setYAxis(QwtPlot.yRight)
-            curve.attach(plot)
         else:
+            legend = plot.legend()
+            if legend.isVisible():
+                legend.remove(curve)
             curve.setVisible(False)
-            #curve.detach()
         plot.setAxisAutoScale(QwtPlot.xBottom)
         plot.setAxisAutoScale(QwtPlot.yRight)
         plot.updateAxes()
@@ -368,11 +455,12 @@ class Plot(QFrame, Ui_Plot):
         index = self.controlsTree.indexAt(pos)
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
-            dlg = PlotItemDialog(item.curve, self)
+            curve = item.curve
+            dlg = PlotItemDialog(curve, self)
             if dlg.exec_() == dlg.Accepted:
-                dlg.applyToCurve(item.curve)
-                item.setPen(QPen(dlg.selectedPen))
-                self.saveItemPen(item)
+                dlg.applyToCurve(curve)
+                item.setPen(curve.pen())
+                self.saveItemCurve(item, curve)
                 self.enableCurve(item, enable=item.checkState()==Qt.Checked)
 
     def on_controlsTree_doubleClicked(self, index):
