@@ -21,6 +21,7 @@ from profit.widgets.ui_plot import Ui_Plot
 # TODO: left/right yaxis setting
 # TODO: save and restore selected items
 # TODO: save and restore selected grids
+# TODO: enable x-only and y-only major and minor grid axis
 
 
 def changePen(parent, getr, setr):
@@ -152,28 +153,22 @@ class Plot(QFrame, Ui_Plot):
         plot.setFrameStyle(plot.NoFrame|plot.Plain)
         plot.enableAxis(QwtPlot.yRight, True)
         plot.enableAxis(QwtPlot.yLeft, False)
-
         canvas = plot.canvas()
         canvas.setFrameStyle(plot.NoFrame|plot.Plain)
-
         layout = plot.plotLayout()
         layout.setCanvasMargin(0)
         layout.setAlignCanvasToScales(True)
-
-        self.grid = grid = PlotGrid()
-        grid.attach(plot)
-
+        self.grid = PlotGrid()
+        self.grid.attach(plot)
         plot.insertLegend(QwtLegend(), plot.LeftLegend)
         self.actionDrawLegend.setChecked(False)
         self.actionDrawLegend.setEnabled(False)
-
-        self.zoomer = QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yRight,
-                                    QwtPicker.DragSelection,
-                                    QwtPicker.AlwaysOff, canvas)
-        self.picker = PlotPicker(QwtPlot.xBottom, QwtPlot.yRight,
-                                 QwtPicker.NoSelection,
-                                 QwtPlotPicker.CrossRubberBand,
-                                 QwtPicker.AlwaysOn, canvas)
+        self.zoomer = QwtPlotZoomer(
+            QwtPlot.xBottom, QwtPlot.yRight, QwtPicker.DragSelection,
+            QwtPicker.AlwaysOff, canvas)
+        self.picker = PlotPicker(
+            QwtPlot.xBottom, QwtPlot.yRight, QwtPicker.NoSelection,
+            QwtPlotPicker.CrossRubberBand, QwtPicker.AlwaysOn, canvas)
         pen = QPen(Qt.black)
         self.zoomer.setRubberBandPen(pen)
         self.picker.setTrackerPen(pen)
@@ -183,13 +178,12 @@ class Plot(QFrame, Ui_Plot):
         legend = self.plot.legend()
         legend.setVisible(enable)
         if enable:
-            items = [i for i in self.controlsTreeItems if i.isChecked()]
+            items = self.checkedItems()
             if items:
                 legend.show()
                 for item in items:
                     item.curve.updateLegend(legend)
             else:
-                ## should inform the user of what's going on here.
                 self.actionDrawLegend.setChecked(False)
         else:
             legend.clear()
@@ -197,16 +191,14 @@ class Plot(QFrame, Ui_Plot):
 
     @pyqtSignature('bool')
     def on_actionDrawMajorGrid_triggered(self, enable):
-        grid = self.grid
-        grid.enableX(enable)
-        grid.enableY(enable)
+        self.grid.enableX(enable)
+        self.grid.enableY(enable)
         self.plot.replot()
 
     @pyqtSignature('bool')
     def on_actionDrawMinorGrid_triggered(self, enable):
-        grid = self.grid
-        grid.enableXMin(enable)
-        grid.enableYMin(enable)
+        self.grid.enableXMin(enable)
+        self.grid.enableYMin(enable)
         self.plot.replot()
 
     @pyqtSignature('')
@@ -259,20 +251,19 @@ class Plot(QFrame, Ui_Plot):
 
         @return None
         """
-        self.controlsTreeModel = controlsTreeModel = QStandardItemModel(self)
+        self.controlsTreeModel = model = QStandardItemModel(self)
         ticker = self.tickerCollection[self.tickerId]
-        root = controlsTreeModel.invisibleRootItem()
+        root = model.invisibleRootItem()
         for field, series in ticker.series.items():
             self.addSeries(TickType.getField(field), series)
-        self.connect(controlsTreeModel, Signals.standardItemChanged,
+        self.connect(model, Signals.standardItemChanged,
                      self.on_controlsTree_itemChanged)
         tree = self.controlsTree
         tree.header().hide()
-        model = self.controlsTreeModel
         tree.setModel(model)
         for col in range(model.columnCount()):
             tree.resizeColumnToContents(col)
-        self.controlsTree.sortByColumn(0, Qt.AscendingOrder)
+        tree.sortByColumn(0, Qt.AscendingOrder)
 
     def addSeries(self, name, series, parent=None):
         """ Creates new controls and curve for an individual series.
@@ -326,6 +317,7 @@ class Plot(QFrame, Ui_Plot):
         setValue('%s/brush' % prefix, curve.brush())
         setValue('%s/pen' % prefix, curve.pen())
         setValue('%s/style' % prefix, curve.style())
+        setValue('%s/baseline' % prefix, curve.baseline())
         setValue('%s/inverted' % prefix,
                  curve.testCurveAttribute(curve.Inverted))
         setValue('%s/fitted' % prefix,
@@ -352,6 +344,8 @@ class Plot(QFrame, Ui_Plot):
         curve.setStyle(
             curve.CurveStyle(value('%s/style' % prefix,
                                    QVariant(curve.Lines)).toInt()[0]))
+        curve.setBaseline(
+            value('%s/baseline' % prefix, QVariant(0.0)).toDouble()[0])
         curve.setCurveAttribute(curve.Inverted,
             value('%s/inverted' % prefix, QVariant()).toBool())
         curve.setCurveAttribute(curve.Fitted,
@@ -400,6 +394,9 @@ class Plot(QFrame, Ui_Plot):
             pass
         return self.defaultCurveColors[None]
 
+    def checkedItems(self):
+        return [item for item in self.controlsTreeItems if item.isChecked()]
+
     def enableCurve(self, item, enable=True):
         """ Sets the visibility and style of a plot curve.
 
@@ -419,7 +416,7 @@ class Plot(QFrame, Ui_Plot):
         else:
             legend.remove(curve)
             curve.setVisible(False)
-        checked = [i for i in self.controlsTreeItems if i.isChecked()]
+        checked = self.checkedItems()
         self.actionDrawLegend.setEnabled(bool(checked))
         if not checked:
             legend.clear()
@@ -464,6 +461,8 @@ class Plot(QFrame, Ui_Plot):
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
             curve = item.curve
+            if not curve.settingsLoaded:
+                self.loadItemCurve(item)
             dlg = PlotItemDialog(curve, self)
             if dlg.exec_() == dlg.Accepted:
                 dlg.applyToCurve(curve)

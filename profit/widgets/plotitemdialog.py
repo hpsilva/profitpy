@@ -11,8 +11,6 @@
 #
 ##
 
-# TODO:  add curve baseline control
-
 from PyQt4.QtCore import QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QBrush, QColor, QColorDialog, QDialog, QIcon
 from PyQt4.QtGui import QPainter, QPen, QPixmap
@@ -334,6 +332,9 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         self.setupSymbolPage(curve)
         SamplePlot.setupPlot(self.plotSample)
         self.plotSample.setCanvasBackground(curve.plot().canvasBackground())
+        data = curve.data()
+        if data.size():
+            self.plotSample.curve.setData(data)
         self.applyToCurve(self.plotSample.curve)
         self.penSampleGroup.setVisible(False)
 
@@ -346,6 +347,7 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         curve.setPen(QPen(self.selectedPen))
         linestyle = comboCurrentData(self.lineStyle, curve.CurveStyle)
         curve.setStyle(linestyle)
+        curve.setBaseline(self.areaFillBaseline.value())
 
         brush = QBrush()
         if self.areaFill.isChecked():
@@ -411,6 +413,7 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         self.areaFill.setChecked(current != Qt.NoBrush)
         self.areaFillColor.color = color = curve.brush().color()
         self.areaFillColor.setIcon(colorIcon(color))
+        self.areaFillBaseline.setValue(curve.baseline())
         self.curveAttributeInverted.setChecked(
             curve.testCurveAttribute(curve.Inverted))
         self.curveAttributeFitted.setChecked(
@@ -581,6 +584,15 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         @return None
         """
         self.selectColor(self.areaFillColor)
+        self.updatePlotSample()
+
+    @pyqtSignature('double')
+    def on_areaFillBaseline_valueChanged(self, value):
+        """ Signal handler for curve baseline spinbox changes.
+
+        @param value new value for spinbox
+        @return None
+        """
         self.updatePlotSample()
 
     @pyqtSignature('int')
