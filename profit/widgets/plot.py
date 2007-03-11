@@ -18,7 +18,6 @@ from profit.lib.gui import colorIcon, complementColor
 from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
 
-# TODO: toggle legend
 # TODO: left/right yaxis setting
 # TODO: save and restore selected items
 # TODO: save and restore selected grids
@@ -48,8 +47,31 @@ class PlotCurve(QwtPlotCurve):
     settingsLoaded = False
 
     def updateLegend(self, legend):
-        if self.item.isChecked() and legend.isVisible():
+        if self.isVisible() and legend.isVisible():
             return QwtPlotCurve.updateLegend(self, legend)
+
+
+class PlotGrid(QwtPlotGrid):
+    nullPen = QPen(Qt.transparent)
+
+    def enableX(self, enable):
+        if enable:
+            self.setMajPen(self.okayPen)
+            QwtPlotGrid.enableX(self, True)
+        else:
+            self.setMajPen(self.nullPen)
+
+    def enableY(self, enable):
+        if enable:
+            self.setMajPen(self.okayPen)
+            QwtPlotGrid.enableX(self, True)
+        else:
+            self.setMajPen(self.nullPen)
+
+    def setMajPen(self, pen):
+        if pen is not self.nullPen:
+            self.okayPen = pen
+        QwtPlotGrid.setMajPen(self, pen)
 
 
 class PlotPicker(QwtPlotPicker):
@@ -71,7 +93,6 @@ class ControlTreeItem(QStandardItem):
         self.setCheckState(Qt.Unchecked)
         self.setEditable(False)
         self.curve = PlotCurve(text)
-        self.curve.item = self
         self.data = data
         self.pen = QPen(QColor('black'))
 
@@ -92,7 +113,7 @@ class ControlTreeItem(QStandardItem):
         while self:
             names.append(str(self.text()))
             self = self.parent()
-        return str.join(':', reversed(names))
+        return str.join('/', reversed(names))
 
 
 class Plot(QFrame, Ui_Plot):
@@ -110,20 +131,19 @@ class Plot(QFrame, Ui_Plot):
         self.settings.beginGroup(self.settings.keys.plots)
         self.setupOptionsMenu()
         self.setupPlot()
-        self.controlsTree.addActions([self.actionChangePenStyle, ])
-
+        self.controlsTree.addActions([self.actionChangeCurveStyle, ])
 
     def setupOptionsMenu(self):
         optionsButton = self.optionsButton
         pop = QMenu(optionsButton)
         optionsButton.setMenu(pop)
-        pop.addAction(self.actionMajorEnable)
-        pop.addAction(self.actionMinorEnable)
-        pop.addAction(self.actionLegendEnable)
+        pop.addAction(self.actionDrawMajorGrid)
+        pop.addAction(self.actionDrawMinorGrid)
+        pop.addAction(self.actionDrawLegend)
         pop.addSeparator()
-        pop.addAction(self.actionCanvasColor)
-        pop.addAction(self.actionMajorStyle)
-        pop.addAction(self.actionMinorStyle)
+        pop.addAction(self.actionChangeCanvasColor)
+        pop.addAction(self.actionChangeMajorGridStyle)
+        pop.addAction(self.actionChangeMinorGridStyle)
 
     def setupPlot(self):
         self.plotSplitter.setSizes([80, 300])
@@ -140,84 +160,69 @@ class Plot(QFrame, Ui_Plot):
         layout.setCanvasMargin(0)
         layout.setAlignCanvasToScales(True)
 
-        self.grid = grid = QwtPlotGrid()
+        self.grid = grid = PlotGrid()
         grid.attach(plot)
 
         plot.insertLegend(QwtLegend(), plot.LeftLegend)
-        self.actionLegendEnable.setChecked(False)
+        self.actionDrawLegend.setChecked(False)
+        self.actionDrawLegend.setEnabled(False)
 
+        self.zoomer = QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yRight,
+                                    QwtPicker.DragSelection,
+                                    QwtPicker.AlwaysOff, canvas)
+        self.picker = PlotPicker(QwtPlot.xBottom, QwtPlot.yRight,
+                                 QwtPicker.NoSelection,
+                                 QwtPlotPicker.CrossRubberBand,
+                                 QwtPicker.AlwaysOn, canvas)
         pen = QPen(Qt.black)
-        self.zoomer = zoomer = \
-            QwtPlotZoomer(QwtPlot.xBottom, QwtPlot.yRight,
-                          QwtPicker.DragSelection,
-                          QwtPicker.AlwaysOff, canvas)
-        self.picker = picker = \
-            PlotPicker(QwtPlot.xBottom, QwtPlot.yRight,
-                          QwtPicker.NoSelection,
-                          QwtPlotPicker.CrossRubberBand,
-                          QwtPicker.AlwaysOn, canvas)
-        zoomer.setRubberBandPen(pen)
-        picker.setTrackerPen(pen)
+        self.zoomer.setRubberBandPen(pen)
+        self.picker.setTrackerPen(pen)
 
     @pyqtSignature('bool')
-    def on_actionLegendEnable_triggered(self, enable):
+    def on_actionDrawLegend_triggered(self, enable):
         legend = self.plot.legend()
         legend.setVisible(enable)
         if enable:
             items = [i for i in self.controlsTreeItems if i.isChecked()]
             if items:
+                legend.show()
                 for item in items:
                     item.curve.updateLegend(legend)
             else:
                 ## should inform the user of what's going on here.
-                self.actionLegendEnable.setChecked(False)
+                self.actionDrawLegend.setChecked(False)
         else:
             legend.clear()
+            legend.hide()
 
     @pyqtSignature('bool')
-    def on_actionMajorEnable_triggered(self, enable):
+    def on_actionDrawMajorGrid_triggered(self, enable):
         grid = self.grid
         grid.enableX(enable)
         grid.enableY(enable)
-
-        ## disable the minor grid if the major is disabled.  the minor
-        ## grid won't be drawn anyway, but this block is needed to
-        ## uncheck the action.
-        if not enable:
-            minor = self.actionMinorEnable
-            if minor.isChecked():
-                minor.activate(minor.Trigger)
         self.plot.replot()
 
-
     @pyqtSignature('bool')
-    def on_actionMinorEnable_triggered(self, enable):
+    def on_actionDrawMinorGrid_triggered(self, enable):
         grid = self.grid
         grid.enableXMin(enable)
         grid.enableYMin(enable)
-
-        ## enable the major grid if the minor is enabled.  the minor
-        ## grid won't be shown without the major grid shown as well.
-        if enable:
-            major = self.actionMajorEnable
-            if not major.isChecked():
-                major.activate(major.Trigger)
         self.plot.replot()
 
     @pyqtSignature('')
-    def on_actionMajorStyle_triggered(self):
+    def on_actionChangeMajorGridStyle_triggered(self):
         if changePen(self, self.grid.majPen, self.grid.setMajPen):
             self.savePen('majorgrid/pen', self.grid.majPen())
             self.plot.replot()
 
     @pyqtSignature('')
-    def on_actionMinorStyle_triggered(self):
+    def on_actionChangeMinorGridStyle_triggered(self):
         if changePen(self, self.grid.minPen, self.grid.setMinPen):
             self.savePen('minorgrid/pen', self.grid.minPen())
             self.plot.replot()
 
     @pyqtSignature('')
-    def on_actionCanvasColor_triggered(self):
+    def on_actionChangeCanvasColor_triggered(self):
         plot = self.plot
         if changeColor(self, plot.canvasBackground, plot.setCanvasBackground):
             bg = plot.canvasBackground()
@@ -395,8 +400,6 @@ class Plot(QFrame, Ui_Plot):
             pass
         return self.defaultCurveColors[None]
 
-    frames = []
-
     def enableCurve(self, item, enable=True):
         """ Sets the visibility and style of a plot curve.
 
@@ -407,16 +410,21 @@ class Plot(QFrame, Ui_Plot):
         """
         curve = item.curve
         plot = self.plot
+        legend = plot.legend()
         if enable:
             if not curve.settingsLoaded:
                 self.loadItemCurve(item)
             curve.setData(item.data.x, item.data.y)
             curve.setVisible(True)
         else:
-            legend = plot.legend()
-            if legend.isVisible():
-                legend.remove(curve)
+            legend.remove(curve)
             curve.setVisible(False)
+        checked = [i for i in self.controlsTreeItems if i.isChecked()]
+        self.actionDrawLegend.setEnabled(bool(checked))
+        if not checked:
+            legend.clear()
+            legend.hide()
+            self.actionDrawLegend.setChecked(False)
         plot.setAxisAutoScale(QwtPlot.xBottom)
         plot.setAxisAutoScale(QwtPlot.yRight)
         plot.updateAxes()
@@ -450,7 +458,7 @@ class Plot(QFrame, Ui_Plot):
         self.plot.replot()
 
     @pyqtSignature('')
-    def on_actionChangePenStyle_triggered(self):
+    def on_actionChangeCurveStyle_triggered(self):
         pos = self.sender().data().toPoint()
         index = self.controlsTree.indexAt(pos)
         if index.isValid():
@@ -475,7 +483,7 @@ class Plot(QFrame, Ui_Plot):
             actions = tree.actions()
             for action in actions:
                 action.setData(QVariant(pos))
-            self.actionChangePenStyle.trigger()
+            self.actionChangeCurveStyle.trigger()
 
     def on_controlsTree_itemChanged(self, item):
         """ Signal handler for all changes to control tree items.

@@ -96,7 +96,7 @@
     </widget>
    </item>
   </layout>
-  <action name="actionLegendEnable" >
+  <action name="actionDrawLegend" >
    <property name="checkable" >
     <bool>true</bool>
    </property>
@@ -107,7 +107,7 @@
     <string>Draw Legend</string>
    </property>
   </action>
-  <action name="actionMajorEnable" >
+  <action name="actionDrawMajorGrid" >
    <property name="checkable" >
     <bool>true</bool>
    </property>
@@ -118,7 +118,7 @@
     <string>Draw Major Grid</string>
    </property>
   </action>
-  <action name="actionMinorEnable" >
+  <action name="actionDrawMinorGrid" >
    <property name="checkable" >
     <bool>true</bool>
    </property>
@@ -126,22 +126,22 @@
     <string>Draw Minor Grid</string>
    </property>
   </action>
-  <action name="actionMajorStyle" >
+  <action name="actionChangeMajorGridStyle" >
    <property name="text" >
     <string>Major Grid Style...</string>
    </property>
   </action>
-  <action name="actionMinorStyle" >
+  <action name="actionChangeMinorGridStyle" >
    <property name="text" >
     <string>Minor Grid Style...</string>
    </property>
   </action>
-  <action name="actionCanvasColor" >
+  <action name="actionChangeCanvasColor" >
    <property name="text" >
     <string>Background Color...</string>
    </property>
   </action>
-  <action name="actionChangePenStyle" >
+  <action name="actionChangeCurveStyle" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
    </property>
