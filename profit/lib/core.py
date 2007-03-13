@@ -60,17 +60,18 @@ class Settings(QSettings):
         account = 'Account'
         app = 'Profit Device'
         appearance = 'Appearance'
+        connection = 'Connection'
         main = 'MainWindow'
         maximized = 'Maximized'
+        messages = 'Messages'
         org = 'ProfitPy'
         plots = 'Plots'
         position = 'Position'
         session = 'Session'
         size = 'Size'
+        splitstate  = 'SplitterState'
         strategy = 'Strategy'
         winstate = 'State'
-        connection = 'Connection'
-        splitstate  = 'SplitterState'
 
     defaultSize = QSize(720, 560)
     defaultPosition = QPoint(200, 200)

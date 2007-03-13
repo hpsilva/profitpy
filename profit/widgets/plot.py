@@ -59,6 +59,34 @@ def changeColor(getr, setr, parent):
         return newcolor
 
 
+def defaultCanvasColor():
+    """ Reasonable default for canvas color.
+
+    @return QColor instance
+    """
+    return QColor(240, 240, 240)
+
+
+def defaultMajorGridPen():
+    """ Reasonable default for major grid pen.
+
+    @return QPen instance
+    """
+    pen = QPen(QColor(170, 170, 170))
+    pen.setStyle(Qt.DashLine)
+    return pen
+
+
+def defaultMinorGridPen():
+    """ Reasonable default for minor grid pen.
+
+    @return QPen instance
+    """
+    pen = QPen(QColor(210, 210, 210))
+    pen.setStyle(Qt.DotLine)
+    return pen
+
+
 def defaultSplitterState():
     """ Resonable default for plot splitter state.
 
@@ -456,7 +484,7 @@ class Plot(QFrame, Ui_Plot):
         @return None
         """
         color = self.settings.value(
-            '%s/canvascolor' % self.plotName(), QColor('#a9a9a9'))
+            '%s/canvascolor' % self.plotName(), defaultCanvasColor())
         self.plot.setCanvasBackground(QColor(color))
 
     def loadCurve(self, name, curve):
@@ -501,18 +529,18 @@ class Plot(QFrame, Ui_Plot):
         name = self.plotName()
         grid = self.grid
         getv = self.settings.value
-        pen = getv('%s/major/pen' % name, QPen(QColor('#c0c0c0')))
+        pen = getv('%s/major/pen' % name, defaultMajorGridPen())
         grid.setMajPen(QPen(pen))
-        pen = getv('%s/minor/pen' % name, QPen(QColor('#070707')))
+        pen = getv('%s/minor/pen' % name, defaultMinorGridPen())
         grid.setMinPen(QPen(pen))
-        if getv('%s/major/x/enabled' % name).toBool():
-            self.actionDrawMajorX.trigger()
-        if getv('%s/major/y/enabled' % name).toBool():
-            self.actionDrawMajorY.trigger()
-        if getv('%s/minor/x/enabled' % name).toBool():
-            self.actionDrawMinorX.trigger()
-        if getv('%s/minor/y/enabled' % name).toBool():
-            self.actionDrawMinorY.trigger()
+        items = [('%s/major/x/enabled', self.actionDrawMajorX),
+                 ('%s/major/y/enabled', self.actionDrawMajorY),
+                 ('%s/minor/x/enabled', self.actionDrawMinorX),
+                 ('%s/minor/y/enabled', self.actionDrawMinorY)]
+        for key, action in items:
+            v = getv(key % name)
+            if not v.isValid() or v.toBool():
+                action.trigger()
 
     def loadItemPen(self, item):
         """ Creates a pen from saved settings.
@@ -734,12 +762,17 @@ class Plot(QFrame, Ui_Plot):
             curve = item.curve
             if not curve.settingsLoaded:
                 self.loadCurve(self.itemName(item), curve)
+            cplot = curve.plot()
+            if cplot is None:
+                curve.attach(self.plot)
             dlg = PlotItemDialog(curve, self)
             if dlg.exec_() == dlg.Accepted:
                 dlg.applyToCurve(curve)
                 item.setColor(curve.pen().color())
                 self.saveCurve(self.itemName(item), curve)
                 self.enableCurve(item, enable=item.checkState()==Qt.Checked)
+            if cplot is None:
+                curve.detach()
 
     @pyqtSignature('')
     def on_actionChangeCurveAxis_triggered(self):

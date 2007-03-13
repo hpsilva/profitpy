@@ -65,13 +65,12 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.pids = {'broker':[], 'helper':[]}
         self.rateThermo.setValue(0.0)
         session.registerMeta(self)
-        #session.registerAll(self.updateMessageRate)
-        self.startTimer(250)
+        self.startTimer(500)
         session.registerAll(self.updateLastMessage)
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
 
-    def timerEvent(self, event): # updateMessageRate
-        last = self.session.messages[-25:]
+    def timerEvent(self, event):
+        last = self.session.messages[-100:]
         try:
             rate = len(last) / (time() - last[0][0])
         except (IndexError, ZeroDivisionError, ):

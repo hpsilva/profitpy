@@ -20,7 +20,7 @@ from os.path import exists, expanduser
 from traceback import extract_tb, format_exception_only, format_list
 
 from PyQt4.QtCore import Qt, QString
-from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit
+from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit, QTextCharFormat
 
 from profit.lib.core import Settings, Signals
 
@@ -35,9 +35,10 @@ class PythonInterpreter(InteractiveInterpreter):
     """ PythonInterpreter(...) -> InteractiveInterpreter with an output target
 
     """
-    def __init__(self, output, locals=None):
+    def __init__(self, output, locals=None, parent=None):
         InteractiveInterpreter.__init__(self, locals=locals)
         self.output = output
+        self.parent = parent
 
     def showtraceback(self):
         """ Display the exception that just occurred.
@@ -59,10 +60,8 @@ class PythonInterpreter(InteractiveInterpreter):
             seq[len(seq):] = format_exception_only(type, value)
         finally:
             tblist = tb = None
+        parent = self.parent
         for line, color in zip(seq, cycle(('#0000cc', '#0000cc', '#cc0000'))):
-            #format = self.output.currentCharFormat()
-            #format.setForeground(QBrush(QColor(color)))
-            #self.output.setCurrentCharFormat(format)
             self.write(line)
 
     def update(self, **kwds):
@@ -74,7 +73,6 @@ class PythonShell(QTextEdit):
     """
     eofPrompt = 'Use Alt-F4 (i.e. Close Window) to exit.'
     historyName = '~/.profitdevice/shellhistory'
-    startScriptName = '~/.profitdevice/autostart.py'
     maxHistory = 200
     introText = (
         'Python %s on %s\n' % (sys.version, sys.platform),
@@ -102,9 +100,10 @@ class PythonShell(QTextEdit):
                      self.writeShellHistory)
         self.connect(self.window(), Signals.settingsChanged,
                      self.setupShellFont)
+        self.setupFinal()
 
     def setupInterp(self):
-        self.interp = PythonInterpreter(output=sys.stderr)
+        self.interp = PythonInterpreter(output=sys.stderr, parent=self)
         self.interp.update(
             shell=self,
             quit=self.eofPrompt,
@@ -112,6 +111,26 @@ class PythonShell(QTextEdit):
             app=QApplication.instance(),
             main=self.window(),
         )
+
+
+    def setupFinal(self):
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        filename = settings.value('startupScript').toString()
+        if not filename:
+            return
+        try:
+            script = file(filename, 'r')
+        except (IOError, ), ex:
+            pass
+        else:
+            try:
+                for line in script.readlines():
+                    self.interp.runsource(line)
+            except (SyntaxError, ValueError , OverflowError), ex:
+                print 'Compiling code in startup script failed: %s' % (ex, )
+            except (Exception ,), ex:
+                print 'Startup script failure (non-compile): %s' % (ex, )
 
     def setupShellFont(self):
         settings = Settings()
@@ -289,23 +308,6 @@ class PythonShell(QTextEdit):
         shelld['session'] = session
         shelld.update(session)
 
-    def onGuiComplete(self):
-        """ onGuiComplete() -> a callback (not a slot) for startup-complete-ness
-
-        """
-        try:
-            self.startScriptName = expanduser(self.startScriptName)
-            startScriptName = file(self.startScriptName, 'r')
-        except (IOError, ), ex:
-            pass
-        else:
-            try:
-                for line in startScriptName.readlines():
-                    self.interp.runsource(line)
-            except (SyntaxError, ValueError , OverflowError), ex:
-                print 'Compiling code in startup script failed: %s' % (ex, )
-            except (Exception ,), ex:
-                print 'Startup script failure (non-compile): %s' % (ex, )
 
 
 class MultiCast(list):

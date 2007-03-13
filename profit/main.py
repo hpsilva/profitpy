@@ -8,22 +8,13 @@
 # TODO: implement or disable search bar for tickers, orders, account, etc.
 # TODO: account display plots
 # TODO: add prompts to close/quit if connected
-# TODO: add setting saves for message display colors
 # TODO: modify orders display to use model/tree view
-# TODO: add check and read of startup .py script
 # TODO: write plot display script
-# TODO: create better defaults for plot colors
 # TODO: add account, orders, and strategy supervisors
 # TODO: add strategy, account supervisor, order supervisor and indicator display
 # TODO: add context menu to ticker table with entries for news, charts, etc.
 # TODO: move strategy and builders out of session module; implement user values
-# TODO: add setting/selection to adjust plot scale font, color
-# TODO: add plot color defaults to settings dialog
 # TODO: add default colors for arbitrary plot curves
-# TODO: default plot bg: 240,240,240
-# TODO: default major grid: 170,170,170 (dash)
-# TODO: default minor grid: 210,210,210 (dot)
-# TODO: move browse buttons from connection display to setting defaults
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -40,11 +31,10 @@ from PyQt4.QtGui import QIcon, QDesktopServices
 from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
+
 from profit.widgets import profit_rc
 from profit.widgets.accountsummary import AccountSummary
-from profit.widgets.aboutdialog import AboutDialog
 from profit.widgets.dock import Dock
-from profit.widgets.importexportdialog import ImportExportDialog
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
 
@@ -53,12 +43,13 @@ from profit.widgets.ui_mainwindow import Ui_MainWindow
 
 
 applicationName = QApplication.applicationName
+instance = QApplication.instance
 processEvents = QApplication.processEvents
-documentationUrl = \
-    'http://code.google.com/p/profitpy/w/list?q=label:Documentation'
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    documentationUrl = \
+        'http://code.google.com/p/profitpy/w/list?q=label:Documentation'
     iconName = ':images/icons/blockdevice.png'
     maxRecentSessions = 5
 
@@ -72,13 +63,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupSysTray()
         self.setupColors()
         self.readSettings()
-        title = '%s (0.2 alpha)' % applicationName()
-        self.setWindowTitle(title)
+        self.setWindowTitle('%s (0.2 alpha)' % applicationName())
         connect = self.connect
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
-        connect(QApplication.instance(), Signals.lastWindowClosed,
-                self.writeSettings)
+        connect(instance(), Signals.lastWindowClosed, self.writeSettings)
         self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
@@ -125,6 +114,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('')
     def on_actionAboutProfitDevice_triggered(self):
+        from profit.widgets.aboutdialog import AboutDialog
         dlg = AboutDialog(self)
         dlg.exec_()
 
@@ -147,10 +137,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('')
     def on_actionDocumentation_triggered(self):
-        QDesktopServices.openUrl(QUrl(documentationUrl))
+        QDesktopServices.openUrl(QUrl(self.documentationUrl))
 
     @pyqtSignature('')
     def on_actionExportSession_triggered(self, filename=None):
+        from profit.widgets.importexportdialog import ImportExportDialog
         if not filename:
             filename = QFileDialog.getSaveFileName(self, 'Export Session As')
         if filename:
@@ -168,6 +159,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('')
     def on_actionImportSession_triggered(self, filename=None):
+        from profit.widgets.importexportdialog import ImportExportDialog
         if not filename:
             filename = QFileDialog.getOpenFileName(self, 'Import Session')
         if filename:

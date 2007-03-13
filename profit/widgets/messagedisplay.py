@@ -13,7 +13,7 @@ from PyQt4.QtGui import QPixmap, QSortFilterProxyModel
 
 from ib.opt.message import registry
 
-from profit.lib.core import Signals, Slots, nogc
+from profit.lib.core import Settings, Signals, Slots, nogc
 from profit.lib.gui import colorIcon
 from profit.widgets.ui_messagedisplay import Ui_MessageDisplay
 
@@ -213,6 +213,8 @@ class MessageDisplay(QFrame, Ui_MessageDisplay):
         QFrame.__init__(self, parent)
         self.setupUi(self)
         self.messageTable.verticalHeader().hide()
+        self.settings = settings = Settings()
+        settings.beginGroup(settings.keys.messages)
         self.setupModel(session)
         self.setupColorButton()
         self.setupDisplayButton()
@@ -228,8 +230,11 @@ class MessageDisplay(QFrame, Ui_MessageDisplay):
         self.colorTypes = messageTypeNames()
         self.colorActions = actions = \
             [pop.addAction(v) for v in sorted(self.colorTypes)]
+        getv = self.settings.value
+        defc = QColor(0,0,0)
         for action in actions:
-            action.color = color = QColor(0,0,0)
+            actc = getv('%s/color' % action.text(), defc)
+            action.color = color = QColor(actc)
             action.setIcon(colorIcon(color))
             target = nogc(partial(self.on_colorChange, action=action))
             self.connect(action, Signals.triggered, target)
@@ -281,6 +286,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay):
             action.setIcon(colorIcon(color))
             self.brushMap[str(action.text())] = QBrush(color)
             self.dataModel.reset()
+            self.settings.setValue('%s/color' % action.text(), color)
 
     def on_displayChange(self, action):
         """ Signal handler for display types actions.

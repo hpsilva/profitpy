@@ -6,7 +6,8 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import Qt, pyqtSignature
-from PyQt4.QtGui import QApplication, QColor, QColorDialog, QDialog, QFont, QFontDialog
+from PyQt4.QtGui import QApplication, QColor, QColorDialog, QDialog
+from PyQt4.QtGui import QFileDialog, QFont, QFontDialog
 
 from profit.lib.core import Settings
 from profit.lib.gui import colorIcon
@@ -139,6 +140,13 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         font, okay = QFontDialog.getFont(default, self, 'Select Shell Font')
         if okay:
             setFont(self.shellFont, font)
+
+    @pyqtSignature('')
+    def on_selectStartupScript_clicked(self):
+        filename = QFileDialog.getOpenFileName(
+            self, 'Select Startup Script', '', 'Python scripts (*.py)')
+        if filename:
+            self.startupScript.setText(filename)
 
 
 if __name__ == '__main__':
