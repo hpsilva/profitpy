@@ -5,24 +5,25 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-# todo:
-#    implement or disable search bar for tickers, orders, account, etc.
-#    account display plots
-#    add prompts to close/quit if connected
-#    add setting saves for message display colors
-#    modify orders display to use model/tree view
-#    add check and read of startup .py script
-#    write plot display script
-#    create better defaults for plot colors
-#    add account, orders, and strategy supervisors
-#    add strategy, account supervisor, order supervisor and indicator display
-#    add context menu to plot controls; settings for line style and width
-#    add context menu to ticker table with entries for news, charts, etc.
-#    move strategy and builders out of session module; implement user values
-#    add pen color and line type for maj/min grids
-#    fix plot + plot canvas frame styles
-#    add file selector buttons to connection commands
-#    add setting/selection to adjust plot scale font, color
+# TODO: implement or disable search bar for tickers, orders, account, etc.
+# TODO: account display plots
+# TODO: add prompts to close/quit if connected
+# TODO: add setting saves for message display colors
+# TODO: modify orders display to use model/tree view
+# TODO: add check and read of startup .py script
+# TODO: write plot display script
+# TODO: create better defaults for plot colors
+# TODO: add account, orders, and strategy supervisors
+# TODO: add strategy, account supervisor, order supervisor and indicator display
+# TODO: add context menu to ticker table with entries for news, charts, etc.
+# TODO: move strategy and builders out of session module; implement user values
+# TODO: add setting/selection to adjust plot scale font, color
+# TODO: add plot color defaults to settings dialog
+# TODO: add default colors for arbitrary plot curves
+# TODO: default plot bg: 240,240,240
+# TODO: default major grid: 170,170,170 (dash)
+# TODO: default minor grid: 210,210,210 (dot)
+# TODO: move browse buttons from connection display to setting defaults
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -36,7 +37,7 @@ from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
 from PyQt4.QtGui import QSystemTrayIcon
 from PyQt4.QtGui import QIcon, QDesktopServices
 
-from profit.lib.core import Signals, Settings, nogc
+from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
 from profit.widgets import profit_rc
@@ -46,7 +47,7 @@ from profit.widgets.dock import Dock
 from profit.widgets.importexportdialog import ImportExportDialog
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
-from profit.widgets.settingsdialog import SettingsDialog
+
 from profit.widgets.shell import PythonShell
 from profit.widgets.ui_mainwindow import Ui_MainWindow
 
@@ -116,13 +117,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.emit(Signals.sessionCreated, self.session)
         self.connect(self.session, Signals.statusMessage,
                      self.statusBar().showMessage)
-        @nogc
-        def showStatus(msg):
-            try:
-                self.trayIcon.showMessage('Status Message', msg)
-            except (AttributeError, ):
-                pass
-        self.connect(self.session, Signals.statusMessage, showStatus)
 
     @pyqtSignature('')
     def openRecentSession(self):
@@ -303,6 +297,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('')
     def on_actionSettings_triggered(self):
+        from profit.widgets.settingsdialog import SettingsDialog
         settings = Settings()
         dlg = SettingsDialog()
         dlg.readSettings(settings)
@@ -332,14 +327,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def setupBottomDock(self):
         area = Qt.BottomDockWidgetArea
-        self.stdoutDock = Dock('Output', self, OutputWidget, area)
-        self.stderrDock = Dock('Error', self, OutputWidget, area)
+        self.stdoutDock = Dock('Standard Output', self, OutputWidget, area)
+        self.stderrDock = Dock('Standard Error', self, OutputWidget, area)
         makeShell = partial(PythonShell,
                             stdout=self.stdoutDock.widget(),
                             stderr=self.stderrDock.widget())
-        self.shellDock = Dock('Shell', self, makeShell, area)
+        self.shellDock = Dock('Python Shell', self, makeShell, area)
         self.tabifyDockWidget(self.shellDock, self.stdoutDock)
         self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
+        self.menuView.addAction(self.shellDock.toggleViewAction())
+        self.menuView.addAction(self.stdoutDock.toggleViewAction())
+        self.menuView.addAction(self.stderrDock.toggleViewAction())
 
     def setupColors(self):
         settings = Settings()
@@ -356,9 +354,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowIcon(icon)
 
     def setupLeftDock(self):
-        self.accountDock = Dock('Account', self, AccountSummary)
+        self.accountDock = Dock('Account Summary', self, AccountSummary)
         self.sessionDock = Dock('Session', self, SessionTree)
         self.tabifyDockWidget(self.sessionDock, self.accountDock)
+        self.menuView.addAction(self.accountDock.toggleViewAction())
+        self.menuView.addAction(self.sessionDock.toggleViewAction())
 
     def setupRecentSessions(self):
         self.recentSessionsActions = actions = \

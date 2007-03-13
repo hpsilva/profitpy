@@ -17,8 +17,7 @@ class Dock(QDockWidget):
                  area=Qt.LeftDockWidgetArea,
                  allowedAreas=Qt.AllDockWidgetAreas,
                  autoAddDock=True,
-                 features=QDockWidget.DockWidgetMovable|\
-                          QDockWidget.DockWidgetFloatable):
+                 features=QDockWidget.AllDockWidgetFeatures):
         """ Constructor.
 
         @param title dock title

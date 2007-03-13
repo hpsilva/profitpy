@@ -100,30 +100,24 @@
    <property name="checkable" >
     <bool>true</bool>
    </property>
-   <property name="checked" >
-    <bool>true</bool>
-   </property>
    <property name="text" >
     <string>Draw Legend</string>
    </property>
   </action>
-  <action name="actionDrawMajorGrid" >
+  <action name="actionDrawMajorX" >
    <property name="checkable" >
     <bool>true</bool>
    </property>
-   <property name="checked" >
-    <bool>true</bool>
-   </property>
    <property name="text" >
-    <string>Draw Major Grid</string>
+    <string>Draw Major Grid X</string>
    </property>
   </action>
-  <action name="actionDrawMinorGrid" >
+  <action name="actionDrawMinorX" >
    <property name="checkable" >
     <bool>true</bool>
    </property>
    <property name="text" >
-    <string>Draw Minor Grid</string>
+    <string>Draw Minor Grid X</string>
    </property>
   </action>
   <action name="actionChangeMajorGridStyle" >
@@ -147,6 +141,52 @@
    </property>
    <property name="text" >
     <string>Change Style...</string>
+   </property>
+  </action>
+  <action name="actionChangeCurveAxis" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/log.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Move to Left Axis</string>
+   </property>
+  </action>
+  <action name="actionDrawMajorY" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Draw Major Grid Y</string>
+   </property>
+  </action>
+  <action name="actionDrawMinorY" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Draw Minor Grid Y</string>
+   </property>
+  </action>
+  <action name="actionChangeAxesFont" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/fonts.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Change Font...</string>
+   </property>
+  </action>
+  <action name="actionChangeAxesColor" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/colorize.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Change Color...</string>
+   </property>
+   <property name="iconText" >
+    <string>Change Color</string>
+   </property>
+   <property name="toolTip" >
+    <string>Change Color</string>
    </property>
   </action>
  </widget>

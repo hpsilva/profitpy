@@ -39,12 +39,6 @@
     <addaction name="actionAboutProfitDevice" />
     <addaction name="actionAboutQt" />
    </widget>
-   <widget class="QMenu" name="menEdit" >
-    <property name="title" >
-     <string>&amp;Edit</string>
-    </property>
-    <addaction name="actionSettings" />
-   </widget>
    <widget class="QMenu" name="menuFile" >
     <property name="title" >
      <string>&amp;File</string>
@@ -69,8 +63,20 @@
     <addaction name="separator" />
     <addaction name="actionQuit" />
    </widget>
+   <widget class="QMenu" name="menEdit" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionSettings" />
+   </widget>
+   <widget class="QMenu" name="menuView" >
+    <property name="title" >
+     <string>&amp;View</string>
+    </property>
+   </widget>
    <addaction name="menuFile" />
    <addaction name="menEdit" />
+   <addaction name="menuView" />
    <addaction name="menuHelp" />
   </widget>
   <widget class="QStatusBar" name="statusbar" />

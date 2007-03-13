@@ -38,6 +38,7 @@ class Signals:
     terminated = SIGNAL('terminated()')
     finished = SIGNAL('finished()')
     statusMessage = SIGNAL('statusMessage')
+    zoomed = SIGNAL('zoomed(const QwtDoubleRect &)')
 
 
 class Slots:
@@ -67,7 +68,9 @@ class Settings(QSettings):
         session = 'Session'
         size = 'Size'
         strategy = 'Strategy'
-        winstate = 'Window State'
+        winstate = 'State'
+        connection = 'Connection'
+        splitstate  = 'SplitterState'
 
     defaultSize = QSize(720, 560)
     defaultPosition = QPoint(200, 200)
