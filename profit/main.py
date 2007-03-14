@@ -15,6 +15,7 @@
 # TODO: add context menu to ticker table with entries for news, charts, etc.
 # TODO: move strategy and builders out of session module; implement user values
 # TODO: add default colors for arbitrary plot curves
+# TODO: fixup shell keyboard handling, syntax highlighting, and history
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp

@@ -8,27 +8,25 @@
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
 
-from profit.lib.core import Signals, importItem, tickerIdRole
+from profit.lib import importItem
+from profit.lib.core import Signals, tickerIdRole
+from profit.widgets.ui_closetabbutton import Ui_CloseTabButton
 
 
 def tabWidgetMethod(name):
     def method(self, title):
-        cls = importItem(name)
+        cls = importItem('profit.widgets.' + name)
         widget = cls(self.session, self)
         index = self.addTab(widget, title)
         return index
     return method
 
 
-class CloseTabButton(QPushButton):
-    def __init__(self, parent=None):
+class CloseTabButton(QPushButton, Ui_CloseTabButton):
+    def __init__(self, parent):
         QPushButton.__init__(self, parent)
-        self.setIcon(QIcon(':images/icons/tab_remove.png'))
-        self.setFlat(True)
-        triggerAction = QAction(self)
-        triggerAction.setShortcut('Ctrl+W')
-        self.addAction(triggerAction)
-        self.connect(triggerAction, Signals.triggered, self.click)
+        self.setupUi(self)
+        self.addAction(self.actionCloseTab)
 
 
 class CentralTabs(QTabWidget):
@@ -75,7 +73,8 @@ class CentralTabs(QTabWidget):
         connect(session, Signals.disconnectedTWS, self.on_statusTWS)
 
     def on_itemClicked(self, index): # item, col):
-        text = str(index.data().toString())
+        text = name = str(index.data().toString())
+        text = text.replace(' ', '_').lower()
         icon = QIcon(index.data(Qt.DecorationRole))
         tickerId, tickerIdValid = index.data(tickerIdRole).toInt()
         if tickerIdValid:
@@ -83,8 +82,8 @@ class CentralTabs(QTabWidget):
                 item=None, symbol=text, tickerId=tickerId, icon=icon)
         else:
             try:
-                call = getattr(self, 'on_%sClicked' % text.lower())
-                tabIndex = call(text)
+                call = getattr(self, 'on_%sClicked' % text)
+                tabIndex = call(name)
             except (AttributeError, TypeError, ), exc:
                 print '## session item create exception:', exc
             else:
@@ -102,17 +101,23 @@ class CentralTabs(QTabWidget):
         return index
 
     on_accountClicked = \
-        tabWidgetMethod('profit.widgets.accountdisplay.AccountDisplay')
+        tabWidgetMethod('accountdisplay.AccountDisplay')
+    on_account_supervisorClicked = \
+        tabWidgetMethod('accountsupervisor.AccountSupervisorDisplay')
     on_executionsClicked = \
-        tabWidgetMethod('profit.widgets.executionsdisplay.ExecutionsDisplay')
+        tabWidgetMethod('executionsdisplay.ExecutionsDisplay')
     on_messagesClicked = \
-        tabWidgetMethod('profit.widgets.messagedisplay.MessageDisplay')
+        tabWidgetMethod('messagedisplay.MessageDisplay')
     on_ordersClicked = \
-        tabWidgetMethod('profit.widgets.orderdisplay.OrderDisplay')
+        tabWidgetMethod('orderdisplay.OrderDisplay')
+    on_order_supervisorClicked = \
+        tabWidgetMethod('ordersupervisor.OrderSupervisorDisplay')
     on_portfolioClicked = \
-        tabWidgetMethod('profit.widgets.portfoliodisplay.PortfolioDisplay')
+        tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
     on_strategyClicked = \
-        tabWidgetMethod('profit.widgets.strategydisplay.StrategyDisplay')
+        tabWidgetMethod('strategydisplay.StrategyDisplay')
+    on_trade_indicatorClicked = \
+        tabWidgetMethod('tradeindicator.TradeIndicatorDisplay')
 
     def on_tickersClicked(self, text):
         cls = importItem('profit.widgets.tickerdisplay.TickerDisplay')
