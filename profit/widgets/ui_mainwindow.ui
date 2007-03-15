@@ -31,6 +31,13 @@
      <height>28</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menEdit" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionTickerDesigner" />
+    <addaction name="actionSettings" />
+   </widget>
    <widget class="QMenu" name="menuHelp" >
     <property name="title" >
      <string>&amp;Help</string>
@@ -38,6 +45,11 @@
     <addaction name="actionDocumentation" />
     <addaction name="actionAboutProfitDevice" />
     <addaction name="actionAboutQt" />
+   </widget>
+   <widget class="QMenu" name="menuView" >
+    <property name="title" >
+     <string>&amp;View</string>
+    </property>
    </widget>
    <widget class="QMenu" name="menuFile" >
     <property name="title" >
@@ -63,23 +75,41 @@
     <addaction name="separator" />
     <addaction name="actionQuit" />
    </widget>
-   <widget class="QMenu" name="menEdit" >
-    <property name="title" >
-     <string>&amp;Edit</string>
-    </property>
-    <addaction name="actionSettings" />
-   </widget>
-   <widget class="QMenu" name="menuView" >
-    <property name="title" >
-     <string>&amp;View</string>
-    </property>
-   </widget>
    <addaction name="menuFile" />
    <addaction name="menEdit" />
    <addaction name="menuView" />
    <addaction name="menuHelp" />
   </widget>
   <widget class="QStatusBar" name="statusbar" />
+  <widget class="QToolBar" name="fileToolbar" >
+   <property name="windowTitle" >
+    <string>Main Toolbar</string>
+   </property>
+   <property name="orientation" >
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <attribute name="toolBarArea" >
+    <number>4</number>
+   </attribute>
+   <addaction name="actionNewSession" />
+   <addaction name="actionOpenSession" />
+   <addaction name="separator" />
+   <addaction name="actionSaveSession" />
+   <addaction name="actionSaveSessionAs" />
+   <addaction name="separator" />
+   <addaction name="actionImportSession" />
+   <addaction name="actionExportSession" />
+  </widget>
+  <widget class="QToolBar" name="editToolbar" >
+   <property name="orientation" >
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <attribute name="toolBarArea" >
+    <number>4</number>
+   </attribute>
+   <addaction name="actionSettings" />
+   <addaction name="actionTickerDesigner" />
+  </widget>
   <action name="actionNewSession" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/filenew.png</iconset>
@@ -179,6 +209,14 @@
   <action name="actionAboutQt" >
    <property name="text" >
     <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionTickerDesigner" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/log.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Ticker Designer...</string>
    </property>
   </action>
  </widget>

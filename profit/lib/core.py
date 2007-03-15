@@ -18,11 +18,15 @@ class Signals:
     createdSeries = SIGNAL('createdSeries')
     createdTicker = SIGNAL('createdTicker')
     currentChanged = SIGNAL('currentChanged(int)')
+    currentIndexChanged = SIGNAL('currentIndexChanged(int)')
     customContextMenuRequested = \
         SIGNAL('customContextMenuRequested(const QPoint &)')
     dataChanged = \
         SIGNAL('dataChanged(const QModelIndex &, const QModelIndex &)')
     disconnectedTWS = SIGNAL('disconnectedTWS')
+    doubleValueChanged = SIGNAL('valueChanged(double)')
+    finished = SIGNAL('finished()')
+    intValueChanged = SIGNAL('valueChanged(int)')
     itemDoubleClicked = SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)')
     lastWindowClosed = SIGNAL('lastWindowClosed()')
     layoutChanged = SIGNAL('layoutChanged()')
@@ -32,12 +36,12 @@ class Signals:
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')
+    statusMessage = SIGNAL('statusMessage')
+    terminated = SIGNAL('terminated()')
+    textChanged = SIGNAL('textChanged(const QString &)')
     tickerClicked = SIGNAL('tickerClicked')
     timeout = SIGNAL('timeout()')
     triggered = SIGNAL('triggered()')
-    terminated = SIGNAL('terminated()')
-    finished = SIGNAL('finished()')
-    statusMessage = SIGNAL('statusMessage')
     zoomed = SIGNAL('zoomed(const QwtDoubleRect &)')
 
 
@@ -61,6 +65,7 @@ class Settings(QSettings):
         app = 'Profit Device'
         appearance = 'Appearance'
         connection = 'Connection'
+        designer = 'TickerDesigner'
         main = 'MainWindow'
         maximized = 'Maximized'
         messages = 'Messages'

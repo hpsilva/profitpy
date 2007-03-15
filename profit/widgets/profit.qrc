@@ -8,6 +8,11 @@
 <file>images/icons/connect_established.png</file>
 <file>images/icons/connect_no.png</file>
 <file>images/icons/display.png</file>
+<file>images/icons/down.png</file>
+<file>images/icons/editcopy.png</file>
+<file>images/icons/editcut.png</file>
+<file>images/icons/editdelete.png</file>
+<file>images/icons/editpaste.png</file>
 <file>images/icons/empty.png</file>
 <file>images/icons/exit.png</file>
 <file>images/icons/fileclose.png</file>
@@ -26,6 +31,7 @@
 <file>images/icons/krita.png</file>
 <file>images/icons/log.png</file>
 <file>images/icons/looknfeel.png</file>
+<file>images/icons/mime_empty.png</file>
 <file>images/icons/misc.png</file>
 <file>images/icons/package_system.png</file>
 <file>images/icons/player_pause.png</file>
@@ -37,6 +43,7 @@
 <file>images/icons/source_py.png</file>
 <file>images/icons/tab_remove.png</file>
 <file>images/icons/terminal.png</file>
+<file>images/icons/up.png</file>
 <file>images/icons/view_detailed.png</file>
 <file>images/icons/view_text.png</file>
 <file>images/tickers/aapl.png</file>

@@ -9,7 +9,6 @@
 # TODO: account display plots
 # TODO: add prompts to close/quit if connected
 # TODO: modify orders display to use model/tree view
-# TODO: write plot display script
 # TODO: add account, orders, and strategy supervisors
 # TODO: add strategy, account supervisor, order supervisor and indicator display
 # TODO: add context menu to ticker table with entries for news, charts, etc.
@@ -297,6 +296,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if dlg.exec_() == dlg.Accepted:
             dlg.writeSettings(settings)
             self.emit(Signals.settingsChanged)
+
+    @pyqtSignature('')
+    def on_actionTickerDesigner_triggered(self):
+        from profit.widgets.tickerdesigner import TickerDesignerWindow
+        win = TickerDesignerWindow(self)
+        win.show()
 
     def on_trayIcon_activated(self, reason):
         if reason == QSystemTrayIcon.Trigger:

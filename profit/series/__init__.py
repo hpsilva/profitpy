@@ -86,6 +86,11 @@ class CenterOfGravity(MovingAverageIndex):
     """ Center of gravity oscillator index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def reindex(self):
         periods = self.periods
         period = self.series[-periods:]
@@ -108,6 +113,11 @@ class FisherTransform(MovingAverageIndex):
     """ FisherTransform -> er?
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def __init__(self, series, periods):
         MovingAverageIndex.__init__(self, series, periods)
         self.inter = []
@@ -139,6 +149,10 @@ class MAMA(MovingAverageIndex):
     """
     fast_limit = 0.5
     slow_limit = 0.05
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
 
     def __init__(self, series, periods):
         MovingAverageIndex.__init__(self, series, periods)
@@ -225,6 +239,11 @@ class SmoothedRSI(MovingAverageIndex):
     """ Smoothed relative strength index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def __init__(self, series, periods):
         MovingAverageIndex.__init__(self, series, periods)
         self.smooth = []
@@ -266,6 +285,11 @@ class SMA(MovingAverageIndex):
     """ Simple Moving Average index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def reindex(self):
         periods = self.periods
         period = self.series[-periods:]
@@ -282,6 +306,12 @@ class EMA(MovingAverageIndex):
     """ Exponential Moving Average index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1)),
+        ('k', dict(type='float', min=0.001))
+    ]
+
     def __init__(self, series, periods, k=2.0):
         MovingAverageIndex.__init__(self, series, periods)
         self.k = k
@@ -312,6 +342,13 @@ class KAMA(MovingAverageIndex):
     """ Kaufmann Adaptive Moving Average index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1)),
+        ('fast_look', dict(type='float', min=0.0)),
+        ('slow_look', dict(type='float', min=0.0)),
+    ]
+
     def __init__(self, series, periods, fast_look=2, slow_look=30):
         MovingAverageIndex.__init__(self, series, periods)
         self.fastest = 2.0 / (fast_look+1)
@@ -348,6 +385,11 @@ class DistanceCoefficient(MovingAverageIndex):
     """ Distance Coefficient index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1)),
+    ]
+
     def __init__(self, series, periods):
         MovingAverageIndex.__init__(self, series, periods)
 
@@ -379,6 +421,11 @@ class WMA(MovingAverageIndex):
     """ Weighted Moving Average index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1)),
+    ]
+
     def __init__(self, series, periods):
         MovingAverageIndex.__init__(self, series, periods)
         offsets = range(1, periods+1)
@@ -401,6 +448,11 @@ class Convergence(SeriesIndex):
     """ Convergence Line index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('signal', dict(type='line')),
+    ]
+
     def __init__(self, series, signal):
         SeriesIndex.__init__(self, series)
         self.signal = signal
@@ -416,6 +468,11 @@ class PercentConvergence(SeriesIndex):
     """ Index of convergence as a percentage.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('signal', dict(type='line')),
+    ]
+
     def __init__(self, series, signal):
         SeriesIndex.__init__(self, series)
         self.signal = signal
@@ -431,6 +488,11 @@ class MACDHistogram(SeriesIndex):
     """ Tracks difference between line and its signal.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('signal', dict(type='line')),
+    ]
+
     def __init__(self, series, signal):
         SeriesIndex.__init__(self, series)
         self.signal = signal
@@ -447,6 +509,11 @@ class DetrendedPriceOscillator(SeriesIndex):
 
     DPO = Close - Simple moving average [from (n / 2 + 1) days ago]
     """
+    params = [
+        ('series', dict(type='line')),
+        ('moving_average', dict(type='line')),
+    ]
+
     def __init__(self, series, moving_average):
         self.series, self.moving_average = series, moving_average
 
@@ -461,6 +528,10 @@ class DetrendedPriceOscillator(SeriesIndex):
 
 
 class Trix(SeriesIndex):
+    params = [
+        ('series', dict(type='line')),
+    ]
+
     def reindex(self):
         try:
             current, previous = self.series[-1], self.series[-2]
@@ -477,6 +548,11 @@ class Volatility(MovingAverageIndex):
     Volatility = standard deviation of closing price [for n periods] /
     average closing price [for n periods]
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1)),
+    ]
+
     def reindex(self):
         periods = self.periods
         period = self.series[-periods:]
@@ -494,6 +570,11 @@ class Momentum(SeriesIndex):
     """ Momentum index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('lookback', dict(type='int', min=1)),
+    ]
+
     def __init__(self, series, lookback):
         SeriesIndex.__init__(self, series)
         self.lookback = lookback
@@ -511,6 +592,11 @@ class RateOfChange(SeriesIndex):
     """ Rate of change index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('lookback', dict(type='int', min=1)),
+    ]
+
     def __init__(self, series, lookback):
         SeriesIndex.__init__(self, series)
         self.lookback = lookback
@@ -530,6 +616,11 @@ class VerticalHorizontalFilter(MovingAverageIndex):
     """ VerticalHorizontalFilter
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def reindex(self):
         periods = self.periods
         period = self.series[-periods:]
@@ -547,6 +638,11 @@ class Stochastic(MovingAverageIndex):
     """ Stochastic
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def reindex(self):
         periods = self.periods
         period = self.series[-periods:]
@@ -567,6 +663,11 @@ class WilliamsR(MovingAverageIndex):
     WilliamsR is almost the same as Stochastic except that it's
     adjusted * -100.
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def reindex(self):
         periods = self.periods
         period = self.series[-periods:]
@@ -585,6 +686,12 @@ class BollingerBand(SeriesIndex):
     """ BollingerBand
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('period', dict(type='int', min=1)),
+        ('dev_factor', dict(type='float')),
+    ]
+
     def __init__(self, series, period, dev_factor):
         SeriesIndex.__init__(self, series)
         self.period = period # allows for periods != periods of series
@@ -608,6 +715,12 @@ class LinearRegressionSlope(SeriesIndex):
     LinearRegressionSlope(series, periods) -> slope of the linear
     regression
     """
+    params = [
+        ('series', dict(type='line')),
+        ('period', dict(type='int', min=1)),
+        ('scale', dict(type='float')),
+    ]
+
     def __init__(self, series, periods, scale=1):
         SeriesIndex.__init__(self, series)
         self.periods = periods
@@ -635,6 +748,11 @@ class TrueRange(MovingAverageIndex):
       period.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1)),
+    ]
+
     def reindex(self):
         periods = self.periods
         items = self.series[-periods:]
@@ -656,12 +774,21 @@ class OrderStatisticFilter(MovingAverageIndex):
     statistics, such as their mean or variance, rather than by their
     temporal position.
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
 
 
 class MedianValue(OrderStatisticFilter):
     """ Indexes a series by the median.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def reindex(self):
         values = self.series[-self.periods:]
         m = median(values).toscalar()
@@ -672,6 +799,11 @@ class ModeValue(OrderStatisticFilter):
     """ Indexes a series by the mode.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1))
+    ]
+
     def reindex(self):
         values = self.series[-self.periods:]
         m = mode(values)[0].toscalar()
@@ -682,6 +814,11 @@ class DelayFilter(SeriesIndex):
     """ Duplicates a series by a previous value.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('lookback', dict(type='int', min=1))
+    ]
+
     def __init__(self, series, lookback):
         self.series = series
         self.lookback = lookback
@@ -698,6 +835,10 @@ class TimeIndex(SeriesIndex):
     """ Tracks the time stamps of values as they're added.
 
     """
+    params = [
+        ('series', dict(type='line')),
+    ]
+
     def __init__(self, series, timefunc=None):
         SeriesIndex.__init__(self, series)
         self.timefunc = timefunc if timefunc else time
@@ -710,6 +851,10 @@ class ChangeIndex(SeriesIndex):
     """ Tracks the difference between updates.
 
     """
+    params = [
+        ('series', dict(type='line')),
+    ]
+
     def reindex(self):
         try:
             change = self.series[-1] - self.series[-2]
@@ -722,6 +867,10 @@ class IndexIndex(SeriesIndex):
     """ Index that maintains the current series length.
 
     """
+    params = [
+        ('series', dict(type='line')),
+    ]
+
     def __init__(self, series):
         SeriesIndex.__init__(self, series)
         self.idx = 0
@@ -735,6 +884,11 @@ class LevelIndex(SeriesIndex):
     """ Constant level indexing.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('level', dict(type='float')),
+    ]
+
     def __init__(self, series, level):
         SeriesIndex.__init__(self, series)
         self.level = level
@@ -744,6 +898,11 @@ class LevelIndex(SeriesIndex):
 
 
 class OffsetIndex(SeriesIndex):
+    params = [
+        ('series', dict(type='line')),
+        ('offset', dict(type='float')),
+    ]
+
     def __init__(self, series, offset):
         SeriesIndex.__init__(self, series)
         self.offset = offset
@@ -761,6 +920,10 @@ class Slope(SeriesIndex):
     """ Slope values as an index.
 
     """
+    params = [
+        ('series', dict(type='line')),
+    ]
+
     def reindex(self):
         try:
             Y1, Y2 = self.series[-2], self.series[-1]
@@ -774,6 +937,11 @@ class DifferenceIndex(SeriesIndex):
     """
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('other', dict(type='line')),
+    ]
+
     def __init__(self, series, other):
         SeriesIndex.__init__(self, series)
         self.other = other
@@ -793,6 +961,12 @@ class RSI(MovingAverageIndex):
     """ Relative Strength Index - needs work.
 
     """
+    params = [
+        ('series', dict(type='line')),
+        ('periods', dict(type='int', min=1)),
+        ('change_line', dict(type='line')),
+    ]
+
     def __init__(self, series, periods, change_line):
         MovingAverageIndex.__init__(self, series, periods)
         self.change_line = change_line
@@ -822,6 +996,11 @@ class RSI(MovingAverageIndex):
 
 
 class LoPassFilter(SeriesIndex):
+    params = [
+        ('series', dict(type='line')),
+        ('cutoff', dict(type='float')),
+    ]
+
     def __init__(self, series, cutoff):
         self.series = series
         self.cutoff = cutoff
@@ -834,6 +1013,11 @@ class LoPassFilter(SeriesIndex):
 
 
 class HiPassFilter(SeriesIndex):
+    params = [
+        ('series', dict(type='line')),
+        ('cutoff', dict(type='float')),
+    ]
+
     def __init__(self, series, cutoff):
         self.series = series
         self.cutoff = cutoff
@@ -846,6 +1030,12 @@ class HiPassFilter(SeriesIndex):
 
 
 class BandPassFilter(SeriesIndex):
+    params = [
+        ('series', dict(type='line')),
+        ('hi', dict(type='float')),
+        ('low', dict(type='float')),
+    ]
+
     def __init__(self, series, hi, low):
         self.series = series
         self.hi = hi
@@ -863,6 +1053,10 @@ class BandPassFilter(SeriesIndex):
 
 
 class UpMovement(SeriesIndex):
+    params = [
+        ('series', dict(type='line')),
+    ]
+
     def reindex(self):
         try:
             prev, current = self.series[-2:]
@@ -874,6 +1068,10 @@ class UpMovement(SeriesIndex):
 
 
 class DownMovement(SeriesIndex):
+    params = [
+        ('series', dict(type='line')),
+    ]
+
     def reindex(self):
         try:
             prev, current = self.series[-2:]
