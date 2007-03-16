@@ -299,8 +299,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @pyqtSignature('')
     def on_actionTickerDesigner_triggered(self):
-        from profit.widgets.tickerdesigner import TickerDesignerWindow
-        win = TickerDesignerWindow(self)
+        from profit.widgets.tickerdesigner import TickerDesigner
+        win = TickerDesigner(self)
         win.show()
 
     def on_trayIcon_activated(self, reason):

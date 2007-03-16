@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>TickerDesignerWindow</class>
- <widget class="QMainWindow" name="TickerDesignerWindow" >
+ <class>TickerDesigner</class>
+ <widget class="QMainWindow" name="TickerDesigner" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -709,19 +709,6 @@ p, li { white-space: pre-wrap; }
      <height>28</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile" >
-    <property name="title" >
-     <string>&amp;File</string>
-    </property>
-    <addaction name="actionNewSchema" />
-    <addaction name="actionOpenSchema" />
-    <addaction name="separator" />
-    <addaction name="actionSaveSchema" />
-    <addaction name="actionSaveSchemaAs" />
-    <addaction name="actionCloseSchema" />
-    <addaction name="separator" />
-    <addaction name="actionQuit" />
-   </widget>
    <widget class="QMenu" name="menuEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
@@ -735,7 +722,7 @@ p, li { white-space: pre-wrap; }
     <property name="title" >
      <string>&amp;Design</string>
     </property>
-    <addaction name="actionInsertSymbol" />
+    <addaction name="actionInsertTicker" />
     <addaction name="actionInsertField" />
     <addaction name="actionInsertIndex" />
     <addaction name="separator" />
@@ -753,6 +740,19 @@ p, li { white-space: pre-wrap; }
     </widget>
     <addaction name="actionStatusBar" />
     <addaction name="menuToolbars" />
+   </widget>
+   <widget class="QMenu" name="menuFile" >
+    <property name="title" >
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionNewSchema" />
+    <addaction name="actionOpenSchema" />
+    <addaction name="separator" />
+    <addaction name="actionSaveSchema" />
+    <addaction name="actionSaveSchemaAs" />
+    <addaction name="actionCloseSchema" />
+    <addaction name="separator" />
+    <addaction name="actionQuit" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
@@ -773,6 +773,7 @@ p, li { white-space: pre-wrap; }
    <addaction name="actionNewSchema" />
    <addaction name="actionOpenSchema" />
    <addaction name="actionSaveSchema" />
+   <addaction name="actionPrintSchema" />
   </widget>
   <widget class="QToolBar" name="editToolbar" >
    <property name="windowTitle" >
@@ -801,7 +802,7 @@ p, li { white-space: pre-wrap; }
    </attribute>
    <addaction name="actionMoveUp" />
    <addaction name="actionMoveDown" />
-   <addaction name="actionInsertSymbol" />
+   <addaction name="actionInsertTicker" />
    <addaction name="actionInsertField" />
    <addaction name="actionInsertIndex" />
   </widget>
@@ -949,7 +950,7 @@ p, li { white-space: pre-wrap; }
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionInsertSymbol" >
+  <action name="actionInsertTicker" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
    </property>
@@ -1003,6 +1004,20 @@ p, li { white-space: pre-wrap; }
     <string>Foo</string>
    </property>
   </action>
+  <action name="actionPrintSchema" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/kedit.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Print Schema to stdout</string>
+   </property>
+   <property name="iconText" >
+    <string>Print Schema to stdout</string>
+   </property>
+   <property name="toolTip" >
+    <string>Print Schema to stdout</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>treeView</tabstop>
@@ -1026,7 +1041,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>actionQuit</sender>
    <signal>triggered()</signal>
-   <receiver>TickerDesignerWindow</receiver>
+   <receiver>TickerDesigner</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel" >
