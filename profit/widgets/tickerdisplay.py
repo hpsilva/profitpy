@@ -5,16 +5,29 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from itertools import ifilter
+from string import Template
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QFrame, QIcon
+from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
+from PyQt4.QtGui import QAction, QDesktopServices, QFrame, QIcon, QMenu
 
 from ib.ext.TickType import TickType
 
-from profit.lib.core import Signals, disabledUpdates, nameIn
+from profit.lib.core import Settings, Signals, disabledUpdates, nameIn
 from profit.lib.gui import ValueTableItem
 from profit.widgets.portfoliodisplay import replayPortfolio
 from profit.widgets.ui_tickerdisplay import Ui_TickerDisplay
+
+
+def defaultUrls():
+    return [
+        'Profile:http://www.marketwatch.com/tools/quotes/profile.asp?symb=$symbol',
+        'News:http://www.marketwatch.com/tools/quotes/news.asp?symb=$symbol',
+        'Financials:http://www.marketwatch.com/tools/quotes/financials.asp?symb=$symbol',
+        'Historical Quotes:http://www.marketwatch.com/tools/quotes/historical.asp?symb=$symbol'
+        'Message Board:http://www.marketwatch.com/discussions/msgIndex.asp?symb=$symbol',
+        'SEC Filings:http://www.marketwatch.com/tools/quotes/secfilings.asp?symb=$symbol',
+        'Options:http://www.marketwatch.com/tools/quotes/options1.asp?symb=$symbol',
+    ]
 
 
 fieldColumns = {
@@ -38,17 +51,108 @@ def replayTick(messages, symbols, callback):
                 break
 
 
+def separator():
+    sep = QAction(None)
+    sep.setSeparator(True)
+    return sep
+
+
 class TickerDisplay(QFrame, Ui_TickerDisplay):
     def __init__(self, session, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.selectedItem = None
         self.tickerItems = {}
+        self.settings = Settings()
+        self.settings.beginGroup(self.settings.keys.main)
         self.symbols = symbols = session.builder.symbols()
         self.tickerTable.verticalHeader().hide()
+        self.contextActions = [
+            separator(), self.actionChart, self.actionOrder, separator(),
+        ]
         replayTick(session.messages, symbols,
                    self.on_session_TickPrice_TickSize)
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
         session.registerMeta(self)
+
+    @pyqtSignature('')
+    def on_actionChart_triggered(self):
+        table = self.tickerTable
+        try:
+            item = table.selectedItems()[0]
+        except (IndexError, ):
+            pass
+        else:
+            index = table.model().index(item.row(), 0)
+            if index and index.isValid():
+                self.emit(Signals.tickerClicked, table.itemFromIndex(index))
+
+    @pyqtSignature('')
+    def on_actionOrder_triggered(self):
+        print '## order for ', self.actionOrder.data().toString()
+
+    @pyqtSignature('')
+    def on_actionUrl(self):
+        data = self.sender().data()
+        if data and data.isValid():
+            QDesktopServices.openUrl(QUrl(data.toString()))
+
+    @pyqtSignature('')
+    def on_closePosition(self):
+        print '## close position order dialog'
+
+    def menuActions(self, index):
+        data = index.data()
+        symbol = data.toString()
+        icon = QIcon(index.data(Qt.DecorationRole))
+        actions = [QAction(icon, symbol, None), ]
+        actions.extend(self.contextActions)
+        for act in actions:
+            act.setData(data)
+        return actions
+
+    def urlActions(self, symbol):
+        actions = []
+        settings = self.settings
+        urls = settings.value(settings.keys.tickerurls, defaultUrls())
+        for url in urls.toStringList():
+            try:
+                name, url = str(url).split(':', 1)
+                url = Template(url).substitute(symbol=symbol)
+            except (KeyError, ValueError, ):
+                continue
+            act = QAction(name+'...', None)
+            act.setData(QVariant(url))
+            self.connect(act, Signals.triggered, self.on_actionUrl)
+            actions.append(act)
+        return actions
+
+    def closePositionAction(self, row):
+        act = None
+        index = self.tickerTable.model().index(row, 1)
+        if index and index.isValid():
+            try:
+                pos = float(index.data().toString())
+            except (ValueError, ):
+                pos = 0
+            if pos:
+                act = QAction('Close %s shares...' % abs(pos), None)
+                self.connect(act, Signals.triggered, self.on_closePosition)
+        return act
+
+    def on_tickerTable_customContextMenuRequested(self, pos):
+        table = self.tickerTable
+        item = table.itemAt(pos)
+        if item:
+            row = item.row()
+            index = table.model().index(row, 0)
+            if index and index.isValid():
+                actions = self.menuActions(index)
+                close = self.closePositionAction(row)
+                if close:
+                    actions.insert(-1, close)
+                actions.extend(self.urlActions(index.data().toString()))
+                QMenu.exec_(actions, table.viewport().mapToGlobal(pos))
 
     def on_tickerTable_doubleClicked(self, index):
         if not index.isValid():

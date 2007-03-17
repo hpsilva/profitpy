@@ -7,14 +7,17 @@
 
 # TODO: implement or disable search bar for tickers, orders, account, etc.
 # TODO: account display plots
-# TODO: add prompts to close/quit if connected
+# TODO: fix plot legend on curve enable/dis
 # TODO: modify orders display to use model/tree view
 # TODO: add account, orders, and strategy supervisors
 # TODO: add strategy, account supervisor, order supervisor and indicator display
-# TODO: add context menu to ticker table with entries for news, charts, etc.
 # TODO: move strategy and builders out of session module; implement user values
 # TODO: add default colors for arbitrary plot curves
 # TODO: fixup shell keyboard handling, syntax highlighting, and history
+# TODO: implement order dialog
+# TODO: add field data table to plots
+# TODO: add ticker url editor to settings dialog
+# TODO: add wait for save/export thread on close event
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -25,7 +28,7 @@ from sys import argv
 from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QApplication, QColor, QMainWindow
 from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
-from PyQt4.QtGui import QSystemTrayIcon
+from PyQt4.QtGui import QSystemTrayIcon, QToolBar
 from PyQt4.QtGui import QIcon, QDesktopServices
 
 from profit.lib.core import Signals, Settings
@@ -58,6 +61,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setupLeftDock()
         self.setupBottomDock()
+        self.setupMenus()
         self.setupMainIcon()
         self.setupRecentSessions()
         self.setupSysTray()
@@ -72,6 +76,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
 
+    def closeEvent(self, event):
+        if self.checkClose():
+            session = self.session
+            while session.exportInProgress or session.saveInProgress:
+                print 'loop'
+                processEvents()
+            event.accept()
+        else:
+            event.ignore()
+
     def checkClose(self):
         check = True
         settings = Settings()
@@ -80,11 +94,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm = confirm.toInt()[0]
         if self.session.isModified and confirm:
             buttons = QMessageBox.Save|QMessageBox.Discard|QMessageBox.Cancel
-            msg = QMessageBox.question(self, applicationName(),
-                                       'This session has been modified.\n'
-                                       'Do you want to save your changes?',
-                                       buttons,
-                                       QMessageBox.Save)
+            text = 'This session has been modified'
+            if self.session.isConnected:
+                text += ' and is connected and receiving messages.'
+            else:
+                text += '.'
+            text += '\nDo you want to save your changes?'
+            msg = QMessageBox.question(
+                self, applicationName(), text, buttons, QMessageBox.Save)
             if msg == QMessageBox.Discard:
                 pass
             elif msg == QMessageBox.Cancel:
@@ -143,7 +160,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_actionExportSession_triggered(self, filename=None):
         from profit.widgets.importexportdialog import ImportExportDialog
         if not filename:
-            filename = QFileDialog.getSaveFileName(self, 'Export Session As')
+            filename = QFileDialog.getSaveFileName(
+                self, 'Export Session To File')
         if filename:
             if self.session.exportInProgress:
                 warningBox('Export in Progress',
@@ -161,7 +179,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_actionImportSession_triggered(self, filename=None):
         from profit.widgets.importexportdialog import ImportExportDialog
         if not filename:
-            filename = QFileDialog.getOpenFileName(self, 'Import Session')
+            filename = QFileDialog.getOpenFileName(
+                self, 'Import Session From File')
         if filename:
             dlg = ImportExportDialog('Import', self)
             if dlg.exec_() != dlg.Accepted:
@@ -333,9 +352,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.shellDock = Dock('Python Shell', self, makeShell, area)
         self.tabifyDockWidget(self.shellDock, self.stdoutDock)
         self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
+
+    def setupMenus(self):
+        self.menuView.clear()
+        self.menuView.addAction(self.accountDock.toggleViewAction())
+        self.menuView.addAction(self.sessionDock.toggleViewAction())
         self.menuView.addAction(self.shellDock.toggleViewAction())
         self.menuView.addAction(self.stdoutDock.toggleViewAction())
         self.menuView.addAction(self.stderrDock.toggleViewAction())
+        self.menuView.addSeparator()
+        self.menuView.addAction(self.actionStatusBar)
+        self.menuView.addMenu(self.menuToolbars)
+        for toolbar in self.findChildren(QToolBar):
+            self.menuToolbars.addAction(toolbar.toggleViewAction())
 
     def setupColors(self):
         settings = Settings()
@@ -355,8 +384,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.accountDock = Dock('Account Summary', self, AccountSummary)
         self.sessionDock = Dock('Session', self, SessionTree)
         self.tabifyDockWidget(self.sessionDock, self.accountDock)
-        self.menuView.addAction(self.accountDock.toggleViewAction())
-        self.menuView.addAction(self.sessionDock.toggleViewAction())
 
     def setupRecentSessions(self):
         self.recentSessionsActions = actions = \

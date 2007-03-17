@@ -1,16 +1,16 @@
 <ui version="4.0" >
  <class>TickerDisplay</class>
- <widget class="QWidget" name="TickerDisplay" >
+ <widget class="QFrame" name="TickerDisplay" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>500</width>
+    <height>289</height>
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Form</string>
+   <string>Ticker Display</string>
   </property>
   <layout class="QVBoxLayout" >
    <property name="margin" >
@@ -24,6 +24,9 @@
    </item>
    <item>
     <widget class="LocalTable" name="tickerTable" >
+     <property name="contextMenuPolicy" >
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="alternatingRowColors" >
       <bool>true</bool>
      </property>
@@ -84,6 +87,22 @@
     </widget>
    </item>
   </layout>
+  <action name="actionChart" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Chart...</string>
+   </property>
+  </action>
+  <action name="actionOrder" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/klipper_dock.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Order...</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -97,6 +116,8 @@
    <header>localtable.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="profit.qrc" />
+ </resources>
  <connections/>
 </ui>

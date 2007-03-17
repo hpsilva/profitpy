@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Form</string>
+   <string>Portfolio Display</string>
   </property>
   <layout class="QVBoxLayout" >
    <property name="margin" >
@@ -79,14 +79,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>LocalTable</class>
-   <extends>QTableWidget</extends>
-   <header>localtable.h</header>
-  </customwidget>
-  <customwidget>
    <class>SearchBar</class>
    <extends>QWidget</extends>
    <header>searchbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LocalTable</class>
+   <extends>QTableWidget</extends>
+   <header>localtable.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

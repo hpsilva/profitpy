@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Form</string>
+   <string>Account Display</string>
   </property>
   <layout class="QVBoxLayout" >
    <property name="margin" >
@@ -63,13 +63,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>LocalTable</class>
-   <extends>QTableWidget</extends>
-   <header>localtable.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

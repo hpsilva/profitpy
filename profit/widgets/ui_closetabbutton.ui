@@ -17,6 +17,12 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
+  <property name="toolTip" >
+   <string>Close tab.</string>
+  </property>
+  <property name="statusTip" >
+   <string>Close the current tab.</string>
+  </property>
   <property name="icon" >
    <iconset resource="profit.qrc" >:/images/icons/tab_remove.png</iconset>
   </property>

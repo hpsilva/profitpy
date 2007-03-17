@@ -46,11 +46,6 @@
     <addaction name="actionAboutProfitDevice" />
     <addaction name="actionAboutQt" />
    </widget>
-   <widget class="QMenu" name="menuView" >
-    <property name="title" >
-     <string>&amp;View</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuFile" >
     <property name="title" >
      <string>&amp;File</string>
@@ -75,6 +70,19 @@
     <addaction name="separator" />
     <addaction name="actionQuit" />
    </widget>
+   <widget class="QMenu" name="menuView" >
+    <property name="title" >
+     <string>&amp;View</string>
+    </property>
+    <widget class="QMenu" name="menuToolbars" >
+     <property name="title" >
+      <string>Toolbars</string>
+     </property>
+    </widget>
+    <addaction name="separator" />
+    <addaction name="actionStatusBar" />
+    <addaction name="menuToolbars" />
+   </widget>
    <addaction name="menuFile" />
    <addaction name="menEdit" />
    <addaction name="menuView" />
@@ -83,7 +91,7 @@
   <widget class="QStatusBar" name="statusbar" />
   <widget class="QToolBar" name="fileToolbar" >
    <property name="windowTitle" >
-    <string>Main Toolbar</string>
+    <string>File</string>
    </property>
    <property name="orientation" >
     <enum>Qt::Horizontal</enum>
@@ -101,6 +109,9 @@
    <addaction name="actionExportSession" />
   </widget>
   <widget class="QToolBar" name="editToolbar" >
+   <property name="windowTitle" >
+    <string>Edit</string>
+   </property>
    <property name="orientation" >
     <enum>Qt::Horizontal</enum>
    </property>
@@ -219,6 +230,17 @@
     <string>Ticker Designer...</string>
    </property>
   </action>
+  <action name="actionStatusBar" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Status Bar</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -230,5 +252,22 @@
  <resources>
   <include location="profit.qrc" />
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionStatusBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>statusbar</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>359</x>
+     <y>549</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
