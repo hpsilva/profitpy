@@ -5,6 +5,8 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+# TODO: write docstrings on series types
+
 from time import time
 from Numeric import arctan, array, log
 from scipy.stats import linregress, mean, std, median, mode
@@ -309,7 +311,7 @@ class EMA(MovingAverageIndex):
     params = [
         ('series', dict(type='line')),
         ('periods', dict(type='int', min=1)),
-        ('k', dict(type='float', min=0.001))
+        ('k', dict(type='float', min=0.001, default=2.0))
     ]
 
     def __init__(self, series, periods, k=2.0):
@@ -345,8 +347,8 @@ class KAMA(MovingAverageIndex):
     params = [
         ('series', dict(type='line')),
         ('periods', dict(type='int', min=1)),
-        ('fast_look', dict(type='float', min=0.0)),
-        ('slow_look', dict(type='float', min=0.0)),
+        ('fast_look', dict(type='float', min=0.0, default=2)),
+        ('slow_look', dict(type='float', min=0.0, default=30)),
     ]
 
     def __init__(self, series, periods, fast_look=2, slow_look=30):
@@ -718,7 +720,7 @@ class LinearRegressionSlope(SeriesIndex):
     params = [
         ('series', dict(type='line')),
         ('period', dict(type='int', min=1)),
-        ('scale', dict(type='float')),
+        ('scale', dict(type='float', default=1.0)),
     ]
 
     def __init__(self, series, periods, scale=1):

@@ -4,17 +4,15 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-# TODO: write serializer
-# TODO: write deserializer
-# TODO: write docstrings on series types
-# TODO: add defaults to series params and set in editors
-# TODO: implement new, open, save, save as and close
+from cPickle import dump, load
+from os.path import split
 
-from PyQt4.QtCore import QByteArray, QVariant, Qt, pyqtSignature
-from PyQt4.QtGui import QApplication, QMainWindow, QIcon, QLabel, QLineEdit
-from PyQt4.QtGui import QStandardItem, QStandardItemModel, QToolBar, QPixmap
-from PyQt4.QtGui import QComboBox, QSpinBox, QDoubleSpinBox, QSizePolicy
-from PyQt4.QtGui import QBrush, QColor, QFileDialog, QImageReader
+from PyQt4.QtCore import QVariant, Qt, pyqtSignature
+from PyQt4.QtGui import QApplication, QBrush, QColor, QComboBox
+from PyQt4.QtGui import QDoubleSpinBox, QFileDialog, QIcon, QImageReader
+from PyQt4.QtGui import QLabel, QLineEdit, QMainWindow, QMessageBox, QPixmap
+from PyQt4.QtGui import QSizePolicy, QSpinBox, QStandardItem
+from PyQt4.QtGui import QStandardItemModel, QToolBar
 
 from ib.ext.Contract import Contract
 from ib.ext.TickType import TickType
@@ -22,15 +20,6 @@ from ib.ext.TickType import TickType
 from profit import series
 from profit.lib.core import Settings, Signals
 from profit.widgets.ui_tickerdesigner import Ui_TickerDesigner
-
-
-def defaultSplitterState():
-    """ Resonable default for plot splitter state.
-
-    @return QByteArray suitable for use with QSplitter.restoreState
-    """
-    return QByteArray.fromBase64(
-        'AAAA/wAAAAAAAAADAAAAkwAAAVUAAACiAQAAAAYBAAAAAQ==')
 
 
 def tickerFieldTypes():
@@ -50,8 +39,8 @@ def seriesIndexTypes():
 
     @return index class name to index class mapping.
     """
-    def isIndexType(t):
-        return hasattr(t, 'params')
+    def isIndexType(obj):
+        return hasattr(obj, 'params')
     items = [(k, getattr(series, k)) for k in dir(series)]
     return dict([(k, v) for k, v in items if isIndexType(v)])
 
@@ -68,19 +57,6 @@ class SchemaItem(QStandardItem):
         QStandardItem.__init__(self, text)
         self.setEditable(False)
         self.cutSource = self.copySource = False
-
-    def resetForeground(self):
-        self.setForeground(QApplication.activeWindow().palette().text())
-
-    def setCopy(self):
-        self.copySource = True
-        self.cutSource = False
-        self.setForeground(QBrush(QColor(Qt.blue)))
-
-    def setCut(self):
-        self.cutSource = True
-        self.copySource = False
-        self.setForeground(QBrush(QColor(Qt.red)))
 
     @property
     def immediateChildren(self):
@@ -101,14 +77,44 @@ class SchemaItem(QStandardItem):
             for c in child.children:
                 yield c
 
+    def resetForeground(self):
+        """ Sets the foreground brush for this item to the original.
+
+        This implementation uses the palette from the active window,
+        which produces the desired result.  There might be an easier
+        way, but using the default foreground brush from the item did
+        not work (default foreground brush is black).
+
+        @return None
+        """
+        self.setForeground(QApplication.activeWindow().palette().text())
+
+    def setCopy(self):
+        """ Called to indicate this instance is copied.
+
+        @return None
+        """
+        self.copySource = True
+        self.cutSource = False
+        self.setForeground(QBrush(QColor(Qt.blue)))
+
+    def setCut(self):
+        """ Called to indicate this instance is cut.
+
+        @return None
+        """
+        self.cutSource = True
+        self.copySource = False
+        self.setForeground(QBrush(QColor(Qt.red)))
+
     @property
     def siblings(self):
         """ Yields each sibling of this item.
 
         """
         parent = self.parent()
-        for r in range(parent.rowCount()):
-            child = parent.child(r, 0)
+        for row in range(parent.rowCount()):
+            child = parent.child(row, 0)
             if child is not self:
                 yield child
 
@@ -128,6 +134,9 @@ class SchemaItem(QStandardItem):
 
 class TickerItem(SchemaItem):
     """ Schema tree root-level items.
+
+    TickerItems may not be cut or copied because the class does not
+    provide a clone method.
 
     TickerItems may contain FieldItems only.  This restriction is
     enforced by the gui.
@@ -166,12 +175,11 @@ class TickerItem(SchemaItem):
                 icon = QIcon(path)
         self.setIcon(icon)
 
-    @property
-    def schema(self):
+    def toSchema(self):
         """ Generated schema dictionary for this item.
 
+        @return schema as a dictionary
         """
-        fields = [child.schema for child in self.immediateChildren]
         return dict(tickerId=self.tickerId,
                     symbol=self.symbol,
                     exchange=self.exchange,
@@ -180,7 +188,26 @@ class TickerItem(SchemaItem):
                     right=self.right,
                     strike=self.strike,
                     currency=self.currency,
-                    fields=fields)
+                    fields=[c.toSchema() for c in self.immediateChildren])
+
+    @classmethod
+    def fromSchema(cls, data):
+        """ Creates a TickerItem from a schema.
+
+        @param data schema dictionary
+        @return TickerItem instance
+        """
+        instance = cls(tickerId=data['tickerId'],
+                       symbol=data['symbol'],
+                       exchange=data.get('exchange', ''),
+                       secType=data.get('secType', ''),
+                       expiry=data.get('expiry', ''),
+                       right=data.get('right', ''),
+                       strike=data.get('strike', 0.0),
+                       currency=data.get('currency', ''))
+        for fieldschema in data.get('fields', []):
+            instance.appendRow(FieldItem.fromSchema(fieldschema))
+        return instance
 
 
 class FieldItem(SchemaItem):
@@ -198,19 +225,36 @@ class FieldItem(SchemaItem):
         self.id = -1
 
     def clone(self):
+        """ Creates copy of this item.
+
+        @return new FieldItem instance
+        """
         clone = FieldItem(self.text())
         clone.id = self.id
         for child in self.immediateChildren:
             clone.appendRow(child.clone())
         return clone
 
-    @property
-    def schema(self):
+    def toSchema(self):
         """ Generated schema dictionary for this item.
 
+        @return schema as a dictionary
         """
-        indexes = [child.schema for child in self.immediateChildren]
+        indexes = [child.toSchema() for child in self.immediateChildren]
         return dict(name=str(self.text()), id=self.id, indexes=indexes)
+
+    @classmethod
+    def fromSchema(cls, data):
+        """ Creates a FieldItem from a schema.
+
+        @param data schema dictionary
+        @return FieldItem instance
+        """
+        instance = cls(data['name'])
+        instance.id = data['id']
+        for indexschema in data.get('indexes', []):
+            instance.appendRow(IndexItem.fromSchema(indexschema))
+        return instance
 
 
 class IndexItem(SchemaItem):
@@ -230,6 +274,10 @@ class IndexItem(SchemaItem):
         self.parameters = {}
 
     def clone(self):
+        """ Creates copy of this item.
+
+        @return new IndexItem instance
+        """
         clone = IndexItem(self.text())
         clone.typeName = self.typeName
         clone.parameters = self.parameters.copy()
@@ -237,20 +285,42 @@ class IndexItem(SchemaItem):
         return clone
 
     def deepClone(self, source, target):
+        """ Recursively clones children of source item to target item.
+
+        @param source IndexItem instance
+        @param target IndexItem instance
+        @return None
+        """
         for child in source.immediateChildren:
             clone = child.clone()
             target.appendRow(clone)
             self.deepClone(child, clone)
 
-    @property
-    def schema(self):
+    def toSchema(self):
         """ Generated schema dictionary for this item.
 
+        @return schema as a dictionary
         """
-        data = self.parameters.copy()
-        indexes = [child.schema for child in self.immediateChildren]
-        data.update(typeName=self.typeName, indexes=indexes)
-        return data
+        typeName = self.typeName
+        parameters = self.parameters.copy()
+        name = str(self.text())
+        indexes = [child.toSchema() for child in self.immediateChildren]
+        return dict(typeName=typeName, indexes=indexes,
+                    parameters=parameters, name=name)
+
+    @classmethod
+    def fromSchema(cls, data):
+        """ Creates an IndexItem from a schema.
+
+        @param data schema dictionary
+        @return IndexItem instance
+        """
+        instance = cls(data['typeName'])
+        instance.setText(data.get('name', instance.typeName))
+        instance.parameters = data.get('parameters', {})
+        for indexschema in data.get('indexes', []):
+            instance.appendRow(cls.fromSchema(indexschema))
+        return instance
 
 
 class TickerDesigner(QMainWindow, Ui_TickerDesigner):
@@ -262,7 +332,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
     indexTypes = seriesIndexTypes()
     itemTypePages = {TickerItem:1, FieldItem:2, IndexItem:3}
 
-    def __init__(self, parent=None):
+    def __init__(self, filename=None, parent=None):
         """ Constructor.
 
         @param parent ancestor of this widget
@@ -271,9 +341,14 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         self.setupUi(self)
         self.editItem = None
         self.clipItem = None
+        self.savedSchema = None
+        self.schemaFile = None
         self.setupWidgets()
         self.readSettings()
-        self.lastSaved = None
+        if filename:
+            self.on_actionOpenSchema_triggered(filename)
+        else:
+            self.resetWindowTitle()
 
     # index parameter and documentation group methods
 
@@ -326,16 +401,17 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
 
     # parameter editor widget builder methods
 
-    def intEditor(self, name, item, props, parent):
+    def buildSpinEditor(self, cls, name, item, props, parent):
         """ Creates a new editor suitable for integer values.
 
+        @param cls widget type, either QSpinBox or QDoubleSpinBox
         @param name item parameter name, as string, to receive value updates
         @param item IndexItem instance
         @param props mapping of index class constructor properties
         @param parent ancestor of new widget
-        @return QSpinBox widget
+        @return QSpinBox or QDoubleSpinBox widget
         """
-        editor = QSpinBox(parent)
+        editor = cls(parent)
         editor.setButtonSymbols(editor.PlusMinus)
         editor.setAlignment(Qt.AlignRight)
         try:
@@ -345,13 +421,32 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         else:
             editor.setMinimum(minv)
         try:
+            default = props['default']
+        except (KeyError, ):
+            pass
+        else:
+            editor.setValue(default)
+        try:
             editor.setValue(item.parameters[name])
         except (KeyError, ):
             item.parameters[name] = editor.value()
         def onChange(value):
             item.parameters[name] = value
+            self.emit(Signals.modified)
         editor.onChange = onChange
-        editor.connect(editor, Signals.intValueChanged, onChange)
+        return editor
+
+    def intEditor(self, name, item, props, parent):
+        """ Creates a new editor suitable for integer values.
+
+        @param name item parameter name, as string, to receive value updates
+        @param item IndexItem instance
+        @param props mapping of index class constructor properties
+        @param parent ancestor of new widget
+        @return QSpinBox widget
+        """
+        editor = self.buildSpinEditor(QSpinBox, name, item, props, parent)
+        editor.connect(editor, Signals.intValueChanged, editor.onChange)
         return editor
 
     def floatEditor(self, name, item, props, parent):
@@ -363,24 +458,10 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         @param parent ancestor of new widget
         @return QDoubleSpinBox widget
         """
-        editor = QDoubleSpinBox(parent)
-        editor.setButtonSymbols(editor.PlusMinus)
-        editor.setAlignment(Qt.AlignRight)
+        editor = self.buildSpinEditor(
+            QDoubleSpinBox, name, item, props, parent)
         editor.setSingleStep(0.01)
-        try:
-            minv = props['min']
-        except (KeyError, ):
-            pass
-        else:
-            editor.setMinimum(minv)
-        try:
-            editor.setValue(item.parameters[name])
-        except (KeyError, ):
-            item.parameters[name] = editor.value()
-        def onChange(value):
-            item.parameters[name] = value
-        editor.onChange = onChange
-        editor.connect(editor, Signals.doubleValueChanged, onChange)
+        editor.connect(editor, Signals.doubleValueChanged, editor.onChange)
         return editor
 
     def lineEditor(self, name, item, props, parent):
@@ -396,8 +477,8 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         editor = QComboBox(parent)
         editor.addItem('')
         exclude = [item.text(), self.defaultText]
-        editor.addItems([c.text() for c in children
-                         if c.text() not in exclude])
+        items = [c.text() for c in children if c.text() not in exclude]
+        editor.addItems(items)
         try:
             editor.setCurrentIndex(editor.findText(item.parameters[name]))
         except (KeyError, ):
@@ -405,6 +486,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         @pyqtSignature('int')
         def onChange(index):
             item.parameters[name] = str(editor.currentText())
+            self.emit(Signals.modified)
         editor.onChange = onChange
         editor.connect(editor, Signals.currentIndexChanged, onChange)
         return editor
@@ -426,16 +508,20 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
     def addTickerItem(self, **kwds):
         """ Creates new TickerItem at the model root.
 
+        Caller is responsible for emitting the modified signal.
+
         @param **kwds key-value pairs passed to TickerItem constructor
         @return created TickerItem instance
         """
-        item = TickerItem(**kwds)
+        item = TickerItem.fromSchema(kwds)
         item.loadIcon(self.settings)
         self.model.appendRow(item)
         return item
 
     def addFieldItem(self):
         """ Creates new FieldItem as child of the current selection.
+
+        Caller is responsible for emitting the modified signal.
 
         @return created FieldItem instance
         """
@@ -447,6 +533,8 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
     def addIndexItem(self):
         """ Creates new IndexItem as child of the current selection.
 
+        Caller is responsible for emitting the modified signal.
+
         @return created IndexItem instance
         """
         item = IndexItem(self.defaultText)
@@ -454,14 +542,44 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         self.treeView.expand(item.parent().index())
         return item
 
+    def checkClose(self):
+        """ Prompts user for next action if schema is modified.
+
+        @return True if schema can be closed
+        """
+        check = True
+        if self.isWindowModified():
+            buttons = QMessageBox.Save|QMessageBox.Discard|QMessageBox.Cancel
+            msg = QMessageBox.question(
+                self, self.initialTitle, 'This schema has been modified.\n'
+                'Do you want to save your changes?', buttons,
+                QMessageBox.Save)
+            if msg == QMessageBox.Discard:
+                pass
+            elif msg == QMessageBox.Cancel:
+                check = False
+            elif msg == QMessageBox.Save:
+                self.actionSaveSchema.trigger()
+        return check
+
+    def checkModified(self):
+        """ Sets the window modified flag if the schema has changed.
+
+        @return None
+        """
+        self.setWindowModified(self.savedSchema != self.schema)
+
     def closeEvent(self, event):
         """ Framework close event handler.  Writes settings and accepts event.
 
         @param event QCloseEvent instance
         @return None
         """
-        self.writeSettings()
-        event.accept()
+        if self.checkClose():
+            self.writeSettings()
+            event.accept()
+        else:
+            event.ignore()
 
     def enableActions(self, index):
         """ Enables or disables edit and design actions.
@@ -494,7 +612,6 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
                 paste = False
             up = model.sibling(index.row()-1, 0, index).isValid()
             down = model.sibling(index.row()+1, 0, index).isValid()
-
         self.actionMoveUp.setEnabled(up)
         self.actionMoveDown.setEnabled(down)
         self.actionInsertIndex.setEnabled(isindexorfield)
@@ -531,6 +648,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         selectmodel.clear()
         selectmodel.select(newindex, selectmodel.Select)
         self.enableActions(newindex)
+        self.emit(Signals.modified)
 
     def readSettings(self):
         """ Applies stored setting values to instance.
@@ -545,9 +663,62 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.showMaximized()
         self.restoreState(
             obj.value(obj.keys.winstate, QVariant()).toByteArray())
-        state = obj.value(
-            obj.keys.splitstate, defaultSplitterState()).toByteArray()
-        self.splitter.restoreState(state)
+        self.splitter.restoreState(
+            obj.value(obj.keys.splitstate, QVariant()).toByteArray())
+
+    def updateLines(self, item, previous, current):
+        """ Modifies line references in response to a new line name.
+
+        @param item changed FieldItem or IndexItem instance
+        @param previous old line name
+        @param current new line name
+        @return count of modified references
+        """
+        modified = 0
+        if item:
+            previous, current = str(previous), str(current)
+            def pred(obj):
+                return obj != item and hasattr(obj, 'parameters')
+            for child in [c for c in item.root.children if pred(c)]:
+                for key, value in child.parameters.items():
+                    if value == previous:
+                        child.parameters[key] = current
+                        modified += 1
+        if modified:
+            self.emit(Signals.modified)
+        return modified
+
+    def resetSchema(self):
+        """ Clears the schema model and resets the window widgets.
+
+        @return None
+        """
+        self.model.clear()
+        self.schemaFile = None
+        self.resetWindowTitle()
+        self.setWindowModified(False)
+        self.controlStack.setCurrentIndex(0)
+        self.enableActions(None)
+
+    def resetWindowTitle(self):
+        """ Sets window title to account for schema filename, if any.
+
+        @return None
+        """
+        name = self.schemaFile
+        if name:
+            title = '%s - %s[*]' % (self.initialTitle, split(name)[1])
+        else:
+            title = '%s - unnamed[*]' % (self.initialTitle, )
+        self.setWindowTitle(title)
+
+    def schema(self):
+        """ Constructs and returns ticker schema.
+
+        @return schema as list of dictionaries.
+        """
+        root = self.model.invisibleRootItem()
+        return [root.child(row).toSchema() for row in range(root.rowCount())]
 
     def setupTickerItem(self, item):
         """ Configures ticker page widgets from given item.
@@ -560,7 +731,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         combo = self.secTypeCombo
         combo.setCurrentIndex(combo.findText(item.secType))
         self.exchangeEdit.setText(item.exchange)
-        self.iconPreview.setPixmap(item.icon().pixmap(32,32))
+        self.iconPreview.setPixmap(item.icon().pixmap(32, 32))
         self.expiryEdit.setText(item.expiry)
         self.strikeSpin.setValue(item.strike)
         self.currencyEdit.setText(item.currency)
@@ -603,7 +774,11 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
 
         @return None
         """
-        self.splitter.setSizes([150, 300])
+        self.model = QStandardItemModel(self)
+        self.treeView.setModel(self.model)
+        self.treeView.header().hide()
+        self.initialTitle = self.windowTitle()
+        self.connect(self, Signals.modified, self.checkModified)
         for toolbar in self.findChildren(QToolBar):
             self.menuToolbars.addAction(toolbar.toggleViewAction())
         self.indexCombo.addItem('<none>', QVariant())
@@ -614,19 +789,31 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.fieldCombo.addItem(name, QVariant(id))
 
     def showMessage(self, text, duration=3000):
+        """ Displays text in the window status bar.
+
+        @param text message to display
+        @param duration=3000 time to display message in milliseconds
+        @return None
+        """
         self.statusBar().showMessage(text, duration)
 
-    def readSchema(self, schema):
+    def readSchema(self, schema, filename):
         """ Creates tree items from given schema.
 
         @param schema ticker schema as dictionary
         @return None
         """
-        self.model = QStandardItemModel(self)
-        self.treeView.setModel(self.model)
-        self.treeView.header().hide()
-        for data in schema:
-            self.addTickerItem(**data)
+        try:
+            for data in schema:
+                self.addTickerItem(**data)
+        except (Exception, ):
+            QMessageBox.warning(self, 'Warning', 'Unable to read schema.')
+            self.resetSchema()
+        else:
+            self.savedSchema = schema
+            self.schemaFile = filename
+            self.resetWindowTitle()
+            self.treeView.expandAll()
 
     def writeSettings(self):
         """ Saves window settings and state.
@@ -664,6 +851,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
                     else:
                         suffix = max(suffix, offset+1)
             widget.setText('%s-%s' % (item.typeName, suffix))
+            self.emit(Signals.modified)
 
     # widget signal handlers
 
@@ -676,6 +864,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         item = self.editItem
         if item:
             item.currency = str(text)
+            self.emit(Signals.modified)
 
     def on_exchangeEdit_textEdited(self, text):
         """ Signal handler for exchange line edit widget text changes.
@@ -685,6 +874,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         """
         if self.editItem:
             self.editItem.exchange = str(text)
+            self.emit(Signals.modified)
 
     def on_expiryEdit_textEdited(self, text):
         """ Signal handler for ticker expiry line edit widget text changes.
@@ -695,6 +885,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         item = self.editItem
         if item:
             item.expiry = str(text)
+            self.emit(Signals.modified)
 
     @pyqtSignature('int')
     def on_fieldCombo_currentIndexChanged(self, index):
@@ -720,8 +911,10 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
                     pass
                 else:
                     item.id = fid
-                    self.renameLines(item, old, new)
-
+                    if not self.updateLines(item, old, new):
+                        self.emit(Signals.modified)
+            else:
+                self.emit(Signals.modified)
 
     @pyqtSignature('')
     def on_iconSelect_clicked(self):
@@ -741,6 +934,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
                 self.iconPreview.setPixmap(icon.pixmap(32,32))
                 settings = self.settings
                 settings.setValue('%s/icon' % item.tickerId, icon)
+                self.emit(Signals.modified)
 
     @pyqtSignature('int')
     def on_idSpin_valueChanged(self, value):
@@ -752,6 +946,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         item = self.editItem
         if item:
             item.tickerId = value
+            self.emit(Signals.modified)
 
     @pyqtSignature('int')
     def on_indexCombo_currentIndexChanged(self, index):
@@ -776,6 +971,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
                     self.buildIndexParamWidgets(cls, item)
                     self.buildIndexDocWidgets(cls)
                     self.maybeChangeIndexName(item, old)
+                    self.emit(Signals.modified)
 
     def on_indexName_textChanged(self, text):
         """ Signal handler for index name line edit widget changes.
@@ -787,11 +983,13 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             old = self.indexName.oldText
         except (AttributeError, ):
             old = self.indexName.oldText = ''
-        self.renameLines(self.editItem, old, text)
+        renamed = self.updateLines(self.editItem, old, text)
         self.indexName.oldText = str(text)
         if self.editItem:
             self.editItem.symbol = str(text)
             self.editItem.setText(text)
+            if not renamed:
+                self.emit(Signals.modified)
 
     @pyqtSignature('int')
     def on_rightCombo_currentIndexChanged(self, index):
@@ -803,6 +1001,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         item = self.editItem
         if item:
             item.right = str(self.rightCombo.currentText())
+            self.emit(Signals.modified)
 
     @pyqtSignature('int')
     def on_secTypeCombo_currentIndexChanged(self, index):
@@ -813,6 +1012,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         """
         if self.editItem:
             self.editItem.secType = str(self.secTypeCombo.currentText())
+            self.emit(Signals.modified)
 
     @pyqtSignature('double')
     def on_strikeSpin_valueChanged(self, value):
@@ -824,6 +1024,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         item = self.editItem
         if item:
             item.strike = value
+            self.emit(Signals.modified)
 
     def on_symbolEdit_textEdited(self, text):
         """ Signal handler for symbol name line edit widget changes.
@@ -831,9 +1032,13 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         @param text new value for line edit
         @return None
         """
-        if self.editItem:
-            self.editItem.symbol = str(text)
-            self.editItem.setText(text)
+        item = self.editItem
+        if item:
+            item.symbol = str(text)
+            item.setText(text)
+            item.loadIcon(self.settings)
+            self.iconPreview.setPixmap(item.icon().pixmap(32, 32))
+            self.emit(Signals.modified)
 
     def on_treeView_clicked(self, index):
         """ Signal handler for schema tree mouse click.
@@ -861,7 +1066,20 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
     # action signal handlers
 
     @pyqtSignature('')
+    def on_actionCloseSchema_triggered(self):
+        """ Signal handler for close action.
+
+        @return None
+        """
+        if self.checkClose():
+            self.resetSchema()
+
+    @pyqtSignature('')
     def on_actionCopy_triggered(self):
+        """ Signal handler for copy action.
+
+        @return None
+        """
         if not self.actionCopy.isEnabled():
             return
         if self.clipItem:
@@ -871,33 +1089,16 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
 
     @pyqtSignature('')
     def on_actionCut_triggered(self):
+        """ Signal handler for cut action.
+
+        @return None
+        """
         if not self.actionCut.isEnabled():
             return
         if self.clipItem:
             self.clipItem.resetForeground()
         self.clipItem = self.editItem
         self.clipItem.setCut()
-
-    @pyqtSignature('')
-    def on_actionPaste_triggered(self):
-        if not self.actionPaste.isEnabled():
-            return
-        sourceitem = self.clipItem
-        targetitem = self.editItem
-        model = self.model
-        sourcerow = model.indexFromItem(sourceitem).row()
-        sourceparent = sourceitem.parent()
-        if sourceitem.cutSource:
-            sourceparent.takeChild(sourcerow, 0)
-            newchild = sourceitem
-        else:
-            newchild = sourceitem.clone()
-        targetitem.setChild(targetitem.rowCount(), newchild)
-        if sourceitem.cutSource:
-            newchild.resetForeground()
-            model.removeRow(sourcerow, sourceparent.index())
-            self.clipItem = None
-        self.enableActions(model.indexFromItem(targetitem))
 
     @pyqtSignature('')
     def on_actionDelete_triggered(self):
@@ -913,6 +1114,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.enableActions(None)
             self.treeView.selectionModel().clear()
             self.controlStack.setCurrentIndex(0)
+            self.emit(Signals.modified)
 
     @pyqtSignature('')
     def on_actionInsertTicker_triggered(self):
@@ -926,6 +1128,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         if items:
             tickerId += max([item.tickerId for item in items])
         self.addTickerItem(tickerId=tickerId, symbol=self.defaultText)
+        self.emit(Signals.modified)
 
     @pyqtSignature('')
     def on_actionInsertField_triggered(self):
@@ -934,6 +1137,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         @return None
         """
         self.addFieldItem()
+        self.emit(Signals.modified)
 
     @pyqtSignature('')
     def on_actionInsertIndex_triggered(self):
@@ -941,6 +1145,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
 
         """
         self.addIndexItem()
+        self.emit(Signals.modified)
 
     @pyqtSignature('')
     def on_actionMoveDown_triggered(self):
@@ -963,43 +1168,113 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.moveItem(item, -1)
 
     @pyqtSignature('')
-    def on_actionPrintSchema_triggered(self):
-        """ Signal handler for print schema action; writes schema to stdout.
+    def on_actionNewSchema_triggered(self):
+        """ Signal handler for new schema action.
 
         @return None
         """
-        import pprint
-        for item in self.schema:
-            pprint.pprint(item)
-            print
+        if self.checkClose():
+            self.resetSchema()
 
-    @property
-    def schema(self):
-        root = self.model.invisibleRootItem()
-        return [root.child(row).schema for row in range(root.rowCount())]
+    @pyqtSignature('')
+    def on_actionOpenSchema_triggered(self, filename=None):
+        """ Signal handler for open schema action.
 
-    def renameLines(self, item, previous, current):
-        if item:
-            previous, current = str(previous), str(current)
-            def pred(obj):
-                return obj != item and hasattr(obj, 'parameters')
-            for child in [c for c in item.root.children if pred(c)]:
-                for key, value in child.parameters.items():
-                    if value == previous:
-                        child.parameters[key] = current
+        @return None
+        """
+        if self.checkClose():
+            if not filename:
+                filename = QFileDialog.getOpenFileName(self, 'Open Schema')
+            if filename:
+                filename = str(filename)
+                try:
+                    handle = open(filename, 'rb')
+                except (Exception, ):
+                    QMessageBox.warning(
+                        self, 'Error', 'IO error reading schema file.')
+                else:
+                    try:
+                        schema = load(handle)
+                    except (Exception, ):
+                        QMessageBox.warning(
+                            self, 'Error', 'Unable to read schema file.')
+                    else:
+                        self.resetSchema()
+                        self.readSchema(schema, filename)
+                    finally:
+                        handle.close()
 
+    @pyqtSignature('')
+    def on_actionPaste_triggered(self):
+        """ Signal handler for paste action.
 
-testSymbols = [
-    {'tickerId':100, 'symbol':'AAPL', 'exchange':'SMART', 'secType':'STK'},
-    {'tickerId':101, 'symbol':'EBAY', 'exchange':'SMART', 'secType':'STK'},
-    {'tickerId':102, 'symbol':'NVDA', 'exchange':'NASDAQ', 'secType':'STK'},
-]
+        @return None
+        """
+        if not self.actionPaste.isEnabled():
+            return
+        sourceitem = self.clipItem
+        targetitem = self.editItem
+        model = self.model
+        sourcerow = model.indexFromItem(sourceitem).row()
+        sourceparent = sourceitem.parent()
+        if sourceitem.cutSource:
+            sourceparent.takeChild(sourcerow, 0)
+            newchild = sourceitem
+        else:
+            newchild = sourceitem.clone()
+        targetitem.setChild(targetitem.rowCount(), newchild)
+        if sourceitem.cutSource:
+            newchild.resetForeground()
+            model.removeRow(sourcerow, sourceparent.index())
+            self.clipItem = None
+        self.enableActions(model.indexFromItem(targetitem))
+        self.emit(Signals.modified)
+
+    @pyqtSignature('')
+    def on_actionSaveSchema_triggered(self):
+        """ Signal handler for save schema action.
+
+        @return None
+        """
+        if not self.schemaFile:
+            self.actionSaveSchemaAs.trigger()
+        else:
+            try:
+                handle = open(self.schemaFile, 'wb')
+            except (Exception, ):
+                QMessageBox.warning(
+                    self, 'Error', 'IO error opening file for writing.')
+            else:
+                try:
+                    dump(self.schema(), handle)
+                except (Exception, ):
+                    QMessageBox.warning(
+                        self, 'Error', 'Unable to save schema file.')
+                else:
+                    self.setWindowModified(False)
+                finally:
+                    handle.close()
+
+    @pyqtSignature('')
+    def on_actionSaveSchemaAs_triggered(self):
+        """ Signal handler for save as action.
+
+        @return None
+        """
+        filename = QFileDialog.getSaveFileName(self, 'Save Schema As')
+        if filename:
+            self.schemaFile = str(filename)
+            self.actionSaveSchema.trigger()
+            self.resetWindowTitle()
 
 
 if __name__ == '__main__':
     import sys
     app = QApplication(sys.argv)
-    window = TickerDesigner()
-    window.readSchema(testSymbols)
+    try:
+        filename = sys.argv[1]
+    except (IndexError, ):
+        filename = None
+    window = TickerDesigner(filename)
     window.show()
     sys.exit(app.exec_())

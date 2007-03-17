@@ -32,6 +32,7 @@ class Signals:
     layoutChanged = SIGNAL('layoutChanged()')
     modelDoubleClicked = SIGNAL('doubleClicked (const QModelIndex &)')
     modelReset = SIGNAL('modelReset()')
+    modified = SIGNAL('modified')
     sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
