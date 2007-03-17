@@ -42,52 +42,28 @@ class defaults(object):
     client = 0 # getpid()
 
 
+def saveMethod(sig, key):
+    @pyqtSignature(sig)
+    def method(self, value):
+        self.settings.setValue(key, value)
+    return method
+
+
 class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
     def __init__(self, session, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupControls()
         self.session = session
-        self.settings = settings = Settings()
-        settings.beginGroup(settings.keys.connection)
-        self.hostNameEdit.setText(
-            settings.value('host', defaults.host).toString())
-        self.portNumberEdit.setValue(
-            settings.value('port', defaults.port).toInt()[0])
-        self.clientIdEdit.setValue(
-            settings.value('clientid', defaults.client).toInt()[0])
-        keyHelperCommand, brokerCommand = commandStrings()
-        self.keyHelperCommandEdit.setText(
-            settings.value('keycommand', keyHelperCommand).toString())
-        self.brokerCommandEdit.setText(
-            settings.value('brokercommand', brokerCommand).toString())
-        self.pids = {'broker':[], 'helper':[]}
-        self.rateThermo.setValue(0.0)
+        connected = session.isConnected
+        self.setControlsEnabled(not connected, connected)
         session.registerMeta(self)
-        self.startTimer(500)
-        if session.isConnected:
-            self.setEnabledButtons(False, True)
-        else:
-            self.setEnabledButtons(True, False)
         session.registerAll(self.updateLastMessage)
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
-
-    def timerEvent(self, event):
-        last = self.session.messages[-100:]
-        try:
-            rate = len(last) / (time() - last[0][0])
-        except (IndexError, ZeroDivisionError, ):
-            pass
-        else:
-            self.rateThermo.setValue(rate)
-
-    def updateLastMessage(self, message):
-        name = message.typeName
-        items = str.join(', ', ['%s=%s' % item for item in message.items()])
-        text = '%s%s' % (name, ' ' + items if items else '')
-        self.lastMessageEdit.setText(text[0:60])
+        self.startTimer(500)
 
     def on_session_ConnectionClosed(self, message):
-        self.setEnabledButtons(True, False)
+        self.setControlsEnabled(True, False)
         self.serverVersionEdit.setText('')
         self.connectionTimeEdit.setText('')
         self.rateThermo.setValue(0.0)
@@ -96,7 +72,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
     def on_connectedTWS(self):
         session = self.session
         if session.isConnected:
-            self.setEnabledButtons(False, True)
+            self.setControlsEnabled(False, True)
             try:
                 session.requestTickers()
                 session.requestAccount()
@@ -111,20 +87,15 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         else:
             QMessageBox.critical(
                 self, 'Connection Error', 'Unable to connect.')
-            self.setEnabledButtons(True, False)
+            self.setControlsEnabled(True, False)
 
     @pyqtSignature('')
     def on_connectButton_clicked(self):
-        clientId = self.clientId()
-        if clientId is None:
-            return
-        portNo = self.portNo()
-        if portNo is None:
-            return
-        hostName = str(self.hostNameEdit.text())
-        session = self.session
         try:
-            session.connectTWS(hostName, portNo, clientId)
+            self.session.connectTWS(
+                self.hostNameEdit.text(),
+                self.portNumberSpin.value(),
+                self.clientIdSpin.value())
         except (Exception, ), exc:
             QMessageBox.critical(self, 'Connection Error', str(exc))
 
@@ -132,30 +103,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
     def on_disconnectButton_clicked(self):
         if self.session and self.session.isConnected:
             self.session.disconnectTWS()
-            self.setEnabledButtons(True, False)
-
-    def clientId(self):
-        try:
-            clientId = self.clientIdEdit.value()
-        except (ValueError, ), exc:
-            clientId = None
-            QMessageBox.critical(self, 'Client Id Error', str(exc))
-        return clientId
-
-    def portNo(self):
-        try:
-            portNo = self.portNumberEdit.value()
-        except (ValueError, ), exc:
-            portNo = None
-            QMessageBox.critical(self, 'Port Number Error', str(exc))
-        return portNo
-
-    def setEnabledButtons(self, connect, disconnect):
-        self.connectButton.setEnabled(connect)
-        self.disconnectButton.setEnabled(disconnect)
-        self.clientIdEdit.setReadOnly(disconnect)
-        self.portNumberEdit.setReadOnly(disconnect)
-        self.hostNameEdit.setReadOnly(disconnect)
+            self.setControlsEnabled(True, False)
 
     @pyqtSignature('')
     def on_keyHelperCommandRunButton_clicked(self):
@@ -164,9 +112,6 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
             proc = Popen(args)
         except (OSError, ), exc:
             QMessageBox.critical(self, 'Key Helper Command Error', str(exc))
-        else:
-            pid = proc.pid
-            self.pids['helper'].append(pid)
 
     @pyqtSignature('')
     def on_keyHelperCommandSelectButton_clicked(self):
@@ -183,8 +128,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         except (OSError, ), exc:
             QMessageBox.critical(self, 'Broker Command Error', str(exc))
         else:
-            pid = proc.pid
-            self.pids['broker'].append(pid)
+            self.brokerPids.append(proc.pid)
 
     @pyqtSignature('')
     def on_brokerCommandSelectButton_clicked(self):
@@ -193,22 +137,47 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         if filename:
             self.brokerCommandEdit.setText(filename)
 
-    @pyqtSignature('QString')
-    def on_brokerCommandEdit_textChanged(self, value):
-        self.settings.setValue('brokercommand', value)
+    on_brokerCommandEdit_textChanged = saveMethod('QString', 'brokercommand')
+    on_keyHelperCommandEdit_textChanged = saveMethod('QString', 'keycommand')
+    on_hostNameEdit_textChanged = saveMethod('QString', 'host')
+    on_portNumberSpin_valueChanged = saveMethod('int', 'port')
+    on_clientIdSpin_valueChanged = saveMethod('int', 'clientid')
 
-    @pyqtSignature('QString')
-    def on_keyHelperCommandEdit_textChanged(self, value):
-        self.settings.setValue('keycommand', value)
+    def setupControls(self):
+        self.brokerPids = []
+        self.settings = settings = Settings()
+        settings.beginGroup(settings.keys.connection)
+        self.hostNameEdit.setText(
+            settings.value('host', defaults.host).toString())
+        self.portNumberSpin.setValue(
+            settings.value('port', defaults.port).toInt()[0])
+        self.clientIdSpin.setValue(
+            settings.value('clientid', defaults.client).toInt()[0])
+        keyHelperCommand, brokerCommand = commandStrings()
+        self.keyHelperCommandEdit.setText(
+            settings.value('keycommand', keyHelperCommand).toString())
+        self.brokerCommandEdit.setText(
+            settings.value('brokercommand', brokerCommand).toString())
+        self.rateThermo.setValue(0.0)
 
-    @pyqtSignature('QString')
-    def on_hostNameEdit_textChanged(self, value):
-        self.settings.setValue('host', value)
+    def setControlsEnabled(self, connect, disconnect):
+        self.connectButton.setEnabled(connect)
+        self.disconnectButton.setEnabled(disconnect)
+        self.clientIdSpin.setReadOnly(disconnect)
+        self.portNumberSpin.setReadOnly(disconnect)
+        self.hostNameEdit.setReadOnly(disconnect)
 
-    @pyqtSignature('int')
-    def on_portNumberEdit_valueChanged(self, value):
-        self.settings.setValue('port', value)
+    def timerEvent(self, event):
+        last = self.session.messages[-20:]
+        try:
+            rate = len(last) / (time() - last[0][0])
+        except (IndexError, ZeroDivisionError, ):
+            pass
+        else:
+            self.rateThermo.setValue(rate)
 
-    @pyqtSignature('int')
-    def on_clientIdEdit_valueChanged(self, value):
-        self.settings.setValue('clientid', value)
+    def updateLastMessage(self, message):
+        name = message.typeName
+        items = str.join(', ', ['%s=%s' % item for item in message.items()])
+        text = '%s%s' % (name, ' ' + items if items else '')
+        self.lastMessageEdit.setText(text[0:60])
