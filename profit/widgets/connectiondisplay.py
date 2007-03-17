@@ -49,14 +49,12 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.session = session
         self.settings = settings = Settings()
         settings.beginGroup(settings.keys.connection)
-
         self.hostNameEdit.setText(
             settings.value('host', defaults.host).toString())
         self.portNumberEdit.setValue(
             settings.value('port', defaults.port).toInt()[0])
         self.clientIdEdit.setValue(
             settings.value('clientid', defaults.client).toInt()[0])
-
         keyHelperCommand, brokerCommand = commandStrings()
         self.keyHelperCommandEdit.setText(
             settings.value('keycommand', keyHelperCommand).toString())
@@ -66,6 +64,10 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.rateThermo.setValue(0.0)
         session.registerMeta(self)
         self.startTimer(500)
+        if session.isConnected:
+            self.setEnabledButtons(False, True)
+        else:
+            self.setEnabledButtons(True, False)
         session.registerAll(self.updateLastMessage)
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
 
@@ -103,14 +105,12 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
                 QMessageBox.critical(self, 'Session Error', str(exc))
             else:
                 self.serverVersionEdit.setText(
-                    str(session.connection.serverVersion())
-                    )
+                    str(session.connection.serverVersion()))
                 self.connectionTimeEdit.setText(
-                    session.connection.TwsConnectionTime()
-                    )
+                    session.connection.TwsConnectionTime())
         else:
-            QMessageBox.critical(self, 'Connection Error',
-                                 'Unable to connect.')
+            QMessageBox.critical(
+                self, 'Connection Error', 'Unable to connect.')
             self.setEnabledButtons(True, False)
 
     @pyqtSignature('')
@@ -133,10 +133,6 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         if self.session and self.session.isConnected:
             self.session.disconnectTWS()
             self.setEnabledButtons(True, False)
-            self.setNextClientId()
-
-    def canClose(self):
-        return not (self.session and self.session.isConnected)
 
     def clientId(self):
         try:
@@ -160,14 +156,6 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.clientIdEdit.setReadOnly(disconnect)
         self.portNumberEdit.setReadOnly(disconnect)
         self.hostNameEdit.setReadOnly(disconnect)
-
-    def setNextClientId(self):
-        try:
-            value = self.clientIdEdit.value()
-        except (ValueError, ):
-            pass
-        else:
-            self.clientIdEdit.setValue(value+1)
 
     @pyqtSignature('')
     def on_keyHelperCommandRunButton_clicked(self):
