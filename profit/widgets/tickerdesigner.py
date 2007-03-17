@@ -164,11 +164,12 @@ class TickerItem(SchemaItem):
         @param settings QSettings instance
         @return None
         """
-        icon = settings.value('%s/icon' % self.tickerId)
+        name = self.symbol.lower()
+        icon = settings.value('%s/icon' % name)
         if icon.isValid():
             icon = QIcon(icon)
         else:
-            path = ':images/tickers/%s.png' % self.symbol.lower()
+            path = ':images/tickers/%s.png' % name
             if QPixmap(path).isNull():
                 icon = QIcon(':images/icons/mime_empty.png')
             else:
@@ -933,7 +934,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
                 item.setIcon(icon)
                 self.iconPreview.setPixmap(icon.pixmap(32,32))
                 settings = self.settings
-                settings.setValue('%s/icon' % item.tickerId, icon)
+                settings.setValue('%s/icon' % item.symbol, icon)
                 self.emit(Signals.modified)
 
     @pyqtSignature('int')
