@@ -194,7 +194,7 @@
     <bool>true</bool>
    </property>
    <property name="text" >
-    <string>Data Dialog...</string>
+    <string>Show Data</string>
    </property>
    <property name="iconText" >
     <string>Show plot data dialog.</string>

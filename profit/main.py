@@ -16,8 +16,6 @@
 # TODO: implement order dialog
 # TODO: add wait for save/export thread on close event
 # TODO: move defaults into lib.defaults
-# TODO: fix plot legend display on show
-# TODO: fix control item color on plot load
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp

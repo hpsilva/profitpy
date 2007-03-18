@@ -307,8 +307,6 @@ class Plot(QFrame, Ui_Plot):
         self.grid = PlotGrid()
         self.grid.attach(plot)
         plot.insertLegend(Legend(), plot.LeftLegend)
-        self.actionDrawLegend.setChecked(False)
-        self.actionDrawLegend.setEnabled(False)
         self.zoomer = PlotZoomer(
             QwtPlot.xBottom, QwtPlot.yRight, Picker.DragSelection,
             Picker.AlwaysOff, canvas)
@@ -461,13 +459,15 @@ class Plot(QFrame, Ui_Plot):
         curve = item.curve
         plot = self.plot
         legend = plot.legend()
+        drawLegend = self.actionDrawLegend
         if enable:
             if not curve.settingsLoaded:
                 self.loadCurve(self.itemName(item), curve)
             curve.setData(item.data.x, item.data.y)
             curve.setVisible(True)
             curve.attach(plot)
-            curve.updateLegend(legend, True)
+            if drawLegend.isChecked():
+                curve.updateLegend(legend, True)
             self.enableAutoScale()
         else:
             legend.remove(curve)
@@ -475,11 +475,10 @@ class Plot(QFrame, Ui_Plot):
             curve.setVisible(False)
         self.emit(Signals.enableCurve, item, enable)
         checked = self.anyCheckedItems()
-        self.actionDrawLegend.setEnabled(checked)
+        drawLegend.setEnabled(checked)
         if not checked:
             legend.clear()
             legend.hide()
-            self.actionDrawLegend.setChecked(False)
         plot.updateAxes()
         self.zoomer.setZoomBase()
         self.connect(self.zoomer, Signals.zoomed, self.checkZoom)
@@ -599,6 +598,7 @@ class Plot(QFrame, Ui_Plot):
         for item in self.controlsTreeItems:
             if self.itemName(item) in names:
                 item.setCheckState(Qt.Checked)
+                item.setColor(self.loadItemPen(item).color())
 
     def plotName(self):
         """ The name of this plot.
