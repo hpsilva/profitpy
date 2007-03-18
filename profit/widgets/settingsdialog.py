@@ -7,8 +7,9 @@
 
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QApplication, QColor, QColorDialog, QDialog
-from PyQt4.QtGui import QFileDialog, QFont, QFontDialog
+from PyQt4.QtGui import QFileDialog, QFont, QFontDialog, QListWidgetItem
 
+from profit.lib import defaults
 from profit.lib.core import Settings
 from profit.lib.gui import colorIcon
 from profit.widgets.syspathdialog import SysPathDialog
@@ -56,6 +57,14 @@ def colorSetter(target):
         o.setIcon(colorIcon(color))
     return setColor
 
+def getList(o):
+    return [o.item(r).text() for r in range(o.count())]
+
+def setList(o, v):
+    items = [QListWidgetItem(a) for a in v.toStringList()]
+    for item in items:
+        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEditable|Qt.ItemIsEnabled)
+        o.addItem(item)
 
 schema = {}
 
@@ -72,6 +81,7 @@ schema[Settings.keys.main] = [
 schema[Settings.keys.strategy] = [
     ('accountSupervisor', getText, setText, ''),
     ('orderSupervisor', getText, setText, ''),
+    ('tickerSchema', getText, setText, ''),
     ('tradeIndicator', getText, setText, ''),
 ]
 
@@ -80,6 +90,10 @@ schema[Settings.keys.appearance] = [
     ('increaseColor', getColor, colorSetter('increaseColor'), QColor(Qt.darkGreen)),
     ('neutralColor', getColor, colorSetter('neutralColor'), QColor(Qt.blue)),
     ('decreaseColor', getColor, colorSetter('decreaseColor'), QColor(Qt.red)),
+]
+
+schema[Settings.keys.urls] = [
+    ('tickerUrls', getList, setList, defaults.tickerUrls()),
 ]
 
 
@@ -148,17 +162,60 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         if filename:
             self.startupScript.setText(filename)
 
+    @pyqtSignature('')
+    def on_tickerUrls_itemSelectionChanged(self):
+        widget = self.tickerUrls
+        try:
+            row = widget.row(widget.selectedItems()[0])
+        except (IndexError, ):
+            row = 0
+        count = widget.count()
+        self.tickerUrlUp.setEnabled(count and row and row <= count)
+        self.tickerUrlDown.setEnabled(count and row < count-1)
+        self.tickerUrlRemove.setEnabled(count > 0)
+        self.tickerUrlAdd.setEnabled(True)
+
+    @pyqtSignature('')
+    def on_tickerUrlRemove_clicked(self):
+        widget = self.tickerUrls
+        widget.takeItem(self.tickerUrls.currentRow())
+        self.tickerUrlRemove.setEnabled(widget.count() > 0)
+
+    @pyqtSignature('')
+    def on_tickerUrlAdd_clicked(self):
+        widget = self.tickerUrls
+        item = QListWidgetItem('Item Title:http://example.com/page?id=$symbol')
+        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEditable|Qt.ItemIsEnabled)
+        widget.insertItem(widget.currentRow()+1, item)
+
+    @pyqtSignature('')
+    def on_tickerUrlUp_clicked(self):
+        self.moveTickerUrl(-1)
+
+    @pyqtSignature('')
+    def on_tickerUrlDown_clicked(self):
+        self.moveTickerUrl(1)
+
+    def moveTickerUrl(self, offset):
+        widget = self.tickerUrls
+        item = widget.currentItem()
+        other = widget.item(widget.currentRow()+offset)
+        itemtext, othertext = item.text(), other.text()
+        item.setText(othertext)
+        other.setText(itemtext)
+        selmodel = widget.selectionModel()
+        selmodel.clear()
+        selmodel.setCurrentIndex(widget.indexFromItem(other), selmodel.Select)
+
+    def accept(self):
+        self.writeSettings(Settings())
+        QDialog.accept(self)
+
 
 if __name__ == '__main__':
     app = QApplication([])
     win = SettingsDialog()
-    settings = Settings()
-    win.readSettings(settings)
-    if win.exec_() == win.Accepted:
-        win.writeSettings(settings)
-        for key, lookups in schema.items():
-            print '[%s]' % key
-            for name, getr, setr, default in lookups:
-                obj = getattr(win, name)
-                print '%s=%s' % (name, getr(obj))
-            print
+    win.readSettings(Settings())
+    win.exec_()
+
+

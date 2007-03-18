@@ -12,22 +12,11 @@ from PyQt4.QtGui import QAction, QDesktopServices, QFrame, QIcon, QMenu
 
 from ib.ext.TickType import TickType
 
+from profit.lib import defaults
 from profit.lib.core import Settings, Signals, disabledUpdates, nameIn
 from profit.lib.gui import ValueTableItem
 from profit.widgets.portfoliodisplay import replayPortfolio
 from profit.widgets.ui_tickerdisplay import Ui_TickerDisplay
-
-
-def defaultUrls():
-    return [
-        'Profile:http://www.marketwatch.com/tools/quotes/profile.asp?symb=$symbol',
-        'News:http://www.marketwatch.com/tools/quotes/news.asp?symb=$symbol',
-        'Financials:http://www.marketwatch.com/tools/quotes/financials.asp?symb=$symbol',
-        'Historical Quotes:http://www.marketwatch.com/tools/quotes/historical.asp?symb=$symbol'
-        'Message Board:http://www.marketwatch.com/discussions/msgIndex.asp?symb=$symbol',
-        'SEC Filings:http://www.marketwatch.com/tools/quotes/secfilings.asp?symb=$symbol',
-        'Options:http://www.marketwatch.com/tools/quotes/options1.asp?symb=$symbol',
-    ]
 
 
 fieldColumns = {
@@ -64,7 +53,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay):
         self.selectedItem = None
         self.tickerItems = {}
         self.settings = Settings()
-        self.settings.beginGroup(self.settings.keys.main)
         self.symbols = symbols = session.builder.symbols()
         self.tickerTable.verticalHeader().hide()
         self.contextActions = [
@@ -114,7 +102,9 @@ class TickerDisplay(QFrame, Ui_TickerDisplay):
     def urlActions(self, symbol):
         actions = []
         settings = self.settings
-        urls = settings.value(settings.keys.tickerurls, defaultUrls())
+        settings.beginGroup(self.settings.keys.urls)
+        urls = settings.value(settings.keys.tickerurls, defaults.tickerUrls())
+        settings.endGroup()
         for url in urls.toStringList():
             try:
                 name, url = str(url).split(':', 1)

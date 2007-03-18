@@ -309,11 +309,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSignature('')
     def on_actionSettings_triggered(self):
         from profit.widgets.settingsdialog import SettingsDialog
-        settings = Settings()
         dlg = SettingsDialog()
-        dlg.readSettings(settings)
+        dlg.readSettings(Settings())
         if dlg.exec_() == dlg.Accepted:
-            dlg.writeSettings(settings)
             self.emit(Signals.settingsChanged)
 
     @pyqtSignature('')

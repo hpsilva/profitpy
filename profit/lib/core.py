@@ -77,6 +77,7 @@ class Settings(QSettings):
         size = 'Size'
         splitstate  = 'SplitterState'
         tickerurls = 'TickerUrls'
+        urls = 'Urls'
         strategy = 'Strategy'
         winstate = 'State'
 
