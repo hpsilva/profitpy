@@ -13,6 +13,7 @@ class Signals:
 
     """
     activated = SIGNAL('activated(QSystemTrayIcon::ActivationReason)')
+    canvasColorChanged = SIGNAL('canvasColorChanged')
     clicked = SIGNAL('clicked()')
     connectedTWS = SIGNAL('connectedTWS')
     createdSeries = SIGNAL('createdSeries')
@@ -23,8 +24,10 @@ class Signals:
         SIGNAL('customContextMenuRequested(const QPoint &)')
     dataChanged = \
         SIGNAL('dataChanged(const QModelIndex &, const QModelIndex &)')
+    dialogFinished = SIGNAL('finished(int)')
     disconnectedTWS = SIGNAL('disconnectedTWS')
     doubleValueChanged = SIGNAL('valueChanged(double)')
+    enableCurve = SIGNAL('enableCurve')
     finished = SIGNAL('finished()')
     intValueChanged = SIGNAL('valueChanged(int)')
     itemDoubleClicked = SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)')

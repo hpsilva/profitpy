@@ -189,6 +189,23 @@
     <string>Change Color</string>
    </property>
   </action>
+  <action name="actionShowDataDialog" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Data Dialog...</string>
+   </property>
+   <property name="iconText" >
+    <string>Show plot data dialog.</string>
+   </property>
+   <property name="toolTip" >
+    <string>Show plot data dialog.</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show plot data dialog.</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

@@ -11,7 +11,7 @@
 #
 ##
 
-from PyQt4.QtCore import QByteArray, QVariant, Qt, pyqtSignature
+from PyQt4.QtCore import QByteArray, QTimer, QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QBrush, QColor, QColorDialog, QFont, QFontDialog
 from PyQt4.QtGui import QStandardItem, QStandardItemModel, QMenu, QPen, QFrame
 from PyQt4.Qwt5 import QwtLegend, QwtPicker, QwtPlot, QwtPlotCurve
@@ -21,6 +21,7 @@ from ib.ext.TickType import TickType
 
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import colorIcon, complementColor
+from profit.widgets.plotdatadialog import PlotDataDialog
 from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
 
@@ -247,6 +248,7 @@ class ControlTreeItem(QStandardItem):
         @param color QColor instance
         @return None
         """
+        self.color = color
         self.setIcon(colorIcon(color))
 
 
@@ -271,6 +273,7 @@ class Plot(QFrame, Ui_Plot):
 
         @return None
         """
+        self.dataDialog = None
         optionsButton = self.optionsButton
         pop = QMenu(optionsButton)
         optionsButton.setMenu(pop)
@@ -285,6 +288,8 @@ class Plot(QFrame, Ui_Plot):
         pop.addAction(self.actionChangeCanvasColor)
         pop.addAction(self.actionChangeMajorGridStyle)
         pop.addAction(self.actionChangeMinorGridStyle)
+        pop.addSeparator()
+        pop.addAction(self.actionShowDataDialog)
 
     def setupPlot(self):
         """ Configure the plot widget.
@@ -348,6 +353,13 @@ class Plot(QFrame, Ui_Plot):
         if font.isValid():
             self.setAxisFont(QFont(font))
         self.plot.replot()
+        if settings.value('%s/datadialog' % name).toBool():
+            ## getting the plot symbol and icon requires much
+            ## contortion without using the central tab widget.
+            ## however, we can't refer to it immediately because it
+            ## might not yet be build completely.  so we wait for a
+            ## bit and display the dialog after a short pause.
+            QTimer.singleShot(500, self.actionShowDataDialog.trigger)
         session.registerMeta(self)
 
     def setupTree(self):
@@ -391,7 +403,7 @@ class Plot(QFrame, Ui_Plot):
         """ True if any control is checked.
 
         """
-        return bool(self.checkedItems)
+        return bool(self.checkedItems())
 
     def axisWidgets(self):
         """ Yields each plot axis widget.
@@ -421,6 +433,16 @@ class Plot(QFrame, Ui_Plot):
         if not self.zoomer.zoomRectIndex():
             self.enableAutoScale()
 
+    def dataDialogCleanup(self, result):
+        """ Sets and saves state of data dialog display after its closed.
+
+        @param result ignored
+        @return None
+        """
+        self.actionShowDataDialog.setChecked(False)
+        self.dataDialog = None
+        self.settings.setValue('%s/datadialog' % self.plotName(), False)
+
     def enableAutoScale(self):
         """ Sets autoscaling mode on all four axes.
 
@@ -445,11 +467,13 @@ class Plot(QFrame, Ui_Plot):
             curve.setData(item.data.x, item.data.y)
             curve.setVisible(True)
             curve.attach(plot)
+            curve.updateLegend(legend, True)
             self.enableAutoScale()
         else:
             legend.remove(curve)
             curve.detach()
             curve.setVisible(False)
+        self.emit(Signals.enableCurve, item, enable)
         checked = self.anyCheckedItems()
         self.actionDrawLegend.setEnabled(checked)
         if not checked:
@@ -896,6 +920,7 @@ class Plot(QFrame, Ui_Plot):
             self.picker.setTrackerPen(pen)
             plot.replot()
             self.saveCanvasColor()
+            self.emit(Signals.canvasColorChanged, color)
 
     @pyqtSignature('')
     def on_actionChangeAxesFont_triggered(self):
@@ -915,10 +940,34 @@ class Plot(QFrame, Ui_Plot):
     def on_actionChangeAxesColor_triggered(self):
         """ Signal handler called to edit the axes color.
 
+        @return None
         """
         color = changeColor(self.getAxisColor, self.setAxisColor, self)
         if color:
             self.settings.setValue('%s/axiscolor' % self.plotName(), color)
+
+    @pyqtSignature('bool')
+    def on_actionShowDataDialog_triggered(self, enable):
+        """ Signal handler called to show or hide the data dialog.
+
+        @return None
+        """
+        if enable:
+            dlg = self.dataDialog = PlotDataDialog(self)
+            try:
+                tabs = self.window().centralTabs
+            except (AttributeError, ):
+                pass
+            else:
+                name = tabs.tabText(tabs.currentIndex())
+                dlg.setWindowTitle(str(dlg.windowTitle()) % name)
+                dlg.setWindowIcon(tabs.tabIcon(tabs.currentIndex()))
+            self.connect(dlg, Signals.dialogFinished, self.dataDialogCleanup)
+            dlg.show()
+        elif self.dataDialog:
+            self.dataDialog.close()
+            self.dataDialog = None
+        self.settings.setValue('%s/datadialog' % self.plotName(), enable)
 
     ## controls tree signal handlers
 

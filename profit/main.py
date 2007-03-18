@@ -7,7 +7,6 @@
 
 # TODO: implement or disable search bar for tickers, orders, account, etc.
 # TODO: account display plots
-# TODO: fix plot legend on curve enable/dis
 # TODO: modify orders display to use model/tree view
 # TODO: add account, orders, and strategy supervisors
 # TODO: add strategy, account supervisor, order supervisor and indicator display
@@ -15,9 +14,10 @@
 # TODO: add default colors for arbitrary plot curves
 # TODO: fixup shell keyboard handling, syntax highlighting, and history
 # TODO: implement order dialog
-# TODO: add field data table to plots
-# TODO: add ticker url editor to settings dialog
 # TODO: add wait for save/export thread on close event
+# TODO: move defaults into lib.defaults
+# TODO: fix plot legend display on show
+# TODO: fix control item color on plot load
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
