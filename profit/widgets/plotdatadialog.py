@@ -61,6 +61,8 @@ class CurveDataTableModel(QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return QVariant(self.items[section].text())
+        elif orientation == Qt.Vertical and role == Qt.DisplayRole:
+            return QVariant(section)
         return QVariant()
 
     def on_enableCurve(self, item, enable):
@@ -94,5 +96,4 @@ class PlotDataDialog(QDialog, Ui_PlotDataDialog):
         self.setupUi(self)
         self.model = CurveDataTableModel(parent)
         self.plotDataView.setModel(self.model)
-        self.plotDataView.verticalHeader().hide()
         self.addAction(self.actionClose)

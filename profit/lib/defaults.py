@@ -15,3 +15,8 @@ def tickerUrls():
         'SEC Filings:http://www.marketwatch.com/tools/quotes/secfilings.asp?symb=$symbol',
         'Options:http://www.marketwatch.com/tools/quotes/options1.asp?symb=$symbol',
     ]
+
+class connection:
+    host = 'localhost'
+    port = 7496
+    client = 0

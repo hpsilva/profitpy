@@ -14,8 +14,6 @@
 # TODO: add default colors for arbitrary plot curves
 # TODO: fixup shell keyboard handling, syntax highlighting, and history
 # TODO: implement order dialog
-# TODO: add wait for save/export thread on close event
-# TODO: move defaults into lib.defaults
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -76,10 +74,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         if self.checkClose():
-            session = self.session
-            while session.exportInProgress or session.saveInProgress:
-                print 'loop'
-                processEvents()
             event.accept()
         else:
             event.ignore()
@@ -172,6 +166,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if not types:
                     return
                 self.session.exportMessages(filename, types)
+                def lookup():
+                    return not self.session.exportInProgress
+                dlg = WaitMessageBox(lookup, self)
+                dlg.setText('Export in Progress...')
+                dlg.setWindowTitle('Profit Device Session Export')
+                dlg.show()
 
     @pyqtSignature('')
     def on_actionImportSession_triggered(self, filename=None):
@@ -296,6 +296,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                            'Session save already in progress.')
             else:
                 self.session.save()
+                def lookup():
+                    return not self.session.saveInProgress
+                dlg = WaitMessageBox(lookup, self)
+                dlg.setText('Save in Progress...')
+                dlg.setWindowTitle('Profit Device Session Save')
+                dlg.show()
 
     @pyqtSignature('')
     def on_actionSaveSessionAs_triggered(self):
@@ -474,3 +480,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings.setValue(settings.keys.winstate, self.saveState())
         settings.endGroup()
 
+
+
+class WaitMessageBox(QMessageBox):
+    def __init__(self, callback, parent):
+        QMessageBox.__init__(self, parent)
+        self.callback = callback
+        self.setIcon(self.Information)
+        self.addButton(self.Abort)
+        self.setWindowModality(Qt.NonModal)
+        self.startTimer(500)
+
+    def timerEvent(self, event):
+        if self.callback():
+            self.killTimer(event.timerId())
+            self.accept()

@@ -71,9 +71,6 @@ schema = {}
 schema[Settings.keys.main] = [
     ('confirmCloseWhenModified', getCheckState, setCheckState, Qt.Checked),
     ('confirmCloseWhenConnected', getCheckState, setCheckState, Qt.Checked),
-    ('defaultHostName', getText, setText, 'localhost'),
-    ('defaultPortNumber', getValue, setIntValue, 7496),
-    ('defaultClientId', getValue, setIntValue, 0),
     ('useSystemTrayIcon', getCheckState, setCheckState, Qt.Checked),
     ('startupScript', getText, setText, ''),
 ]

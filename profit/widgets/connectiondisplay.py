@@ -18,6 +18,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qwt5 import QwtThermo
 QtGui.QwtThermo = QwtThermo
 
+from profit.lib import defaults
 from profit.lib.core import Settings, Signals
 from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
@@ -34,12 +35,6 @@ def commandStrings():
         keyCmd = commandFs % ('helper', keyCmd, )
         brokerCmd = commandFs % ('ibtws', brokerCmd, )
     return keyCmd, brokerCmd
-
-
-class defaults(object):
-    host = 'localhost'
-    port = 7496
-    client = 0 # getpid()
 
 
 def saveMethod(sig, key):
@@ -148,11 +143,11 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.settings = settings = Settings()
         settings.beginGroup(settings.keys.connection)
         self.hostNameEdit.setText(
-            settings.value('host', defaults.host).toString())
+            settings.value('host', defaults.connection.host).toString())
         self.portNumberSpin.setValue(
-            settings.value('port', defaults.port).toInt()[0])
+            settings.value('port', defaults.connection.port).toInt()[0])
         self.clientIdSpin.setValue(
-            settings.value('clientid', defaults.client).toInt()[0])
+            settings.value('clientid', defaults.connection.client).toInt()[0])
         keyHelperCommand, brokerCommand = commandStrings()
         self.keyHelperCommandEdit.setText(
             settings.value('keycommand', keyHelperCommand).toString())
