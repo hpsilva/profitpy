@@ -252,6 +252,8 @@ def fillStyleFunction(pixmapType, stylesDefault):
         @param current style to set as current item
         @return None
         """
+        if combo.count():
+            return
         painter = QPainter()
         for index, (style, name) in enumerate(styles):
             pixmap = pixmapType()
@@ -286,42 +288,62 @@ fillSymbolStyles = fillStyleFunction(SymbolStylePixmap, symbolStyles)
 class PlotItemDialog(QDialog, Ui_PlotItemDialog):
     """ Dialog for editing plot item pens and plot curves.
 
-    This class operates in two ways.  When given a QwtCurve, it
-    enables all of its selection list and widget stack.  If given a
-    QPen, it enables only the first item in the selection list and the
-    first widget in its widget stack.
-
     Clients can use the 'applyToCurve' method after the dialog is
     shown to update the curve to match the dialog.
     """
-    def __init__(self, item, parent=None):
+    def __init__(self, item, marker=None, parent=None):
         """ Constructor.
 
-        @param item QwtPlotCurve or QPen instance
+        @param item QwtMarker, QwtPlotCurve or QPen instance
         @param parent ancestor of this widget
         """
         QDialog.__init__(self, parent)
         self.setupUi(self)
         if isinstance(item, QwtPlotCurve):
-            self.setupFromCurve(item)
+            if isinstance(marker, QwtPlotMarker):
+                self.setupFromCurve(item)
+                self.setupFromMarker(marker)
+                self.sectionList.takeItem(1)
+                self.sectionStack.removeWidget(self.curvePage)
+                self.setWindowTitle('Edit Plot Marker')
+            else:
+                self.setupFromCurve(item)
+                self.sectionList.takeItem(3)
+                self.sectionStack.removeWidget(self.linePage)
+                self.linePage = None
+                self.setWindowTitle('Edit Plot Curve')
         elif isinstance(item, QPen):
+            self.sectionList.takeItem(3)
+            self.sectionList.takeItem(2)
+            self.sectionList.takeItem(1)
             self.setupFromPen(item)
-        elif isinstance(item, QwtPlotMarker):
-            self.setupFromMarker(item)
+            self.setWindowTitle('Edit Plot Item Pen')
         else:
             raise TypeError('item not curve or pen')
 
     def setupFromMarker(self, marker):
-        self.sectionList.takeItem(1)
-        self.sectionStack.removeWidget(self.curvePage)
-        self.setWindowTitle('Edit Plot Marker')
-        self.setupPenPage(QPen(marker.linePen()))
-        self.setupLinePage(marker)
-        self.setupSymbolPage(marker)
-        SamplePlot.setupPlot(self.plotSample)
-        self.areaFillColor.color = Qt.transparent
-        self.applyToCurve(self.plotSample.curve)
-        self.penSampleGroup.setVisible(False)
+        """  Configures this dialog for marker display and edit.
+
+        @param marker QwtPlotMarker instance
+        @return None
+        """
+        self.markerSample = sample = QwtPlotMarker()
+        sample.setLineStyle(marker.lineStyle())
+        sample.setLinePen(marker.linePen())
+        sample.setSymbol(marker.symbol())
+        curve = self.plotSample.curve
+        sample.setAxis(curve.xAxis(), curve.yAxis())
+        try:
+            data = curve.data()
+            size = data.size()
+            x, y = data.x(int(size/2)), data.y(int(size/2))
+        except (Exception, ), ex:
+            x = y = 1
+        sample.setValue(x, y)
+        self.setupPenPage(sample.linePen())
+        self.setupMarkerPage(sample)
+        self.setupSymbolPage(sample)
+        sample.attach(self.plotSample)
 
     def setupFromPen(self, pen):
         """ Configures this dialog for only pen display and edit.
@@ -329,9 +351,6 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         @param pen QPen instance
         @return None
         """
-        self.sectionList.item(1).setHidden(True)
-        self.sectionList.item(2).setHidden(True)
-        self.sectionList.item(3).setHidden(True)
         self.plotSampleGroup.setHidden(True)
         self.setupPenPage(pen)
 
@@ -341,8 +360,6 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         @param curve QwtPlotCurve instance
         @return None
         """
-        self.sectionList.item(3).setHidden(True)
-        self.setWindowTitle('Edit Plot Curve')
         self.setupPenPage(curve.pen())
         self.setupCurvePage(curve)
         self.setupSymbolPage(curve)
@@ -382,7 +399,6 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
             self.paintAttributeFiltered.checkState()==Qt.Checked)
         curve.setPaintAttribute(curve.ClipPolygons,
             self.paintAttributeClipPolygons.checkState()==Qt.Checked)
-
         symbol = QwtSymbol()
         style = comboCurrentData(self.symbolStyle, symbol.Style)
         symbol.setStyle(style)
@@ -401,9 +417,49 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
                 brush.setStyle(style)
                 brush.setColor(self.symbolFillColor.color)
             symbol.setBrush(brush)
-        curve.setSymbol(symbol)
+            curve.setSymbol(symbol)
 
-    def setupLinePage(self, marker):
+    def applyToMarker(self, marker):
+        """ Applies values in this dialog to specified marker.
+
+        @param marker QwtPlotMarker instance
+        @return None
+        """
+        marker.setLinePen(QPen(self.selectedPen))
+        symbol = QwtSymbol()
+        style = comboCurrentData(self.symbolStyle, symbol.Style)
+        symbol.setStyle(style)
+        if style != QwtSymbol.NoSymbol:
+            symbol.setSize(
+                self.symbolWidth.value(), self.symbolHeight.value())
+            pen = QPen()
+            pen.setStyle(comboCurrentData(self.symbolPenStyle, Qt.PenStyle))
+            pen.setColor(self.symbolPenColor.color)
+            pen.setWidth(self.symbolPenWidth.value())
+            symbol.setPen(pen)
+            brush = QBrush()
+            if self.symbolFill.isChecked():
+                style = comboCurrentData(self.symbolFillStyle, Qt.BrushStyle)
+                brush.setStyle(style)
+                brush.setColor(self.symbolFillColor.color)
+            symbol.setBrush(brush)
+        marker.setSymbol(symbol)
+        if self.noLine.isChecked():
+            style = marker.NoLine
+        elif self.horizontalLine.isChecked():
+            style = marker.HLine
+        elif self.crossLine.isChecked():
+            style = marker.Cross
+        else:
+            style = marker.VLine
+        marker.setLineStyle(style)
+
+    def setupMarkerPage(self, marker):
+        """ Configures the marker line display and edit page.
+
+        @param marker QwtPlotMarker instance
+        @return None
+        """
         style = marker.lineStyle()
         if style == marker.NoLine:
             self.noLine.setChecked(True)
@@ -411,10 +467,8 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
             self.horizontalLine.setChecked(True)
         elif style == marker.VLine:
             self.verticalLine.setChecked(True)
-        #self.samplePlot add marker
-        #self.plotSample
-        #self.plotMarker = QwtPlotMarker()
-        #self.plotMarker.setType(marker.
+        elif style == marker.Cross:
+            self.crossLine.setChecked(True)
 
     def setupPenPage(self, pen):
         """ Configures the pen display and edit page.
@@ -487,7 +541,10 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         @return None
         """
         if self.plotSampleGroup.isVisible():
-            self.applyToCurve(self.plotSample.curve)
+            if self.linePage:
+                self.applyToMarker(self.markerSample)
+            else:
+                self.applyToCurve(self.plotSample.curve)
             self.plotSample.replot()
 
     def selectColor(self, widget):
@@ -756,6 +813,42 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         """ Signal handler for symbol pen width spinbox changes.
 
         @param value new value for spinbox
+        @return None
+        """
+        self.updatePlotSample()
+
+    @pyqtSignature('bool')
+    def on_noLine_toggled(self, checked):
+        """ Signal handler for no marker line radio.
+
+        @param checked ignored
+        @return None
+        """
+        self.updatePlotSample()
+
+    @pyqtSignature('bool')
+    def on_horizontalLine_toggled(self, checked):
+        """ Signal handler for horizontal marker line radio.
+
+        @param checked ignored
+        @return None
+        """
+        self.updatePlotSample()
+
+    @pyqtSignature('bool')
+    def on_verticalLine_toggled(self, checked):
+        """ Signal handler for vertical marker line radio.
+
+        @param checked ignored
+        @return None
+        """
+        self.updatePlotSample()
+
+    @pyqtSignature('bool')
+    def on_crossLine_toggled(self, checked):
+        """ Signal handler for cross marker line radio.
+
+        @param checked ignored
         @return None
         """
         self.updatePlotSample()

@@ -234,7 +234,13 @@
   </action>
   <action name="actionChangeDataMarker" >
    <property name="text" >
-    <string>Data Highlight Style...</string>
+    <string>Data Marker Style...</string>
+   </property>
+   <property name="iconText" >
+    <string>Data Marker Style</string>
+   </property>
+   <property name="toolTip" >
+    <string>Data Marker Style</string>
    </property>
   </action>
  </widget>

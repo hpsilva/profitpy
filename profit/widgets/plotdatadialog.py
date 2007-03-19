@@ -10,8 +10,6 @@ from PyQt4.QtGui import QApplication, QBrush, QColorDialog, QDialog
 from PyQt4.QtGui import QFileDialog, QFont, QFontDialog, QListWidgetItem
 
 from profit.lib import defaults
-import profit.lib.core
-reload(profit.lib.core)
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import colorIcon
 from profit.widgets.ui_plotdatadialog import Ui_PlotDataDialog
@@ -62,7 +60,6 @@ class CurveDataTableModel(QAbstractTableModel):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return QVariant(self.items[section].text())
         elif orientation == Qt.Vertical and role == Qt.DisplayRole:
-            ## FOO
             return QVariant(section+1)
         return QVariant()
 
@@ -94,12 +91,9 @@ class PlotDataDialog(QDialog, Ui_PlotDataDialog):
             self.plotDataView.selectionModel(),
             Signals.selectionChanged,
             self.on_selectionChanged)
-        print '## connected'
 
     def on_selectionChanged(self, current, previous):
         selections = self.plotDataView.selectedIndexes()
         model = self.model
         items = [(index, model.items[index.column()]) for index in selections]
         self.emit(Signals.highlightSelections, items)
-
-print '## plotdatadialog reloaded'
