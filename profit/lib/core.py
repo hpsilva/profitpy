@@ -13,7 +13,6 @@ class Signals:
 
     """
     activated = SIGNAL('activated(QSystemTrayIcon::ActivationReason)')
-    canvasColorChanged = SIGNAL('canvasColorChanged')
     clicked = SIGNAL('clicked()')
     connectedTWS = SIGNAL('connectedTWS')
     createdSeries = SIGNAL('createdSeries')
@@ -29,6 +28,7 @@ class Signals:
     doubleValueChanged = SIGNAL('valueChanged(double)')
     enableCurve = SIGNAL('enableCurve')
     finished = SIGNAL('finished()')
+    highlightSelections = SIGNAL('highlightSelections')
     intValueChanged = SIGNAL('valueChanged(int)')
     itemDoubleClicked = SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)')
     lastWindowClosed = SIGNAL('lastWindowClosed()')
@@ -36,6 +36,9 @@ class Signals:
     modelDoubleClicked = SIGNAL('doubleClicked (const QModelIndex &)')
     modelReset = SIGNAL('modelReset()')
     modified = SIGNAL('modified')
+    selectionChanged = \
+        SIGNAL('selectionChanged(const QItemSelection &, '
+               'const QItemSelection &)')
     sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')

@@ -14,7 +14,7 @@
 from PyQt4.QtCore import QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QBrush, QColor, QColorDialog, QDialog, QIcon
 from PyQt4.QtGui import QPainter, QPen, QPixmap
-from PyQt4.Qwt5 import QwtPlot, QwtPlotCurve, QwtSymbol
+from PyQt4.Qwt5 import QwtPlot, QwtPlotCurve, QwtPlotMarker, QwtSymbol
 
 from profit.lib.core import Settings
 from profit.lib.gui import colorIcon, complementColor
@@ -306,8 +306,22 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
             self.setupFromCurve(item)
         elif isinstance(item, QPen):
             self.setupFromPen(item)
+        elif isinstance(item, QwtPlotMarker):
+            self.setupFromMarker(item)
         else:
             raise TypeError('item not curve or pen')
+
+    def setupFromMarker(self, marker):
+        self.sectionList.takeItem(1)
+        self.sectionStack.removeWidget(self.curvePage)
+        self.setWindowTitle('Edit Plot Marker')
+        self.setupPenPage(QPen(marker.linePen()))
+        self.setupLinePage(marker)
+        self.setupSymbolPage(marker)
+        SamplePlot.setupPlot(self.plotSample)
+        self.areaFillColor.color = Qt.transparent
+        self.applyToCurve(self.plotSample.curve)
+        self.penSampleGroup.setVisible(False)
 
     def setupFromPen(self, pen):
         """ Configures this dialog for only pen display and edit.
@@ -317,6 +331,7 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         """
         self.sectionList.item(1).setHidden(True)
         self.sectionList.item(2).setHidden(True)
+        self.sectionList.item(3).setHidden(True)
         self.plotSampleGroup.setHidden(True)
         self.setupPenPage(pen)
 
@@ -326,6 +341,7 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         @param curve QwtPlotCurve instance
         @return None
         """
+        self.sectionList.item(3).setHidden(True)
         self.setWindowTitle('Edit Plot Curve')
         self.setupPenPage(curve.pen())
         self.setupCurvePage(curve)
@@ -387,6 +403,19 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
             symbol.setBrush(brush)
         curve.setSymbol(symbol)
 
+    def setupLinePage(self, marker):
+        style = marker.lineStyle()
+        if style == marker.NoLine:
+            self.noLine.setChecked(True)
+        elif style == marker.HLine:
+            self.horizontalLine.setChecked(True)
+        elif style == marker.VLine:
+            self.verticalLine.setChecked(True)
+        #self.samplePlot add marker
+        #self.plotSample
+        #self.plotMarker = QwtPlotMarker()
+        #self.plotMarker.setType(marker.
+
     def setupPenPage(self, pen):
         """ Configures the pen display and edit page.
 
@@ -423,13 +452,13 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         self.paintAttributeClipPolygons.setChecked(
             curve.testPaintAttribute(curve.ClipPolygons))
 
-    def setupSymbolPage(self, curve):
+    def setupSymbolPage(self, item):
         """ Configures the symbol display and edit page.
 
         @param curve QwtPlotCurve instance
         @return None
         """
-        symbol = curve.symbol()
+        symbol = item.symbol()
         brush = symbol.brush()
         pen = symbol.pen()
         fillSymbolStyles(self.symbolStyle, symbol.style())

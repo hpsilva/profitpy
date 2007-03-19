@@ -70,12 +70,22 @@
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="plotButton" >
+           <property name="text" >
+            <string>Plot</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="optionsButton" >
            <property name="text" >
             <string>Options</string>
            </property>
            <property name="icon" >
-            <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
+            <iconset resource="profit.qrc" >:/images/icons/kcontrol.png</iconset>
            </property>
           </widget>
          </item>
@@ -194,7 +204,7 @@
     <bool>true</bool>
    </property>
    <property name="text" >
-    <string>Show Data</string>
+    <string>Data Display...</string>
    </property>
    <property name="iconText" >
     <string>Show plot data dialog.</string>
@@ -204,6 +214,27 @@
    </property>
    <property name="statusTip" >
     <string>Show plot data dialog.</string>
+   </property>
+  </action>
+  <action name="actionNewPlot" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/filenew.png</iconset>
+   </property>
+   <property name="text" >
+    <string>New Plot</string>
+   </property>
+  </action>
+  <action name="actionClosePlot" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/fileclose.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Close Plot</string>
+   </property>
+  </action>
+  <action name="actionChangeDataMarker" >
+   <property name="text" >
+    <string>Data Highlight Style...</string>
    </property>
   </action>
  </widget>

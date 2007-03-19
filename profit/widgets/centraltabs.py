@@ -14,9 +14,9 @@ from profit.widgets.ui_closetabbutton import Ui_CloseTabButton
 from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
 
 
-def tabWidgetMethod(name):
+def tabWidgetMethod(name, reloaded=False):
     def method(self, title):
-        cls = importItem('profit.widgets.' + name)
+        cls = importItem('profit.widgets.' + name, reloaded=reloaded)
         widget = cls(self.session, self)
         index = self.addTab(widget, title)
         return index
@@ -121,7 +121,7 @@ class CentralTabs(QTabWidget):
         return index
 
     on_account_clicked = \
-        tabWidgetMethod('accountdisplay.AccountDisplay')
+        tabWidgetMethod('accountdisplay.AccountDisplay', reloaded=True)
     on_account_supervisor_clicked = \
         tabWidgetMethod('accountsupervisor.AccountSupervisorDisplay')
     on_connection_clicked = \

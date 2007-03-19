@@ -14,6 +14,16 @@
 # TODO: add default colors for arbitrary plot curves
 # TODO: fixup shell keyboard handling, syntax highlighting, and history
 # TODO: implement order dialog
+# TODO: error dialog instead of message dialog on session load w/ open tabs
+# TODO: cancel threads on save/export msg box abort
+# TODO: add item/row highlight to plot data and plot widget
+# TODO: change x axis scale from 1-n to 0-n
+# TODO: remove markers on data dialog close
+# TODO: move account summary dock to examples directory; make optional
+#       and explain implementation
+# TODO: hack sip meta connnect to locate on_parent and on_self methods
+# TODO: hack sip to check for not just lambdas, but callables in local
+#       scope during signal connection
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp

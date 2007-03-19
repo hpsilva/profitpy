@@ -24,19 +24,10 @@
      <property name="orientation" >
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="Plot" name="upperPlot" />
-     <widget class="Plot" name="lowerPlot" />
     </widget>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>Plot</class>
-   <extends>QFrame</extends>
-   <header>plot.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

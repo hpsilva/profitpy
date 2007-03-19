@@ -16,11 +16,19 @@ from PyQt4.QtGui import QBrush, QColor, QColorDialog, QFont, QFontDialog
 from PyQt4.QtGui import QStandardItem, QStandardItemModel, QMenu, QPen, QFrame
 from PyQt4.Qwt5 import QwtLegend, QwtPicker, QwtPlot, QwtPlotCurve
 from PyQt4.Qwt5 import QwtPlotGrid, QwtPlotPicker, QwtPlotZoomer, QwtPainter
+from PyQt4.Qwt5 import QwtPlotMarker
 
 from ib.ext.TickType import TickType
 
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import colorIcon, complementColor
+
+import profit.widgets.plotdatadialog
+reload(profit.widgets.plotdatadialog)
+
+import profit.widgets.plotitemdialog
+reload(profit.widgets.plotitemdialog)
+
 from profit.widgets.plotdatadialog import PlotDataDialog
 from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
@@ -185,6 +193,10 @@ class PlotGrid(QwtPlotGrid):
                     QwtPainter.drawLine(painter, value, y1, value, y2)
 
 
+class PlotHighlight(QwtPlotMarker):
+    def __init__(self):
+        QwtPlotMarker.__init__(self)
+
 class PlotZoomer(QwtPlotZoomer):
     """ Stub for future implementation.
 
@@ -266,6 +278,7 @@ class Plot(QFrame, Ui_Plot):
         self.settings = Settings()
         self.settings.beginGroup(self.settings.keys.plots)
         self.setupOptionsMenu()
+        self.setupPlotsMenu()
         self.setupPlot()
 
     def setupOptionsMenu(self):
@@ -279,17 +292,24 @@ class Plot(QFrame, Ui_Plot):
         optionsButton.setMenu(pop)
         pop.addAction(self.actionDrawMajorX)
         pop.addAction(self.actionDrawMajorY)
+        pop.addAction(self.actionChangeMajorGridStyle)
         pop.addSeparator()
         pop.addAction(self.actionDrawMinorX)
         pop.addAction(self.actionDrawMinorY)
-        pop.addSeparator()
-        pop.addAction(self.actionDrawLegend)
-        pop.addSeparator()
-        pop.addAction(self.actionChangeCanvasColor)
-        pop.addAction(self.actionChangeMajorGridStyle)
         pop.addAction(self.actionChangeMinorGridStyle)
         pop.addSeparator()
         pop.addAction(self.actionShowDataDialog)
+        pop.addAction(self.actionChangeDataMarker)
+        pop.addSeparator()
+        pop.addAction(self.actionDrawLegend)
+        pop.addAction(self.actionChangeCanvasColor)
+
+    def setupPlotsMenu(self):
+        plotButton = self.plotButton
+        pop = QMenu(plotButton)
+        plotButton.setMenu(pop)
+        pop.addAction(self.actionNewPlot)
+        pop.addAction(self.actionClosePlot)
 
     def setupPlot(self):
         """ Configure the plot widget.
@@ -326,6 +346,7 @@ class Plot(QFrame, Ui_Plot):
         @return None
         """
         self.controlsTreeItems = []
+        self.highlightMarkers = []
         self.session = session
         self.tickerCollection = session.tickerCollection
         self.tickerId = tickerId
@@ -337,6 +358,7 @@ class Plot(QFrame, Ui_Plot):
         self.setupTree()
         self.loadSelections()
         self.loadGrids()
+        self.loadDataMarker()
         self.loadCanvasColor()
         self.loadLegend()
         self.updateAxis()
@@ -543,6 +565,16 @@ class Plot(QFrame, Ui_Plot):
                               QVariant(symbol.NoSymbol)).toInt()[0]))
         symbol.setSize(getv('%s/size' % name).toSize())
         curve.settingsLoaded = True
+
+    def loadDataMarker(self):
+        name = self.plotName()
+        getv = self.settings.value
+        pen = getv('%s/dataselect/pen' % name, defaultMajorGridPen())
+        style = getv('%s/dataselect/style' % name, PlotHighlight.VLine)
+        self.dataMarker = marker = PlotHighlight()
+        marker.setLineStyle(marker.LineStyle(style.toInt()[0]))
+        marker.setLinePen(QPen(pen))
+        #marker.setSymbol
 
     def loadGrids(self):
         """ Reads and sets the major and minor grid pens and visibility.
@@ -817,6 +849,17 @@ class Plot(QFrame, Ui_Plot):
             self.saveCurve(self.itemName(item), curve)
             self.plot.replot()
 
+    @pyqtSignature('')
+    def on_actionChangeDataMarker_triggered(self):
+        marker = self.dataMarker
+        dlg = PlotItemDialog(marker, self)
+        if dlg.exec_() == dlg.Accepted:
+            self.saveMarker(marker)
+
+    def saveMarker(self, marker):
+        pass
+
+
     @pyqtSignature('bool')
     def on_actionDrawLegend_triggered(self, enable):
         """ Signal handler called to toggle the plot legend visibility.
@@ -920,7 +963,6 @@ class Plot(QFrame, Ui_Plot):
             self.picker.setTrackerPen(pen)
             plot.replot()
             self.saveCanvasColor()
-            self.emit(Signals.canvasColorChanged, color)
 
     @pyqtSignature('')
     def on_actionChangeAxesFont_triggered(self):
@@ -963,6 +1005,8 @@ class Plot(QFrame, Ui_Plot):
                 dlg.setWindowTitle(str(dlg.windowTitle()) % name)
                 dlg.setWindowIcon(tabs.tabIcon(tabs.currentIndex()))
             self.connect(dlg, Signals.dialogFinished, self.dataDialogCleanup)
+            self.connect(
+                dlg, Signals.highlightSelections, self.on_dataDialog_selected)
             dlg.show()
         elif self.dataDialog:
             self.dataDialog.close()
@@ -1013,6 +1057,33 @@ class Plot(QFrame, Ui_Plot):
             for action in actions:
                 action.setData(QVariant(pos))
             QMenu.exec_(actions, tree.mapToGlobal(pos))
+
+    def on_dataDialog_selected(self, items):
+        for marker in self.highlightMarkers:
+            marker.detach()
+        self.highlightMarkers = markers = []
+        style = self.dataMarker.lineStyle()
+        pen = self.dataMarker.linePen()
+        symbol = self.dataMarker.symbol()
+        for index, item in items:
+            try:
+                x, y = index.row(), item.data.y[index.row()]
+            except (IndexError, ):
+                continue
+            if x is None or y is None:
+                continue
+            print '##', item, x, y
+            marker = PlotHighlight()
+            markers.append(marker)
+            marker.attach(self.plot)
+            marker.setLineStyle(style)
+            marker.setLinePen(pen)
+            #marker.setSymbol(symbol)
+            ## FOO
+            marker.setValue(x+1, y)
+            marker.setLinePen(QPen(Qt.red)) # , 0, Qt.DashDotLine))
+            # set axis from item.curve axis
+        self.plot.replot()
 
     def on_plotSplitter_splitterMoved(self, pos, index):
         """ Signal handler for splitter move; saves state to user settings.
