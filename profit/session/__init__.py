@@ -25,6 +25,7 @@ from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram, EMA, KAMA
 from profit.strategy import StrategyManager
 
+
 class Ticker(object):
     def __init__(self):
         self.series = {}

@@ -12,11 +12,8 @@
 # TODO: add strategy, account supervisor, order supervisor and indicator display
 # TODO: move strategy and builders out of session module; implement user values
 # TODO: add default colors for arbitrary plot curves
-# TODO: fixup shell keyboard handling, syntax highlighting, and history
 # TODO: implement order dialog
-# TODO: error dialog instead of message dialog on session load w/ open tabs
 # TODO: cancel threads on save/export msg box abort
-# TODO: change x axis scale from 1-n to 0-n
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp

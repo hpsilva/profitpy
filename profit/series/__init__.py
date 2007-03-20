@@ -28,8 +28,8 @@ class Series(list):
         """
         list.append(self, value)
         if value is not None:
+            self.x.append(len(self)-1)
             self.y.append(value)
-            self.x.append(len(self))
         for index in self.indexes:
             index.reindex()
 
@@ -61,8 +61,8 @@ class BaseIndex(list):
         """
         list.append(self, value)
         if value is not None:
+            self.x.append(len(self)-1)
             self.y.append(value)
-            self.x.append(len(self))
 
 
 class SeriesIndex(BaseIndex):

@@ -11,12 +11,13 @@
 #
 ##
 
-from PyQt4.QtCore import QByteArray, QTimer, QVariant, Qt, pyqtSignature
+from PyQt4.QtCore import QByteArray, QString, QTimer, QVariant
+from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QBrush, QColor, QColorDialog, QFont, QFontDialog
 from PyQt4.QtGui import QStandardItem, QStandardItemModel, QMenu, QPen, QFrame
 from PyQt4.Qwt5 import QwtLegend, QwtPicker, QwtPlot, QwtPlotCurve
 from PyQt4.Qwt5 import QwtPlotGrid, QwtPlotPicker, QwtPlotZoomer, QwtPainter
-from PyQt4.Qwt5 import QwtPlotMarker, QwtSymbol
+from PyQt4.Qwt5 import QwtPlotMarker, QwtPlotPanner, QwtSymbol, QwtText
 
 from ib.ext.TickType import TickType
 
@@ -27,7 +28,9 @@ from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
 
 
-allAxes = (QwtPlot.xBottom, QwtPlot.xTop, QwtPlot.yRight, QwtPlot.yLeft)
+xBottom, xTop, yRight, yLeft = \
+         QwtPlot.xBottom, QwtPlot.xTop, QwtPlot.yRight, QwtPlot.yLeft
+allAxes = (xBottom, xTop, yRight, yLeft)
 
 
 def changePen(getr, setr, parent):
@@ -221,22 +224,43 @@ class PlotDataMarker(QwtPlotMarker):
         self.setSymbol(other.symbol())
 
 
-class PlotZoomer(QwtPlotZoomer):
+class PlotPanner(QwtPlotPanner):
     """ Stub for future implementation.
 
     """
+    def __init__(self, canvas):
+        QwtPlotPanner.__init__(self, canvas)
+        self.setMouseButton(Qt.MidButton)
 
 
 class PlotPicker(QwtPlotPicker):
     """ Stub for future implementation.
 
     """
+    def __init__(self, canvas):
+        QwtPlotPicker.__init__(
+            self, xBottom, yRight, self.NoSelection, self.CrossRubberBand,
+            self.AlwaysOn, canvas)
+
+    def trackerText(self, pos):
+        pos = self.invTransform(pos)
+        band = self.rubberBand()
+        if band == self.HLineRubberBand:
+            label = '%.3f' % pos.y()
+        elif band == self.VLineRubberBand:
+            label = '%.3f' % pos.x()
+        else:
+            label = '%i, %.3f' % (pos.x(), pos.y(), )
+        return QwtText(label)
 
 
-class Picker(QwtPicker):
+class PlotZoomer(QwtPlotZoomer):
     """ Stub for future implementation.
 
     """
+    def __init__(self, canvas):
+        QwtPlotZoomer.__init__(
+            self, xBottom, yRight, self.DragSelection, self.AlwaysOff, canvas)
 
 
 class Legend(QwtLegend):
@@ -353,12 +377,9 @@ class Plot(QFrame, Ui_Plot):
         self.grid = PlotGrid()
         self.grid.attach(plot)
         plot.insertLegend(Legend(), plot.LeftLegend)
-        self.zoomer = PlotZoomer(
-            QwtPlot.xBottom, QwtPlot.yRight, Picker.DragSelection,
-            Picker.AlwaysOff, canvas)
-        self.picker = PlotPicker(
-            QwtPlot.xBottom, QwtPlot.yRight, Picker.NoSelection,
-            QwtPlotPicker.CrossRubberBand, Picker.AlwaysOn, canvas)
+        self.panner = PlotPanner(canvas)
+        self.zoomer = PlotZoomer(canvas)
+        self.picker = PlotPicker(canvas)
         pen = QPen(Qt.black)
         self.zoomer.setRubberBandPen(pen)
         self.picker.setTrackerPen(pen)
@@ -387,6 +408,8 @@ class Plot(QFrame, Ui_Plot):
         self.loadCanvasColor()
         self.loadLegend()
         self.updateAxis()
+        scaler = self.plot.axisScaleEngine(xBottom)
+        scaler.setMargins(0.1, 0.1)
         axisactions = [self.actionChangeAxesFont, self.actionChangeAxesColor]
         for widget in self.axisWidgets():
             widget.addActions(axisactions)
@@ -428,6 +451,7 @@ class Plot(QFrame, Ui_Plot):
             [self.actionChangeCurveStyle,
              self.actionChangeDataMarker,
              self.actionChangeCurveAxis])
+        tree.expandAll()
 
     def addSeries(self, name, series, parent=None):
         """ Creates new controls and curve for an individual series.
@@ -438,7 +462,7 @@ class Plot(QFrame, Ui_Plot):
         if parent is None:
             parent = self.controlsTreeModel.invisibleRootItem()
         item = ControlTreeItem(name, series)
-        item.curve.setYAxis(QwtPlot.yRight)
+        item.curve.setYAxis(yRight)
         item.curve.setVisible(False)
         item.setColor(self.loadItemPen(item).color())
         parent.appendRow(item)
@@ -473,6 +497,8 @@ class Plot(QFrame, Ui_Plot):
 
     def checkZoom(self, rect):
         """ Sets autoscaling mode when plot is zoomed to its base.
+
+        This slot isn't hooked to a signal.
 
         @param rect ignored
         @return None
@@ -519,8 +545,9 @@ class Plot(QFrame, Ui_Plot):
             legend.clear()
             legend.hide()
         plot.updateAxes()
-        self.zoomer.setZoomBase()
-        self.connect(self.zoomer, Signals.zoomed, self.checkZoom)
+        if not self.zoomer.zoomRectIndex():
+            self.enableAutoScale()
+            self.zoomer.setZoomBase()
         plot.replot()
 
     def getAxisColor(self):
@@ -572,7 +599,7 @@ class Plot(QFrame, Ui_Plot):
         curve.setPaintAttribute(
             curve.ClipPolygons, getv('%s/clippoly' % name).toBool())
         curve.setYAxis(
-            QwtPlot.Axis(getv('%s/yaxis' % name, QwtPlot.yRight).toInt()[0]))
+            QwtPlot.Axis(getv('%s/yaxis' % name, yRight).toInt()[0]))
 
         def applySymbol(symname, symobj):
             symobj.setBrush(QBrush(getv('%s/brush' % symname, QBrush())))
@@ -657,7 +684,7 @@ class Plot(QFrame, Ui_Plot):
         """ Returns a referece axis widget.
 
         """
-        return self.plot.axisWidget(QwtPlot.xBottom)
+        return self.plot.axisWidget(xBottom)
 
     def saveCanvasColor(self):
         """ Saves the canvas background color to user settings.
@@ -800,12 +827,12 @@ class Plot(QFrame, Ui_Plot):
         @return None
         """
         items = self.checkedItems()
-        rights = any(i for i in items if i.curve.yAxis()==QwtPlot.yRight)
-        lefts = any(i for i in items if i.curve.yAxis()==QwtPlot.yLeft)
-        self.plot.enableAxis(QwtPlot.yRight, rights)
-        self.plot.enableAxis(QwtPlot.yLeft, lefts)
+        rights = any(i for i in items if i.curve.yAxis()==yRight)
+        lefts = any(i for i in items if i.curve.yAxis()==yLeft)
+        self.plot.enableAxis(yRight, rights)
+        self.plot.enableAxis(yLeft, lefts)
         if not rights and not lefts:
-            self.plot.enableAxis(QwtPlot.yRight, True)
+            self.plot.enableAxis(yRight, True)
 
     ## session signal handlers
 
@@ -873,10 +900,10 @@ class Plot(QFrame, Ui_Plot):
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
             curve = item.curve
-            if curve.yAxis() == QwtPlot.yLeft:
-                curve.setYAxis(QwtPlot.yRight)
+            if curve.yAxis() == yLeft:
+                curve.setYAxis(yRight)
             else:
-                curve.setYAxis(QwtPlot.yLeft)
+                curve.setYAxis(yLeft)
             self.updateAxis()
             self.saveCurve(self.itemName(item), curve)
             self.plot.replot()
@@ -1097,7 +1124,7 @@ class Plot(QFrame, Ui_Plot):
         index = tree.indexAt(pos)
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
-            if item.curve.yAxis() == QwtPlot.yRight:
+            if item.curve.yAxis() == yRight:
                 self.actionChangeCurveAxis.setText('Move to Left Axis')
             else:
                 self.actionChangeCurveAxis.setText('Move to Right Axis')

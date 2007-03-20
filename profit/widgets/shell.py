@@ -117,7 +117,7 @@ class PythonShell(QTextEdit):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
         filename = settings.value('startupScript').toString()
-        if not filename:
+        if not filename or not self.parent():
             return
         try:
             script = file(filename, 'r')
@@ -153,8 +153,8 @@ class PythonShell(QTextEdit):
         self.historyName = name = expanduser(self.historyName)
         if exists(name):
             hist = open(name, 'r')
-            lines = [line for line in hist.readlines() if line.strip()]
-            self.history.extend([QString(line) for line in lines])
+            lines = [line.strip() for line in hist.readlines()]
+            self.history.extend([QString(line) for line in lines if line])
             hist.close()
         else:
             try:
@@ -219,6 +219,7 @@ class PythonShell(QTextEdit):
         if control:
             if key==Qt.Key_L:
                 self.clear()
+                self.run()
             elif key==Qt.Key_C:
                 self.copy()
             elif key==Qt.Key_V:
@@ -290,24 +291,21 @@ class PythonShell(QTextEdit):
         self.clearLine()
         self.insertPlainText(self.history[self.pointer])
 
-    def mousePressEvent(self, e):
+    def __mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
             self.moveCursor(QTextCursor.End)
 
+    def canInsertFromMimeData(self, source):
+        return source.hasText()
+
+    def insertFromMimeData(self, source):
+        for line in str(source.text()).split('\n'):
+            self.line = QString(line)
+            self.write(self.line+'\n')
+            self.run()
+
     def clear(self):
         self.setPlainText('')
-
-
-##
-## these methods are for the main gui client
-##
-    def sessionToNamespace(self, session):
-        shelld = self.interp.locals
-
-        shelld['device'] = self.topLevelWidget()
-        shelld['session'] = session
-        shelld.update(session)
-
 
 
 class MultiCast(list):
@@ -354,6 +352,6 @@ if not isinstance(sys.stderr, MultiCast):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = PythonShell()
+    window = PythonShell(parent=None, stdout=sys.__stdout__, stderr=sys.__stderr__)
     window.show()
     sys.exit(app.exec_())

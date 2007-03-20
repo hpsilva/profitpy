@@ -15,7 +15,6 @@ from .ui_accountsummary import Ui_AccountSummary
 from .accountkeysdialog import AccountKeysDialog
 
 
-
 class LCD(QLCDNumber, ValueColorItem):
     """ An LCD widget that adjusts its colors as values are set.
 
