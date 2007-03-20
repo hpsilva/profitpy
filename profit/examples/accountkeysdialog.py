@@ -7,7 +7,7 @@
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QDialog, QStandardItem, QStandardItemModel
 
-from profit.widgets.ui_accountkeysdialog import Ui_AccountKeysDialog
+from .ui_accountkeysdialog import Ui_AccountKeysDialog
 
 
 class AccountKeysModel(QStandardItemModel):
