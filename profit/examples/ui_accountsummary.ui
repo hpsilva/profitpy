@@ -73,8 +73,6 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="profit.qrc" />
- </resources>
+ <resources/>
  <connections/>
 </ui>

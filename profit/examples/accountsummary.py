@@ -10,8 +10,9 @@ from PyQt4.QtGui import QApplication, QFrame, QLCDNumber
 
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import ValueColorItem
+from profit.examples.ui_accountsummary import Ui_AccountSummary
 from profit.widgets.accountkeysdialog import AccountKeysDialog
-from profit.widgets.ui_accountsummary import Ui_AccountSummary
+
 
 
 class LCD(QLCDNumber, ValueColorItem):

@@ -16,14 +16,7 @@
 # TODO: implement order dialog
 # TODO: error dialog instead of message dialog on session load w/ open tabs
 # TODO: cancel threads on save/export msg box abort
-# TODO: add item/row highlight to plot data and plot widget
 # TODO: change x axis scale from 1-n to 0-n
-# TODO: remove markers on data dialog close
-# TODO: move account summary dock to examples directory; make optional
-#       and explain implementation
-# TODO: hack sip meta connnect to locate on_parent and on_self methods
-# TODO: hack sip to check for not just lambdas, but callables in local
-#       scope during signal connection
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -42,7 +35,6 @@ from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
 
 from profit.widgets import profit_rc
-from profit.widgets.accountsummary import AccountSummary
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
@@ -366,8 +358,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
 
     def setupMenus(self):
-        self.menuView.clear()
-        self.menuView.addAction(self.accountDock.toggleViewAction())
+        #self.menuView.clear()
         self.menuView.addAction(self.sessionDock.toggleViewAction())
         self.menuView.addAction(self.shellDock.toggleViewAction())
         self.menuView.addAction(self.stdoutDock.toggleViewAction())
@@ -393,9 +384,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowIcon(icon)
 
     def setupLeftDock(self):
-        self.accountDock = Dock('Account Summary', self, AccountSummary)
         self.sessionDock = Dock('Session', self, SessionTree)
-        self.tabifyDockWidget(self.sessionDock, self.accountDock)
 
     def setupRecentSessions(self):
         self.recentSessionsActions = actions = \
