@@ -30,12 +30,14 @@ class Signals:
     finished = SIGNAL('finished()')
     highlightSelections = SIGNAL('highlightSelections')
     intValueChanged = SIGNAL('valueChanged(int)')
+    itemChanged = SIGNAL('itemChanged(QStandardItem *)')
     itemDoubleClicked = SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)')
     lastWindowClosed = SIGNAL('lastWindowClosed()')
     layoutChanged = SIGNAL('layoutChanged()')
     modelDoubleClicked = SIGNAL('doubleClicked (const QModelIndex &)')
     modelReset = SIGNAL('modelReset()')
     modified = SIGNAL('modified')
+    rowsInserted = SIGNAL('rowsInserted(const QModelIndex &, int, int)')
     selectionChanged = \
         SIGNAL('selectionChanged(const QItemSelection &, '
                'const QItemSelection &)')

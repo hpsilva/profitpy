@@ -153,9 +153,9 @@
     <string>Change Style...</string>
    </property>
   </action>
-  <action name="actionChangeCurveAxis" >
+  <action name="actionChangeCurveAxisY" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/log.png</iconset>
+    <iconset resource="profit.qrc" >:/images/icons/kruler.png</iconset>
    </property>
    <property name="text" >
     <string>Move to Left Axis</string>
@@ -241,6 +241,14 @@
    </property>
    <property name="toolTip" >
     <string>Data Marker Style</string>
+   </property>
+  </action>
+  <action name="actionChangeCurveAxisX" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/kruler.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Move to Top Axis</string>
    </property>
   </action>
  </widget>

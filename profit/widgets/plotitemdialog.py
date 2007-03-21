@@ -253,15 +253,17 @@ def fillStyleFunction(pixmapType, stylesDefault):
         @return None
         """
         if combo.count():
-            return
-        painter = QPainter()
-        for index, (style, name) in enumerate(styles):
-            pixmap = pixmapType()
-            pixmap.paintStyle(painter, style)
-            combo.addItem(QIcon(pixmap), name, QVariant(style))
-            if style == current:
-                combo.setCurrentIndex(index)
-        combo.setIconSize(pixmap.size())
+            index = combo.findData(QVariant(current))
+            combo.setCurrentIndex(index)
+        else:
+            painter = QPainter()
+            for index, (style, name) in enumerate(styles):
+                pixmap = pixmapType()
+                pixmap.paintStyle(painter, style)
+                combo.addItem(QIcon(pixmap), name, QVariant(style))
+                if style == current:
+                    combo.setCurrentIndex(index)
+            combo.setIconSize(pixmap.size())
     return fillFunction
 
 
@@ -381,14 +383,12 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         linestyle = comboCurrentData(self.lineStyle, curve.CurveStyle)
         curve.setStyle(linestyle)
         curve.setBaseline(self.areaFillBaseline.value())
-
         brush = QBrush()
         if self.areaFill.isChecked():
             style = comboCurrentData(self.areaFillStyle, Qt.BrushStyle)
             brush.setStyle(style)
             brush.setColor(self.areaFillColor.color)
         curve.setBrush(brush)
-
         if linestyle == QwtPlotCurve.Steps:
             curve.setCurveAttribute(curve.Inverted,
                 self.curveAttributeInverted.checkState()==Qt.Checked)
@@ -402,22 +402,19 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         symbol = QwtSymbol()
         style = comboCurrentData(self.symbolStyle, symbol.Style)
         symbol.setStyle(style)
-        if style != QwtSymbol.NoSymbol:
-            symbol.setSize(
-                self.symbolWidth.value(), self.symbolHeight.value())
-            pen = QPen()
-            pen.setStyle(comboCurrentData(self.symbolPenStyle, Qt.PenStyle))
-            pen.setColor(self.symbolPenColor.color)
-            pen.setWidth(self.symbolPenWidth.value())
-            symbol.setPen(pen)
-
-            brush = QBrush()
-            if self.symbolFill.isChecked():
-                style = comboCurrentData(self.symbolFillStyle, Qt.BrushStyle)
-                brush.setStyle(style)
-                brush.setColor(self.symbolFillColor.color)
-            symbol.setBrush(brush)
-            curve.setSymbol(symbol)
+        symbol.setSize(self.symbolWidth.value(), self.symbolHeight.value())
+        pen = QPen()
+        pen.setStyle(comboCurrentData(self.symbolPenStyle, Qt.PenStyle))
+        pen.setColor(self.symbolPenColor.color)
+        pen.setWidth(self.symbolPenWidth.value())
+        symbol.setPen(pen)
+        brush = QBrush()
+        if self.symbolFill.isChecked():
+            style = comboCurrentData(self.symbolFillStyle, Qt.BrushStyle)
+            brush.setStyle(style)
+            brush.setColor(self.symbolFillColor.color)
+        symbol.setBrush(brush)
+        curve.setSymbol(symbol)
 
     def applyToMarker(self, marker):
         """ Applies values in this dialog to specified marker.
@@ -429,20 +426,19 @@ class PlotItemDialog(QDialog, Ui_PlotItemDialog):
         symbol = QwtSymbol()
         style = comboCurrentData(self.symbolStyle, symbol.Style)
         symbol.setStyle(style)
-        if style != QwtSymbol.NoSymbol:
-            symbol.setSize(
-                self.symbolWidth.value(), self.symbolHeight.value())
-            pen = QPen()
-            pen.setStyle(comboCurrentData(self.symbolPenStyle, Qt.PenStyle))
-            pen.setColor(self.symbolPenColor.color)
-            pen.setWidth(self.symbolPenWidth.value())
-            symbol.setPen(pen)
-            brush = QBrush()
-            if self.symbolFill.isChecked():
-                style = comboCurrentData(self.symbolFillStyle, Qt.BrushStyle)
-                brush.setStyle(style)
-                brush.setColor(self.symbolFillColor.color)
-            symbol.setBrush(brush)
+        symbol.setSize(
+            self.symbolWidth.value(), self.symbolHeight.value())
+        pen = QPen()
+        pen.setStyle(comboCurrentData(self.symbolPenStyle, Qt.PenStyle))
+        pen.setColor(self.symbolPenColor.color)
+        pen.setWidth(self.symbolPenWidth.value())
+        symbol.setPen(pen)
+        brush = QBrush()
+        if self.symbolFill.isChecked():
+            style = comboCurrentData(self.symbolFillStyle, Qt.BrushStyle)
+            brush.setStyle(style)
+            brush.setColor(self.symbolFillColor.color)
+        symbol.setBrush(brush)
         marker.setSymbol(symbol)
         if self.noLine.isChecked():
             style = marker.NoLine

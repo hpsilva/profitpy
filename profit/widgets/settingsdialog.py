@@ -76,10 +76,7 @@ schema[Settings.keys.main] = [
 ]
 
 schema[Settings.keys.strategy] = [
-    ('accountSupervisor', getText, setText, ''),
-    ('orderSupervisor', getText, setText, ''),
-    ('tickerSchema', getText, setText, ''),
-    ('tradeIndicator', getText, setText, ''),
+    ('strategySchema', getText, setText, ''),
 ]
 
 schema[Settings.keys.appearance] = [
@@ -138,9 +135,6 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
                 settings.setValue(name, value)
             settings.endGroup()
 
-    on_selectAccountSupervisor_clicked = sysPathSelectMethod('accountSupervisor')
-    on_selectOrderSupervisor_clicked = sysPathSelectMethod('orderSupervisor')
-    on_selectTradeIndicator_clicked = sysPathSelectMethod('tradeIndicator')
     on_increaseColor_clicked = colorValueSelectMethod('increaseColor')
     on_neutralColor_clicked = colorValueSelectMethod('neutralColor')
     on_decreaseColor_clicked = colorValueSelectMethod('decreaseColor')
@@ -158,6 +152,13 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             self, 'Select Startup Script', '', 'Python scripts (*.py)')
         if filename:
             self.startupScript.setText(filename)
+
+    @pyqtSignature('')
+    def on_selectStrategySchema_clicked(self):
+        filename = QFileDialog.getOpenFileName(
+            self, 'Select Strategy Schema', '', 'Schema Files (*schema)')
+        if filename:
+            self.strategySchema.setText(filename)
 
     @pyqtSignature('')
     def on_tickerUrls_itemSelectionChanged(self):

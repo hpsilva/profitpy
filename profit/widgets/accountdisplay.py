@@ -157,5 +157,3 @@ class AccountDisplay(QFrame, Ui_AccountDisplay):
         self.session = session
         self.dataModel = AccountTableModel(session, self)
         self.accountValuesTable.setModel(self.dataModel)
-
-print '## account display module loaded.'

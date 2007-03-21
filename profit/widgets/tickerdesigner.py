@@ -16,9 +16,11 @@ from PyQt4.QtGui import QStandardItemModel, QToolBar
 
 from ib.ext.Contract import Contract
 from ib.ext.TickType import TickType
+from ib.opt import message
 
 from profit import series
 from profit.lib.core import Settings, Signals
+from profit.widgets.settingsdialog import SysPathDialog, sysPathSelectMethod
 from profit.widgets.ui_tickerdesigner import Ui_TickerDesigner
 
 
@@ -58,13 +60,23 @@ class SchemaItem(QStandardItem):
         self.setEditable(False)
         self.cutSource = self.copySource = False
 
-    @property
-    def immediateChildren(self):
-        """ Yields each immediate child of this item.
+    def canCopy(self):
+        return False
 
-        """
-        for row in range(self.rowCount()):
-            yield self.child(row)
+    def canCut(self):
+        return False
+
+    def canDelete(self):
+        return True
+
+    def canInsert(self, *types):
+        return any([t in types for t in self.rootTypes()])
+
+    def rootTypes(self):
+        return [CallableItem, TickerItem]
+
+    def canPaste(self, item):
+        return False
 
     @property
     def children(self):
@@ -76,6 +88,14 @@ class SchemaItem(QStandardItem):
             yield child
             for c in child.children:
                 yield c
+
+    @property
+    def immediateChildren(self):
+        """ Yields each immediate child of this item.
+
+        """
+        for row in range(self.rowCount()):
+            yield self.child(row)
 
     def resetForeground(self):
         """ Sets the foreground brush for this item to the original.
@@ -132,14 +152,56 @@ class SchemaItem(QStandardItem):
         return item
 
 
+class CallableItem(SchemaItem):
+    """ Schema tree root-level item type for callables
+
+    """
+    def __init__(self, name):
+        SchemaItem.__init__(self, name)
+        self.name = name
+        self.threadInterval = 0
+        self.scriptName = ''
+        self.syspathName = ''
+        self.execType = ''
+        self.srcType = ''
+        self.messageTyeps = []
+
+    def canInsert(self, *types):
+        return False
+
+    @classmethod
+    def fromSchema(cls, data):
+        """ Creates a CallableItem from a schema.
+
+        @param data schema dictionary
+        @return CallableItem instance
+        """
+        instance = cls(data.get('name', 'Unknown'))
+        instance.threadInterval = data.get('threadInterval', 0)
+        instance.scriptName = data.get('scriptName', '')
+        instance.syspathName = data.get('syspathName', '')
+        instance.execType = data.get('execType', '')
+        instance.srcType = data.get('srcType', '')
+        instance.messageTypes = data.get('messageTypes', [])
+        return instance
+
+    def toSchema(self):
+        return dict(name=self.name,
+                    threadInterval=self.threadInterval,
+                    scriptName=self.scriptName,
+                    syspathName=self.syspathName,
+                    execType=self.execType,
+                    srcType=self.srcType,
+                    messageTypes=self.messageTypes)
+
+
 class TickerItem(SchemaItem):
-    """ Schema tree root-level items.
+    """ Schema tree root-level item type for tickers.
 
     TickerItems may not be cut or copied because the class does not
     provide a clone method.
 
-    TickerItems may contain FieldItems only.  This restriction is
-    enforced by the gui.
+    TickerItems may contain FieldItems only.
     """
     def __init__(self, tickerId, symbol, exchange='', secType='',
                  expiry='', right='', strike=0.0, currency=''):
@@ -157,6 +219,12 @@ class TickerItem(SchemaItem):
         self.right = right
         self.strike = strike
         self.currency = currency
+
+    def canInsert(self, *types):
+        return FieldItem in types
+
+    def canPaste(self, item):
+        return isinstance(item, FieldItem)
 
     def loadIcon(self, settings):
         """ Load and set an icon appropriate for this item.
@@ -225,6 +293,18 @@ class FieldItem(SchemaItem):
         SchemaItem.__init__(self, name)
         self.id = -1
 
+    def canCopy(self):
+        return True
+
+    def canCut(self):
+        return True
+
+    def canInsert(self, *types):
+        return IndexItem in types
+
+    def canPaste(self, item):
+        return isinstance(item, IndexItem)
+
     def clone(self):
         """ Creates copy of this item.
 
@@ -235,14 +315,6 @@ class FieldItem(SchemaItem):
         for child in self.immediateChildren:
             clone.appendRow(child.clone())
         return clone
-
-    def toSchema(self):
-        """ Generated schema dictionary for this item.
-
-        @return schema as a dictionary
-        """
-        indexes = [child.toSchema() for child in self.immediateChildren]
-        return dict(name=str(self.text()), id=self.id, indexes=indexes)
 
     @classmethod
     def fromSchema(cls, data):
@@ -256,6 +328,14 @@ class FieldItem(SchemaItem):
         for indexschema in data.get('indexes', []):
             instance.appendRow(IndexItem.fromSchema(indexschema))
         return instance
+
+    def toSchema(self):
+        """ Generated schema dictionary for this item.
+
+        @return schema as a dictionary
+        """
+        indexes = [child.toSchema() for child in self.immediateChildren]
+        return dict(name=str(self.text()), id=self.id, indexes=indexes)
 
 
 class IndexItem(SchemaItem):
@@ -273,6 +353,18 @@ class IndexItem(SchemaItem):
         SchemaItem.__init__(self, typeName)
         self.typeName = typeName
         self.parameters = {}
+
+    def canCopy(self):
+        return True
+
+    def canCut(self):
+        return True
+
+    def canInsert(self, *types):
+        return IndexItem in types
+
+    def canPaste(self, item):
+        return isinstance(item, IndexItem)
 
     def clone(self):
         """ Creates copy of this item.
@@ -324,6 +416,17 @@ class IndexItem(SchemaItem):
         return instance
 
 
+def itemSenderPropMatchMethod(name):
+    @pyqtSignature('bool')
+    def method(self, checked):
+        item = self.editItem
+        sender = self.sender()
+        if item and sender and checked:
+            setattr(item, name, str(sender.property(name).toString()))
+            self.emit(Signals.modified)
+    return method
+
+
 class TickerDesigner(QMainWindow, Ui_TickerDesigner):
     """ Ticker Designer main window class.
 
@@ -331,7 +434,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
     defaultText = 'Unknown'
     fieldTypes = tickerFieldTypes()
     indexTypes = seriesIndexTypes()
-    itemTypePages = {TickerItem:1, FieldItem:2, IndexItem:3}
+    itemTypePages = {TickerItem:1, FieldItem:2, IndexItem:3, CallableItem:4}
 
     def __init__(self, filename=None, parent=None):
         """ Constructor.
@@ -506,6 +609,32 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
 
     # ordinary methods
 
+    def addSchemaItem(self, **kwds):
+        try:
+            hasExec = kwds['execType']
+            return self.addCallableItem(**kwds)
+        except (KeyError, ):
+            pass
+        try:
+            hasTickerId = kwds['tickerId']
+            return self.addTickerItem(**kwds)
+        except (KeyError, ):
+            pass
+        raise NotImplemented(str(kwds))
+
+    def addCallableItem(self, **kwds):
+        """ Creates new TickerItem at the model root.
+
+        Caller is responsible for emitting the modified signal.
+
+        @param **kwds key-value pairs passed to TickerItem constructor
+        @return created TickerItem instance
+        """
+        item = CallableItem.fromSchema(kwds)
+        item.setIcon(self.actionInsertCallable.icon())
+        self.model.appendRow(item)
+        return item
+
     def addTickerItem(self, **kwds):
         """ Creates new TickerItem at the model root.
 
@@ -527,6 +656,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         @return created FieldItem instance
         """
         item = FieldItem(self.defaultText)
+        item.setIcon(self.actionInsertField.icon())
         self.editItem.appendRow(item)
         self.treeView.expand(item.parent().index())
         return item
@@ -539,6 +669,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         @return created IndexItem instance
         """
         item = IndexItem(self.defaultText)
+        item.setIcon(self.actionInsertIndex.icon())
         self.editItem.appendRow(item)
         self.treeView.expand(item.parent().index())
         return item
@@ -589,34 +720,25 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         @return None
         """
         up = down = cut = delete = copy = paste = False
-        isticker = isindexorfield = False
+        insertindex = insertfield = False
         if index and index.isValid():
-            clip = self.clipItem
             model = index.model()
-            item = model.itemFromIndex(index)
-            isticker = isinstance(item, TickerItem)
-            isfield = isinstance(item, FieldItem)
-            isindex = isinstance(item, IndexItem)
-            isindexorfield = isfield or isindex
-            ## can always delete an item
-            delete = True
-            ## can only cut and copy field and index items
-            cut = copy = isindexorfield
-            ## can only paste certain combinations
-            if isticker:
-                paste = isinstance(clip, FieldItem)
-            elif isfield:
-                paste = isinstance(clip, IndexItem)
-            elif isindex:
-                paste = isinstance(clip, IndexItem)
-            if clip and clip.cutSource and clip == item:
-                paste = False
             up = model.sibling(index.row()-1, 0, index).isValid()
             down = model.sibling(index.row()+1, 0, index).isValid()
+            item = model.itemFromIndex(index)
+            delete = item.canDelete()
+            cut = item.canCut()
+            copy = item.canCopy()
+            clip = self.clipItem
+            paste = item.canPaste(clip)
+            if clip and clip.cutSource and clip == item:
+                paste = False
+            insertindex = item.canInsert(IndexItem)
+            insertfield = item.canInsert(FieldItem)
         self.actionMoveUp.setEnabled(up)
         self.actionMoveDown.setEnabled(down)
-        self.actionInsertIndex.setEnabled(isindexorfield)
-        self.actionInsertField.setEnabled(isticker)
+        self.actionInsertIndex.setEnabled(insertindex)
+        self.actionInsertField.setEnabled(insertfield)
         self.actionCut.setEnabled(cut)
         self.actionDelete.setEnabled(delete)
         self.actionCopy.setEnabled(copy)
@@ -721,6 +843,32 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         root = self.model.invisibleRootItem()
         return [root.child(row).toSchema() for row in range(root.rowCount())]
 
+    def setupCallableItem(self, item):
+        self.callableName.setText(item.name)
+        self.callableThreadInterval.setValue(item.threadInterval)
+        self.callableScriptEdit.setText(item.scriptName)
+        self.callableSysPathEdit.setText(item.syspathName)
+        if item.srcType == 'script':
+            self.callableScriptButton.setChecked(True)
+        else:
+            self.callableSysPathButton.setChecked(True)
+        if item.execType == 'message':
+            self.callableMessageHandlerButton.setChecked(True)
+        elif item.execType == 'thread':
+            self.callableThreadButton.setChecked(True)
+        else:
+            self.callableSingleShotButton.setChecked(True)
+        self.allTypeNames = [c.typeName for c in message.registry.values()]
+        widget = self.callableMessageTypes
+        widget.clear()
+        self.allTypeNames = [c.typeName for c in message.registry.values()]
+        itemTypes = item.messageTypes
+        for row, typeName in enumerate(sorted(self.allTypeNames)):
+            widget.addItem(typeName)
+            item = widget.item(row)
+            item.setCheckState(
+                Qt.Checked if typeName in itemTypes else Qt.Unchecked)
+
     def setupTickerItem(self, item):
         """ Configures ticker page widgets from given item.
 
@@ -788,6 +936,16 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         self.fieldCombo.addItem('<none>', QVariant())
         for id, name in sorted(self.fieldTypes.items()):
             self.fieldCombo.addItem(name, QVariant(id))
+        self.callableMessageHandlerButton.setProperty(
+            'execType', QVariant('message'))
+        self.callableSingleShotButton.setProperty(
+            'execType', QVariant('singleshot'))
+        self.callableThreadButton.setProperty(
+            'execType', QVariant('thread'))
+        self.callableScriptButton.setProperty(
+            'scrType', QVariant('script'))
+        self.callableSysPathButton.setProperty(
+            'scrType', QVariant('syspath'))
 
     def showMessage(self, text, duration=3000):
         """ Displays text in the window status bar.
@@ -806,8 +964,9 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         """
         try:
             for data in schema:
-                self.addTickerItem(**data)
-        except (Exception, ):
+                self.addSchemaItem(**data)
+        except (Exception, ), ex:
+            print '##', ex
             QMessageBox.warning(self, 'Warning', 'Unable to read schema.')
             self.resetSchema()
         else:
@@ -815,6 +974,14 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.schemaFile = filename
             self.resetWindowTitle()
             self.treeView.expandAll()
+            root = self.model.invisibleRootItem()
+            items = [root.child(row) for row in range(root.rowCount())]
+            for item in items:
+                for c in item.children:
+                    if type(c) == FieldItem:
+                        c.setIcon(self.actionInsertField.icon())
+                    elif type(c) == IndexItem:
+                        c.setIcon(self.actionInsertIndex.icon())
 
     def writeSettings(self):
         """ Saves window settings and state.
@@ -1041,6 +1208,10 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.iconPreview.setPixmap(item.icon().pixmap(32, 32))
             self.emit(Signals.modified)
 
+    def on_treeView_pressed(self, index):
+        #print '## index pressed', index, index.isValid()
+        pass
+
     def on_treeView_clicked(self, index):
         """ Signal handler for schema tree mouse click.
 
@@ -1118,6 +1289,11 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.emit(Signals.modified)
 
     @pyqtSignature('')
+    def on_actionInsertCallable_triggered(self):
+        self.addCallableItem(name=self.defaultText)
+        self.emit(Signals.modified)
+
+    @pyqtSignature('')
     def on_actionInsertTicker_triggered(self):
         """ Signal handler for insert ticker action; adds ticker item to tree.
 
@@ -1127,7 +1303,7 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
         root = self.model.invisibleRootItem()
         items = [root.child(r, 0) for r in range(root.rowCount())]
         if items:
-            tickerId += max([item.tickerId for item in items])
+            tickerId += max([getattr(i, 'tickerId', 0) for i in items])
         self.addTickerItem(tickerId=tickerId, symbol=self.defaultText)
         self.emit(Signals.modified)
 
@@ -1267,6 +1443,77 @@ class TickerDesigner(QMainWindow, Ui_TickerDesigner):
             self.schemaFile = str(filename)
             self.actionSaveSchema.trigger()
             self.resetWindowTitle()
+
+    # callable editor widget signal handlers
+
+    on_callableSingleShotButton_clicked = \
+        itemSenderPropMatchMethod('execType')
+
+    on_callableThreadButton_clicked = \
+        itemSenderPropMatchMethod('execType')
+
+    on_callableMessageHandlerButton_clicked = \
+        itemSenderPropMatchMethod('execType')
+
+    on_callableScriptButton_clicked = \
+        itemSenderPropMatchMethod('srcType')
+
+    on_callableSysPathButton_clicked = \
+        itemSenderPropMatchMethod('srcType')
+
+    def on_callableName_textEdited(self, text):
+        item = self.editItem
+        if item:
+            item.setText(text)
+            item.name = str(text)
+            self.emit(Signals.modified)
+
+    @pyqtSignature('int')
+    def on_callableThreadInterval_valueChanged(self, value):
+        item = self.editItem
+        if item:
+            item.threadInterval = value
+            self.emit(Signals.modified)
+
+    def on_callableMessageTypes_itemChanged(self, messageItem):
+        checked = messageItem.checkState()==Qt.Checked
+        key = str(messageItem.text())
+        item = self.editItem
+        if item:
+            if checked and key not in item.messageTypes:
+                item.messageTypes.append(key)
+            elif not checked and key in item.messageTypes:
+                item.messageTypes.remove(key)
+
+    def on_callableScriptEdit_textChanged(self, text):
+        item = self.editItem
+        if item:
+            item.scriptName = str(text)
+            self.emit(Signals.modified)
+
+    def on_callableSysPathEdit_textChanged(self, text):
+        item = self.editItem
+        if item:
+            item.syspathName = str(text)
+            self.emit(Signals.modified)
+
+    @pyqtSignature('')
+    def on_callableScriptSelectButton_clicked(self):
+        item = self.editItem
+        if item:
+            filename = QFileDialog.getOpenFileName(
+                self, 'Select Script', '', 'Executable file (*.*)')
+            if filename:
+                self.callableScriptEdit.setText(filename)
+
+    on_callableSysPathSelectButton_clicked = \
+        sysPathSelectMethod('callableSysPathEdit')
+
+    @pyqtSignature('')
+    def on_actionPrintSchema_triggered(self):
+        import pprint
+        pprint.pprint(self.schema())
+
 
 
 if __name__ == '__main__':

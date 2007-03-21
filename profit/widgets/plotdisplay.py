@@ -8,14 +8,12 @@ from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import QFrame
 
 from profit.lib.core import Settings, Signals
-import profit.widgets.plot
-reload(profit.widgets.plot)
 from profit.widgets.plot import Plot
 from profit.widgets.ui_plotdisplay import Ui_PlotDisplay
 
 
 class PlotDisplay(QFrame, Ui_PlotDisplay):
-    """ Combines two plot widgets into a single display.
+    """ Combines one or more plot widgets into a single display.
 
     """
     def __init__(self, parent=None):
