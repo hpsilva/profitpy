@@ -21,7 +21,7 @@ from ib.opt import message
 from profit import series
 from profit.lib.core import Settings, Signals
 from profit.widgets.settingsdialog import SysPathDialog, sysPathSelectMethod
-from profit.widgets.ui_tickerdesigner import Ui_TickerDesigner
+from profit.widgets.ui_strategydesigner import Ui_StrategyDesigner
 
 
 def tickerFieldTypes():
@@ -427,7 +427,7 @@ def itemSenderPropMatchMethod(name):
     return method
 
 
-class TickerDesigner(QMainWindow, Ui_TickerDesigner):
+class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
     """ Ticker Designer main window class.
 
     """
@@ -1523,6 +1523,6 @@ if __name__ == '__main__':
         filename = sys.argv[1]
     except (IndexError, ):
         filename = None
-    window = TickerDesigner(filename)
+    window = StrategyDesigner(filename)
     window.show()
     sys.exit(app.exec_())

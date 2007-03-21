@@ -321,9 +321,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.emit(Signals.settingsChanged)
 
     @pyqtSignature('')
-    def on_actionTickerDesigner_triggered(self):
-        from profit.widgets.tickerdesigner import TickerDesigner
-        win = TickerDesigner(parent=self)
+    def on_actionStrategyDesigner_triggered(self):
+        from profit.widgets.strategydesigner import StrategyDesigner
+        win = StrategyDesigner(parent=self)
         win.show()
 
     def on_trayIcon_activated(self, reason):

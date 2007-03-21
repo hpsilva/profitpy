@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>TickerDesigner</class>
- <widget class="QMainWindow" name="TickerDesigner" >
+ <class>StrategyDesigner</class>
+ <widget class="QMainWindow" name="StrategyDesigner" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -1413,7 +1413,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>actionQuit</sender>
    <signal>triggered()</signal>
-   <receiver>TickerDesigner</receiver>
+   <receiver>StrategyDesigner</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel" >

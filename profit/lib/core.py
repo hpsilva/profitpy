@@ -74,7 +74,7 @@ class Settings(QSettings):
         app = 'Profit Device'
         appearance = 'Appearance'
         connection = 'Connection'
-        designer = 'TickerDesigner'
+        designer = 'StrategyDesigner'
         main = 'MainWindow'
         maximized = 'Maximized'
         messages = 'Messages'

@@ -1197,6 +1197,3 @@ class Plot(QFrame, Ui_Plot):
         settings = self.settings
         statekey = '%s/%s' % (self.plotName(), settings.keys.splitstate)
         settings.setValue(statekey, self.plotSplitter.saveState())
-
-
-print '## profit.widgets.plot loaded'
