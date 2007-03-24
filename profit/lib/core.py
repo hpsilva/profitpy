@@ -48,6 +48,7 @@ class Signals:
     statusMessage = SIGNAL('statusMessage')
     terminated = SIGNAL('terminated()')
     textChanged = SIGNAL('textChanged(const QString &)')
+    textChangedEditor = SIGNAL('textChanged()')
     tickerClicked = SIGNAL('tickerClicked')
     timeout = SIGNAL('timeout()')
     triggered = SIGNAL('triggered()')

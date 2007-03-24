@@ -12,11 +12,9 @@
 # TODO: add strategy, account supervisor, order supervisor and indicator display
 # TODO: move strategy and builders out of session module; implement user values
 # TODO: add default colors for arbitrary plot curves
-# TODO: implement order dialog
 # TODO: cancel threads on save/export msg box abort
 # TODO: add request session signal and remove manual calls to session passing
 # TODO: add a slow session importer
-# TODO: enable curves and items on xtop
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp

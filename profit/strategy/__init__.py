@@ -5,140 +5,75 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-
 from PyQt4.QtCore import QObject
 
 from profit.lib import logging
 from profit.lib.core import Settings
 
 
-class StrategyManager(QObject):
-    def __init__(self, session, parent=None):
-        QObject.__init__(self, parent)
-        self.session = session
-        self.accountSupervisor = None
-        self.orderSupervisor = None
-        self.tradeIndicator = None
-        self.enabled = True
-        session.registerMeta(self)
+class Strategy:
+    def __init__(self):
+        self.threads = []
+        self.tickers = []
 
-    def setEnabled(self, enable=True):
-        self.enabled = enabled
+    @classmethod
+    def fromSchema(cls, schema):
+        tickers = tickers(schema)
+        singleshots = singleshots(schema)
+        instance = cls()
+        return instance
 
-    def on_session_TickSize_TickPrice(self, message):
-        if self.tradeIndicator:
-            indication = self.tradeIndicator(message)
-            if indication and self.accountSupervisor:
-                order = self.accountSupervisor(indication)
-                if order and self.orderSupervisor:
-                    self.orderSupervisor(order)
-                elif order and not self.orderSupervisor:
-                    pass
-                    #logging.debug(
-                    #    'no order supervisor - skipped message %s', message)
-            elif indication and not self.accountSupervisor:
-                pass
-                #logging.debug(
-                #    'no account supervisor - skipped message %s', message)
-        else:
-            pass
-            #logging.debug(
-            #    'no trade indicator - skipped message %s', message)
+    def build(self, session):
+        tickers = ifitler(self.schema.immediateChildren,
+                          lambda x:hasattr(x, 'tickerId'))
+        for ticker in tickers:
+            ticker.build()
+            self.tickers[ticker.tickerId] = ticker
 
+    def execute(self, session):
+        """
 
-def referenceSchema():
-    """ Returns a copy of the reference strategy schema.
+        It's important to note that runners are called only once:
+        after this call is complete, the strategy is running.
+        """
+        runners = [c for c in self.schema.immediateChildren
+                    if hasattr(c, 'exectype')]
+        singles = ifilter(runners, lambda x:x.exectype=='singleshot')
+        threads = ifilter(runners, lambda x:x.exectype=='periodic')
+        handlers = ifilter(runners, lambda x:x.exectype=='messagehandler')
 
-    """
-    return [
-        {'currency': '',
-        'exchange': 'SMART',
-        'expiry': '',
-        'fields': [{'id': 2,
-                  'indexes': [{'indexes': [{'indexes': [],
-                                            'name': 'MedianValue-1',
-                                            'parameters': {'periods': 1,
-                                                           'series': ''},
-                                            'typeName': 'MedianValue'},
-                                           {'indexes': [],
-                                            'name': 'TimeIndex-1',
-                                            'parameters': {'series': ''},
-                                            'typeName': 'TimeIndex'},
-                                           {'indexes': [],
-                                            'name': 'SMA-1',
-                                            'parameters': {'periods': 1,
-                                                           'series': ''},
-                                            'typeName': 'SMA'}],
-                               'name': 'DelayFilter-1',
-                               'parameters': {'lookback': 1, 'series': ''},
-                               'typeName': 'DelayFilter'},
-                              {'indexes': [],
-                               'name': 'KAMA-1',
-                               'parameters': {'fast_look': 2.0,
-                                              'periods': 1,
-                                              'series': '',
-                                              'slow_look': 30.0},
-                               'typeName': 'KAMA'},
-                              {'indexes': [],
-                               'name': 'EMA-1',
-                               'parameters': {'k': 2.0,
-                                              'periods': 1,
-                                              'series': 'askPrice'},
-                               'typeName': 'EMA'}],
-                  'name': 'askPrice'},
-                 {'id': 1,
-                  'indexes': [{'indexes': [],
-                               'name': 'MACDHistogram-1',
-                               'parameters': {'series': 'askPrice',
-                                              'signal': 'bidPrice'},
-                               'typeName': 'MACDHistogram'}],
-                  'name': 'bidPrice'},
-                 {'id': 4, 'indexes': [], 'name': 'lastPrice'}],
-        'right': '',
-        'secType': 'STK',
-        'strike': 0.0,
-        'symbol': 'AAPL',
-        'tickerId': 100},
-        {'currency': '',
-        'exchange': '',
-        'expiry': '',
-        'fields': [{'id': 3,
-                  'indexes': [{'indexes': [],
-                               'name': 'BandPassFilter-1',
-                               'parameters': {'hi': 0.029999999999999999,
-                                              'low': 0.040000000000000001,
-                                              'series': 'askSize'},
-                               'typeName': 'BandPassFilter'},
-                              {'indexes': [{'indexes': [{'indexes': [],
-                                                         'name': 'DownMovement-1',
-                                                         'parameters': {'series': 'Convergence-1'},
-                                                         'typeName': 'DownMovement'}],
-                                            'name': 'Convergence-1',
-                                            'parameters': {'series': 'BandPassFilter-1',
-                                                           'signal': 'CenterOfGravity-1'},
-                                            'typeName': 'Convergence'}],
-                               'name': 'BollingerBand-1',
-                               'parameters': {'dev_factor': 0.050000000000000003,
-                                              'period': 10,
-                                              'series': 'askSize'},
-                               'typeName': 'BollingerBand'},
-                              {'indexes': [],
-                               'name': 'CenterOfGravity-1',
-                               'parameters': {'periods': 6,
-                                              'series': 'askSize'},
-                               'typeName': 'CenterOfGravity'}],
-                  'name': 'askSize'}],
-        'right': '',
-        'secType': 'STK',
-        'strike': 0.0,
-        'symbol': 'CSCO',
-        'tickerId': 101},
-        {'currency': '',
-        'exchange': '',
-        'expiry': '',
-        'fields': [],
-        'right': '',
-        'secType': 'STK',
-        'strike': 0.0,
-        'symbol': 'EBAY',
-        'tickerId': 102}]
+    threadinterval = 1000
+
+    def start_threads(self, callables):
+        """
+        executes external program, callable object, or callable factory
+        callables and factories can access strategy instance
+        location inspected for argument names once only at thread start
+        location executed on schedule
+        """
+        for child in self.chidren:
+            thread = StrategyThread(child)
+            thread.start()
+            self.threads.append(thread)
+
+    def execute_singles(self, callables):
+        """
+        executes external program or callable object once, in instance order
+        executes callable factory and factory results once
+        callable objects and factories inspected for argument names
+        callables and factories can access strategy instance
+        """
+        for call in callables:
+            execute_object_shell_or_factory(call)
+
+    def associate_message_handlers(self):
+            """
+            callable object or callable factory (never external program)
+            location arguments inspected only once when created
+            callable object given message to process
+            callable factory result object given message to process
+            factories (but not callables) can access strategy instance
+            """
+            for call in self.callables:
+                register_callable_for_its_message_types(call)
+

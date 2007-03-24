@@ -23,8 +23,6 @@ from ib.opt.message import registry
 
 from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram, EMA, KAMA
-from profit.strategy import StrategyManager
-
 
 class Ticker(object):
     def __init__(self):
@@ -117,7 +115,6 @@ class Session(QObject):
                      self, Signals.createdTicker)
         self.connect(tickerCollection, Signals.createdSeries,
                      self, Signals.createdSeries)
-        strategy = StrategyManager(self, self)
 
     def items(self):
         return [
@@ -221,16 +218,10 @@ class Session(QObject):
         connection.reqAllOpenOrders()
         connection.reqOpenOrders()
 
-        contract = self.builder.contract('ASDF', secType='ASDF')
-        connection.reqMktData(1, contract, '')
-        return
-
     def testContract(self, symbol='AAPL'):
         orderid = self.nextId
-
         if orderid is None:
             return False
-
         contract = self.builder.contract(symbol)
         order = self.builder.order()
         order.m_action = 'SELL'

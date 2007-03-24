@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
-    <height>493</height>
+    <width>661</width>
+    <height>740</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -178,6 +178,7 @@ p, li { white-space: pre-wrap; }
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="widget" />
        </widget>
       </widget>
       <widget class="QStackedWidget" name="controlStack" >
@@ -469,6 +470,19 @@ p, li { white-space: pre-wrap; }
           </layout>
          </item>
          <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QGroupBox" name="iconGroup" >
            <property name="title" >
             <string>Icon</string>
@@ -541,19 +555,6 @@ p, li { white-space: pre-wrap; }
             </item>
            </layout>
           </widget>
-         </item>
-         <item>
-          <spacer>
-           <property name="orientation" >
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" >
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </widget>
@@ -709,6 +710,19 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QGroupBox" name="indexDocGroup" >
            <property name="minimumSize" >
             <size>
@@ -744,19 +758,6 @@ p, li { white-space: pre-wrap; }
             </item>
            </layout>
           </widget>
-         </item>
-         <item>
-          <spacer>
-           <property name="orientation" >
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" >
-            <size>
-             <width>20</width>
-             <height>111</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </widget>
@@ -808,18 +809,309 @@ p, li { white-space: pre-wrap; }
               </item>
              </layout>
             </item>
-            <item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox" >
+           <property name="title" >
+            <string>Callable</string>
+           </property>
+           <property name="flat" >
+            <bool>true</bool>
+           </property>
+           <layout class="QGridLayout" >
+            <property name="margin" >
+             <number>9</number>
+            </property>
+            <property name="spacing" >
+             <number>6</number>
+            </property>
+            <item row="0" column="3" >
              <spacer>
               <property name="orientation" >
-               <enum>Qt::Vertical</enum>
+               <enum>Qt::Horizontal</enum>
               </property>
               <property name="sizeType" >
-               <enum>QSizePolicy::Expanding</enum>
+               <enum>QSizePolicy::Minimum</enum>
               </property>
               <property name="sizeHint" >
                <size>
-                <width>20</width>
-                <height>40</height>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="1" colspan="2" >
+             <widget class="QLineEdit" name="callableLocation" >
+              <property name="sizePolicy" >
+               <sizepolicy>
+                <hsizetype>1</hsizetype>
+                <vsizetype>0</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" >
+             <widget class="QLabel" name="label" >
+              <property name="sizePolicy" >
+               <sizepolicy>
+                <hsizetype>1</hsizetype>
+                <vsizetype>5</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text" >
+               <string>Location:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3" >
+             <widget class="QPushButton" name="callableLocationSelect" >
+              <property name="text" >
+               <string>Select...</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" >
+             <widget class="QLabel" name="label" >
+              <property name="sizePolicy" >
+               <sizepolicy>
+                <hsizetype>1</hsizetype>
+                <vsizetype>5</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text" >
+               <string>Type:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1" colspan="2" >
+             <widget class="QComboBox" name="callableType" >
+              <property name="sizePolicy" >
+               <sizepolicy>
+                <hsizetype>1</hsizetype>
+                <vsizetype>0</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <item>
+               <property name="text" >
+                <string/>
+               </property>
+              </item>
+              <item>
+               <property name="text" >
+                <string>External Program</string>
+               </property>
+               <property name="icon" >
+                <iconset resource="profit.qrc" >:/images/icons/terminal.png</iconset>
+               </property>
+              </item>
+              <item>
+               <property name="text" >
+                <string>Object</string>
+               </property>
+               <property name="icon" >
+                <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
+               </property>
+              </item>
+              <item>
+               <property name="text" >
+                <string>Object Factory</string>
+               </property>
+               <property name="icon" >
+                <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
+               </property>
+              </item>
+              <item>
+               <property name="text" >
+                <string>Source Code</string>
+               </property>
+               <property name="icon" >
+                <iconset resource="profit.qrc" >:/images/icons/source_py.png</iconset>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="callableSourceGroup" >
+           <property name="frameShape" >
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow" >
+            <enum>QFrame::Plain</enum>
+           </property>
+           <layout class="QVBoxLayout" >
+            <property name="margin" >
+             <number>0</number>
+            </property>
+            <property name="spacing" >
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_2" >
+              <property name="sizePolicy" >
+               <sizepolicy>
+                <hsizetype>1</hsizetype>
+                <vsizetype>1</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text" >
+               <string>Source Code:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="SourceEditor" name="callableSourceEditor" >
+              <property name="sizePolicy" >
+               <sizepolicy>
+                <hsizetype>7</hsizetype>
+                <vsizetype>7</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="frameShape" >
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="frameShadow" >
+               <enum>QFrame::Plain</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="runnerPage" >
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>9</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" >
+           <property name="margin" >
+            <number>0</number>
+           </property>
+           <property name="spacing" >
+            <number>6</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label" >
+             <property name="sizePolicy" >
+              <sizepolicy>
+               <hsizetype>7</hsizetype>
+               <vsizetype>5</vsizetype>
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text" >
+              <string>Name:</string>
+             </property>
+             <property name="alignment" >
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="runnerName" />
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="runnerThread" >
+           <property name="text" >
+            <string>Threaded</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="runnerThreadGroup" >
+           <property name="enabled" >
+            <bool>false</bool>
+           </property>
+           <layout class="QHBoxLayout" >
+            <property name="margin" >
+             <number>0</number>
+            </property>
+            <property name="spacing" >
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label" >
+              <property name="minimumSize" >
+               <size>
+                <width>111</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text" >
+               <string>Execution Interval:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="runnerPeriodInterval" >
+              <property name="buttonSymbols" >
+               <enum>QAbstractSpinBox::PlusMinus</enum>
+              </property>
+              <property name="suffix" >
+               <string> ms</string>
+              </property>
+              <property name="maximum" >
+               <number>99999999</number>
+              </property>
+              <property name="minimum" >
+               <number>50</number>
+              </property>
+              <property name="singleStep" >
+               <number>50</number>
+              </property>
+              <property name="value" >
+               <number>1000</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer>
+              <property name="orientation" >
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" >
+               <size>
+                <width>40</width>
+                <height>20</height>
                </size>
               </property>
              </spacer>
@@ -828,14 +1120,31 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="callableTypeGroup" >
-           <property name="title" >
-            <string>Type</string>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Vertical</enum>
            </property>
-           <property name="flat" >
-            <bool>true</bool>
+           <property name="sizeHint" >
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
            </property>
-           <layout class="QVBoxLayout" >
+          </spacer>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="runnerMessageHandler" >
+           <property name="text" >
+            <string>Message Handler</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="runnerMessageHandlerGroup" >
+           <property name="enabled" >
+            <bool>false</bool>
+           </property>
+           <layout class="QHBoxLayout" >
             <property name="margin" >
              <number>0</number>
             </property>
@@ -843,128 +1152,57 @@ p, li { white-space: pre-wrap; }
              <number>6</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="callableSingleShotButton" >
+             <widget class="QLabel" name="label" >
+              <property name="minimumSize" >
+               <size>
+                <width>111</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text" >
-               <string>Single Shot</string>
+               <string>Message Types:</string>
               </property>
-              <property name="checked" >
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="callableSingleShotGroup" >
-              <layout class="QVBoxLayout" >
-               <property name="margin" >
-                <number>0</number>
-               </property>
-               <property name="spacing" >
-                <number>6</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label" >
-                 <property name="text" >
-                  <string>No options.</string>
-                 </property>
-                 <property name="alignment" >
-                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="callableThreadButton" >
-              <property name="text" >
-               <string>Threaded</string>
+              <property name="alignment" >
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QFrame" name="callableThreadGroup" >
-              <property name="enabled" >
-               <bool>false</bool>
-              </property>
-              <layout class="QHBoxLayout" >
-               <property name="margin" >
-                <number>0</number>
+             <widget class="QListWidget" name="runnerMessageTypes" >
+              <item>
+               <property name="text" >
+                <string>New Item</string>
                </property>
-               <property name="spacing" >
-                <number>6</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label" >
-                 <property name="text" >
-                  <string>Execution Interval (ms):</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="callableThreadInterval" />
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="callableMessageHandlerButton" >
-              <property name="text" >
-               <string>Message Handler</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="callableMessageHandlerGroup" >
-              <property name="enabled" >
-               <bool>false</bool>
-              </property>
-              <layout class="QHBoxLayout" >
-               <property name="margin" >
-                <number>0</number>
-               </property>
-               <property name="spacing" >
-                <number>6</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label" >
-                 <property name="text" >
-                  <string>Message Types:</string>
-                 </property>
-                 <property name="alignment" >
-                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QListWidget" name="callableMessageTypes" >
-                 <property name="sizePolicy" >
-                  <sizepolicy>
-                   <hsizetype>5</hsizetype>
-                   <vsizetype>5</vsizetype>
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <item>
-                  <property name="text" >
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
+              </item>
              </widget>
             </item>
            </layout>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="callableLocationGroup" >
-           <property name="title" >
-            <string>Location</string>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Vertical</enum>
            </property>
-           <property name="flat" >
-            <bool>true</bool>
+           <property name="sizeHint" >
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="runnerSingleShot" >
+           <property name="text" >
+            <string>Single Shot</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="runnerSingleShotGroup" >
+           <property name="enabled" >
+            <bool>false</bool>
            </property>
            <layout class="QVBoxLayout" >
             <property name="margin" >
@@ -974,67 +1212,13 @@ p, li { white-space: pre-wrap; }
              <number>6</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="callableScriptButton" >
+             <widget class="QLabel" name="label" >
               <property name="text" >
-               <string>Script</string>
+               <string>No options.</string>
               </property>
-              <property name="checked" >
-               <bool>true</bool>
+              <property name="alignment" >
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="callableScriptGroup" >
-              <layout class="QHBoxLayout" >
-               <property name="margin" >
-                <number>0</number>
-               </property>
-               <property name="spacing" >
-                <number>6</number>
-               </property>
-               <item>
-                <widget class="QLineEdit" name="callableScriptEdit" />
-               </item>
-               <item>
-                <widget class="QPushButton" name="callableScriptSelectButton" >
-                 <property name="text" >
-                  <string>Select...</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="callableSysPathButton" >
-              <property name="text" >
-               <string>System Path</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="callableSysPathGroup" >
-              <property name="enabled" >
-               <bool>false</bool>
-              </property>
-              <layout class="QHBoxLayout" >
-               <property name="margin" >
-                <number>0</number>
-               </property>
-               <property name="spacing" >
-                <number>6</number>
-               </property>
-               <item>
-                <widget class="QLineEdit" name="callableSysPathEdit" />
-               </item>
-               <item>
-                <widget class="QPushButton" name="callableSysPathSelectButton" >
-                 <property name="text" >
-                  <string>Select...</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </widget>
             </item>
            </layout>
@@ -1052,34 +1236,10 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>596</width>
+     <width>661</width>
      <height>28</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuTools" >
-    <property name="title" >
-     <string>&amp;Tools</string>
-    </property>
-    <widget class="QMenu" name="menuToolbars" >
-     <property name="title" >
-      <string>Toolbars</string>
-     </property>
-    </widget>
-    <addaction name="actionStatusBar" />
-    <addaction name="menuToolbars" />
-   </widget>
-   <widget class="QMenu" name="menuDesign" >
-    <property name="title" >
-     <string>&amp;Design</string>
-    </property>
-    <addaction name="actionInsertCallable" />
-    <addaction name="actionInsertTicker" />
-    <addaction name="actionInsertField" />
-    <addaction name="actionInsertIndex" />
-    <addaction name="separator" />
-    <addaction name="actionMoveUp" />
-    <addaction name="actionMoveDown" />
-   </widget>
    <widget class="QMenu" name="menuEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
@@ -1093,15 +1253,41 @@ p, li { white-space: pre-wrap; }
     <property name="title" >
      <string>&amp;File</string>
     </property>
-    <addaction name="actionNewSchema" />
-    <addaction name="actionOpenSchema" />
+    <addaction name="actionNewStrategy" />
+    <addaction name="actionOpenStrategy" />
     <addaction name="separator" />
-    <addaction name="actionSaveSchema" />
-    <addaction name="actionSaveSchemaAs" />
+    <addaction name="actionSaveStrategy" />
+    <addaction name="actionSaveStrategyAs" />
     <addaction name="separator" />
-    <addaction name="actionCloseSchema" />
+    <addaction name="actionCloseStrategy" />
     <addaction name="separator" />
     <addaction name="actionQuit" />
+   </widget>
+   <widget class="QMenu" name="menuDesign" >
+    <property name="title" >
+     <string>&amp;Design</string>
+    </property>
+    <addaction name="actionInsertRunner" />
+    <addaction name="actionInsertCallable" />
+    <addaction name="separator" />
+    <addaction name="actionInsertTicker" />
+    <addaction name="actionInsertField" />
+    <addaction name="actionInsertIndex" />
+    <addaction name="separator" />
+    <addaction name="actionMoveUp" />
+    <addaction name="actionMoveDown" />
+   </widget>
+   <widget class="QMenu" name="menuTools" >
+    <property name="title" >
+     <string>&amp;Tools</string>
+    </property>
+    <widget class="QMenu" name="menuToolbars" >
+     <property name="title" >
+      <string>Toolbars</string>
+     </property>
+    </widget>
+    <addaction name="actionStatusBar" />
+    <addaction name="menuToolbars" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
@@ -1119,10 +1305,10 @@ p, li { white-space: pre-wrap; }
    <attribute name="toolBarArea" >
     <number>4</number>
    </attribute>
-   <addaction name="actionNewSchema" />
-   <addaction name="actionOpenSchema" />
-   <addaction name="actionSaveSchema" />
-   <addaction name="actionPrintSchema" />
+   <addaction name="actionNewStrategy" />
+   <addaction name="actionOpenStrategy" />
+   <addaction name="actionSaveStrategy" />
+   <addaction name="actionPrintStrategy" />
   </widget>
   <widget class="QToolBar" name="editToolbar" >
    <property name="enabled" >
@@ -1157,17 +1343,18 @@ p, li { white-space: pre-wrap; }
    </attribute>
    <addaction name="actionMoveUp" />
    <addaction name="actionMoveDown" />
+   <addaction name="actionInsertRunner" />
    <addaction name="actionInsertCallable" />
    <addaction name="actionInsertTicker" />
    <addaction name="actionInsertField" />
    <addaction name="actionInsertIndex" />
   </widget>
-  <action name="actionOpenSchema" >
+  <action name="actionOpenStrategy" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/fileopen.png</iconset>
    </property>
    <property name="text" >
-    <string>Open Schema...</string>
+    <string>Open Strategy...</string>
    </property>
    <property name="shortcut" >
     <string>Ctrl+O</string>
@@ -1176,12 +1363,12 @@ p, li { white-space: pre-wrap; }
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="actionSaveSchema" >
+  <action name="actionSaveStrategy" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/filesave.png</iconset>
    </property>
    <property name="text" >
-    <string>Save Schema</string>
+    <string>Save Strategy</string>
    </property>
    <property name="shortcut" >
     <string>Ctrl+S</string>
@@ -1191,9 +1378,6 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionCut" >
-   <property name="enabled" >
-    <bool>false</bool>
-   </property>
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/editcut.png</iconset>
    </property>
@@ -1205,9 +1389,6 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionCopy" >
-   <property name="enabled" >
-    <bool>false</bool>
-   </property>
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/editcopy.png</iconset>
    </property>
@@ -1233,9 +1414,6 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actionDelete" >
-   <property name="enabled" >
-    <bool>false</bool>
-   </property>
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/editdelete.png</iconset>
    </property>
@@ -1271,31 +1449,31 @@ p, li { white-space: pre-wrap; }
     <string>Ctrl+D</string>
    </property>
   </action>
-  <action name="actionNewSchema" >
+  <action name="actionNewStrategy" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/filenew.png</iconset>
    </property>
    <property name="text" >
-    <string>New Schema</string>
+    <string>New Strategy</string>
    </property>
    <property name="shortcut" >
     <string>Ctrl+N</string>
    </property>
   </action>
-  <action name="actionSaveSchemaAs" >
+  <action name="actionSaveStrategyAs" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/filesaveas.png</iconset>
    </property>
    <property name="text" >
-    <string>Save Schema As...</string>
+    <string>Save Strategy As...</string>
    </property>
   </action>
-  <action name="actionCloseSchema" >
+  <action name="actionCloseStrategy" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/fileclose.png</iconset>
    </property>
    <property name="text" >
-    <string>Close Schema</string>
+    <string>Close Strategy</string>
    </property>
    <property name="shortcut" >
     <string>Ctrl+W</string>
@@ -1317,13 +1495,16 @@ p, li { white-space: pre-wrap; }
     <iconset resource="profit.qrc" >:/images/icons/kchart.png</iconset>
    </property>
    <property name="text" >
-    <string>Insert Ticker</string>
+    <string>New Ticker</string>
    </property>
    <property name="iconText" >
-    <string>Insert Ticker</string>
+    <string>New Ticker</string>
    </property>
    <property name="toolTip" >
-    <string>Insert Ticker</string>
+    <string>New Ticker</string>
+   </property>
+   <property name="statusTip" >
+    <string>Create a new ticker component.</string>
    </property>
    <property name="shortcut" >
     <string>Ctrl+T</string>
@@ -1337,7 +1518,13 @@ p, li { white-space: pre-wrap; }
     <iconset resource="profit.qrc" >:/images/icons/package_system.png</iconset>
    </property>
    <property name="text" >
-    <string>Insert Index</string>
+    <string>New Ticker Index</string>
+   </property>
+   <property name="iconText" >
+    <string>New Ticker Index</string>
+   </property>
+   <property name="toolTip" >
+    <string>New Ticker Index</string>
    </property>
    <property name="shortcut" >
     <string>Ctrl+I</string>
@@ -1354,15 +1541,21 @@ p, li { white-space: pre-wrap; }
     <string>Status Bar</string>
    </property>
   </action>
-  <action name="actionInsertCallable" >
+  <action name="actionInsertRunner" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/run.png</iconset>
    </property>
    <property name="text" >
-    <string>Insert Callable</string>
+    <string>New Runner</string>
    </property>
    <property name="iconText" >
-    <string>New Callable</string>
+    <string>New Runner</string>
+   </property>
+   <property name="toolTip" >
+    <string>New Runner</string>
+   </property>
+   <property name="statusTip" >
+    <string>Create a new runner component.</string>
    </property>
   </action>
   <action name="actionInsertField" >
@@ -1373,24 +1566,45 @@ p, li { white-space: pre-wrap; }
     <iconset resource="profit.qrc" >:/images/icons/misc.png</iconset>
    </property>
    <property name="text" >
-    <string>Insert Field</string>
+    <string>New Ticker Field</string>
+   </property>
+   <property name="iconText" >
+    <string>New Ticker Field</string>
    </property>
    <property name="toolTip" >
-    <string>Insert Field</string>
+    <string>New Ticker Field</string>
    </property>
    <property name="shortcut" >
     <string>Ctrl+F</string>
    </property>
   </action>
-  <action name="actionPrintSchema" >
+  <action name="actionPrintStrategy" >
    <property name="icon" >
     <iconset resource="profit.qrc" >:/images/icons/tool_pen.png</iconset>
    </property>
    <property name="text" >
-    <string>Print Schema</string>
+    <string>Print Strategy</string>
+   </property>
+  </action>
+  <action name="actionInsertCallable" >
+   <property name="enabled" >
+    <bool>false</bool>
+   </property>
+   <property name="icon" >
+    <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
+   </property>
+   <property name="text" >
+    <string>New Callable</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SourceEditor</class>
+   <extends>QFrame</extends>
+   <header>sourceeditor.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>treeView</tabstop>
   <tabstop>idSpin</tabstop>
@@ -1459,210 +1673,146 @@ p, li { white-space: pre-wrap; }
    </hints>
   </connection>
   <connection>
-   <sender>callableSingleShotButton</sender>
+   <sender>runnerThread</sender>
    <signal>toggled(bool)</signal>
-   <receiver>callableThreadGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>301</x>
-     <y>122</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>301</x>
-     <y>253</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>callableSingleShotButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>callableMessageHandlerGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>301</x>
-     <y>122</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>301</x>
-     <y>362</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>callableSingleShotButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>callableSingleShotGroup</receiver>
+   <receiver>runnerThreadGroup</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>301</x>
-     <y>122</y>
+     <x>457</x>
+     <y>168</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>301</x>
-     <y>146</y>
+     <x>457</x>
+     <y>197</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>callableThreadButton</sender>
+   <sender>runnerThread</sender>
    <signal>toggled(bool)</signal>
-   <receiver>callableThreadGroup</receiver>
+   <receiver>runnerMessageHandlerGroup</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>457</x>
+     <y>168</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>457</x>
+     <y>445</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>runnerThread</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>runnerSingleShotGroup</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>457</x>
+     <y>168</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>457</x>
+     <y>690</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>runnerMessageHandler</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>runnerThreadGroup</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>457</x>
+     <y>332</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>457</x>
+     <y>197</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>runnerMessageHandler</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>runnerMessageHandlerGroup</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>301</x>
-     <y>208</y>
+     <x>457</x>
+     <y>332</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>301</x>
-     <y>253</y>
+     <x>457</x>
+     <y>445</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>callableThreadButton</sender>
+   <sender>runnerMessageHandler</sender>
    <signal>toggled(bool)</signal>
-   <receiver>callableMessageHandlerGroup</receiver>
+   <receiver>runnerSingleShotGroup</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>301</x>
-     <y>208</y>
+     <x>457</x>
+     <y>332</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>301</x>
-     <y>362</y>
+     <x>457</x>
+     <y>690</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>callableThreadButton</sender>
+   <sender>runnerSingleShot</sender>
    <signal>toggled(bool)</signal>
-   <receiver>callableSingleShotGroup</receiver>
+   <receiver>runnerThreadGroup</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>301</x>
-     <y>208</y>
+     <x>457</x>
+     <y>665</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>301</x>
-     <y>146</y>
+     <x>457</x>
+     <y>197</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>callableMessageHandlerButton</sender>
+   <sender>runnerSingleShot</sender>
    <signal>toggled(bool)</signal>
-   <receiver>callableThreadGroup</receiver>
+   <receiver>runnerMessageHandlerGroup</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>301</x>
-     <y>296</y>
+     <x>457</x>
+     <y>665</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>301</x>
-     <y>253</y>
+     <x>457</x>
+     <y>445</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>callableMessageHandlerButton</sender>
+   <sender>runnerSingleShot</sender>
    <signal>toggled(bool)</signal>
-   <receiver>callableMessageHandlerGroup</receiver>
+   <receiver>runnerSingleShotGroup</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>301</x>
-     <y>296</y>
+     <x>457</x>
+     <y>665</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>301</x>
-     <y>362</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>callableMessageHandlerButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>callableSingleShotGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>301</x>
-     <y>296</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>301</x>
-     <y>146</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>callableScriptButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>callableScriptGroup</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>448</x>
-     <y>366</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>448</x>
-     <y>391</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>callableScriptButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>callableSysPathGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>448</x>
-     <y>366</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>448</x>
-     <y>441</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>callableSysPathButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>callableScriptGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>448</x>
-     <y>416</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>448</x>
-     <y>391</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>callableSysPathButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>callableSysPathGroup</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>448</x>
-     <y>416</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>448</x>
-     <y>441</y>
+     <x>457</x>
+     <y>690</y>
     </hint>
    </hints>
   </connection>
