@@ -24,6 +24,7 @@ from ib.opt.message import registry
 from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram, EMA, KAMA
 
+
 class Ticker(object):
     def __init__(self):
         self.series = {}
@@ -110,11 +111,13 @@ class Session(QObject):
         self.nextId = None
         self.typedMessages = {}
         self.bareMessages = []
-        self.tickerCollection = tickerCollection = TickerCollection(self)
-        self.connect(tickerCollection, Signals.createdTicker,
-                     self, Signals.createdTicker)
-        self.connect(tickerCollection, Signals.createdSeries,
-                     self, Signals.createdSeries)
+        self.tickerCollection = TickerCollection(self)
+        self.connect(
+            self.tickerCollection, Signals.createdTicker,
+            self, Signals.createdTicker)
+        self.connect(
+            self.tickerCollection, Signals.createdSeries,
+            self, Signals.createdSeries)
 
     def items(self):
         return [
@@ -124,7 +127,7 @@ class Session(QObject):
             ('messages', ()),
             ('orders', ()),
             ('portfolio', ()),
-            ('strategy', ('account supervisor', 'order supervisor', 'trade indicator')),
+            ('strategy', ()),
             ('tickers', self.builder.symbols()),
             ]
 

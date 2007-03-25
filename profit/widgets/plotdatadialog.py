@@ -26,6 +26,9 @@ class CurveDataTableModel(QAbstractTableModel):
         self.connect(parent, Signals.enableCurve, self.on_enableCurve)
         parent.session.registerMeta(self)
 
+    def columnCount(self, parent=None):
+        return len(self.items)
+
     def data(self, index, role):
         row, col = index.row(), index.column()
         if not index.isValid():
@@ -36,7 +39,7 @@ class CurveDataTableModel(QAbstractTableModel):
             data = QVariant(QBrush(self.items[col].color))
         elif role == Qt.BackgroundRole:
             data = QVariant(QBrush(self.items[col].curve.brush()))
-        elif not role == Qt.DisplayRole:
+        elif role != Qt.DisplayRole:
             data = QVariant()
         else:
             try:
@@ -46,22 +49,19 @@ class CurveDataTableModel(QAbstractTableModel):
                 data = QVariant()
         return data
 
+    def headerData(self, section, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return QVariant(self.items[section].text())
+        elif orientation == Qt.Vertical and role == Qt.DisplayRole:
+            return QVariant(section)
+        return QVariant()
+
     def rowCount(self, parent=None):
         try:
             count = max(len(item.data) for item in self.items)
         except (ValueError, ):
             count = 0
         return count
-
-    def columnCount(self, parent=None):
-        return len(self.items)
-
-    def headerData(self, section, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self.items[section].text())
-        elif orientation == Qt.Vertical and role == Qt.DisplayRole:
-            return QVariant(section+1)
-        return QVariant()
 
     def on_enableCurve(self, item, enable):
         if enable and item not in self.items:

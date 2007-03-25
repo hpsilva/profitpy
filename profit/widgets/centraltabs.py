@@ -123,8 +123,6 @@ class CentralTabs(QTabWidget):
 
     on_account_clicked = \
         tabWidgetMethod('accountdisplay.AccountDisplay', reloaded=True)
-    on_account_supervisor_clicked = \
-        tabWidgetMethod('accountsupervisor.AccountSupervisorDisplay')
     on_connection_clicked = \
         tabWidgetMethod('connectiondisplay.ConnectionDisplay')
     on_executions_clicked = \
@@ -133,11 +131,7 @@ class CentralTabs(QTabWidget):
         tabWidgetMethod('messagedisplay.MessageDisplay')
     on_orders_clicked = \
         tabWidgetMethod('orderdisplay.OrderDisplay')
-    on_order_supervisor_clicked = \
-        tabWidgetMethod('ordersupervisor.OrderSupervisorDisplay')
     on_portfolio_clicked = \
         tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
     on_strategy_clicked = \
         tabWidgetMethod('strategydisplay.StrategyDisplay')
-    on_trade_indicator_clicked = \
-        tabWidgetMethod('tradeindicator.TradeIndicatorDisplay')

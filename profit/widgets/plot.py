@@ -210,7 +210,7 @@ class PlotDataMarker(QwtPlotMarker):
         clone.setLinePen(self.linePen())
         clone.setSymbol(self.symbol())
         clone.setAxis(curve.xAxis(), curve.yAxis())
-        clone.setValue(x+1, y)
+        clone.setValue(x, y)
         return clone
 
     def restyleFrom(self, other):
