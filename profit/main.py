@@ -5,11 +5,9 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-# TODO: implement or disable search bar for tickers, orders, account, etc.
 # TODO: account display plots
 # TODO: modify orders display to use model/tree view
-# TODO: add account, orders, and strategy supervisors
-# TODO: add strategy, account supervisor, order supervisor and indicator display
+# TODO: add strategy display
 # TODO: move strategy and builders out of session module; implement user values
 # TODO: add default colors for arbitrary plot curves
 # TODO: cancel threads on save/export msg box abort

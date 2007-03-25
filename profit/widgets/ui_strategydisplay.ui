@@ -21,6 +21,14 @@
    </property>
    <item>
     <widget class="QGroupBox" name="statusGroup" >
+     <property name="sizePolicy" >
+      <sizepolicy>
+       <hsizetype>5</hsizetype>
+       <vsizetype>1</vsizetype>
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title" >
       <string>Status</string>
      </property>
@@ -32,46 +40,73 @@
        <number>6</number>
       </property>
       <item>
-       <widget class="QRadioButton" name="enabledButton" >
+       <widget class="QPushButton" name="pushButton" >
         <property name="text" >
-         <string>Enabled</string>
-        </property>
-        <property name="icon" >
-         <iconset resource="profit.qrc" >:/images/icons/connect_established.png</iconset>
-        </property>
-        <property name="checked" >
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="disabledButton" >
-        <property name="text" >
-         <string>Disabled</string>
+         <string>Inactive</string>
         </property>
         <property name="icon" >
          <iconset resource="profit.qrc" >:/images/icons/connect_no.png</iconset>
         </property>
        </widget>
       </item>
+      <item>
+       <spacer>
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" >
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
-    <spacer>
-     <property name="orientation" >
-      <enum>Qt::Vertical</enum>
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="sizePolicy" >
+      <sizepolicy>
+       <hsizetype>5</hsizetype>
+       <vsizetype>7</vsizetype>
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <property name="sizeHint" >
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
+     <property name="title" >
+      <string>Callable</string>
      </property>
-    </spacer>
+     <layout class="QVBoxLayout" >
+      <property name="margin" >
+       <number>9</number>
+      </property>
+      <property name="spacing" >
+       <number>6</number>
+      </property>
+      <item>
+       <widget class="CallableSelectWidget" name="frame" >
+        <property name="minimumSize" >
+         <size>
+          <width>64</width>
+          <height>64</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CallableSelectWidget</class>
+   <extends>QFrame</extends>
+   <header>callableselectwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="profit.qrc" />
  </resources>

@@ -24,11 +24,11 @@
      <number>6</number>
     </property>
     <item>
-     <widget class="QSplitter" name="splitter_2" >
+     <widget class="QSplitter" name="splitter" >
       <property name="orientation" >
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QSplitter" name="splitter" >
+      <widget class="QSplitter" name="splitterV" >
        <property name="orientation" >
         <enum>Qt::Vertical</enum>
        </property>
@@ -186,7 +186,7 @@ p, li { white-space: pre-wrap; }
         <enum>QFrame::StyledPanel</enum>
        </property>
        <property name="currentIndex" >
-        <number>0</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="unknownPage" >
         <layout class="QVBoxLayout" >
@@ -767,7 +767,7 @@ p, li { white-space: pre-wrap; }
           <number>9</number>
          </property>
          <property name="spacing" >
-          <number>6</number>
+          <number>16</number>
          </property>
          <item>
           <widget class="QFrame" name="frame" >
@@ -813,186 +813,13 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox" >
-           <property name="title" >
-            <string>Callable</string>
+          <widget class="CallableSelectWidget" name="callableEditor" >
+           <property name="minimumSize" >
+            <size>
+             <width>64</width>
+             <height>64</height>
+            </size>
            </property>
-           <property name="flat" >
-            <bool>true</bool>
-           </property>
-           <layout class="QGridLayout" >
-            <property name="margin" >
-             <number>9</number>
-            </property>
-            <property name="spacing" >
-             <number>6</number>
-            </property>
-            <item row="0" column="3" >
-             <spacer>
-              <property name="orientation" >
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType" >
-               <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" >
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="1" column="1" colspan="2" >
-             <widget class="QLineEdit" name="callableLocation" >
-              <property name="sizePolicy" >
-               <sizepolicy>
-                <hsizetype>1</hsizetype>
-                <vsizetype>0</vsizetype>
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" >
-             <widget class="QLabel" name="label" >
-              <property name="sizePolicy" >
-               <sizepolicy>
-                <hsizetype>1</hsizetype>
-                <vsizetype>5</vsizetype>
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text" >
-               <string>Location:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="3" >
-             <widget class="QPushButton" name="callableLocationSelect" >
-              <property name="text" >
-               <string>Select...</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0" >
-             <widget class="QLabel" name="label" >
-              <property name="sizePolicy" >
-               <sizepolicy>
-                <hsizetype>1</hsizetype>
-                <vsizetype>5</vsizetype>
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text" >
-               <string>Type:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1" colspan="2" >
-             <widget class="QComboBox" name="callableType" >
-              <property name="sizePolicy" >
-               <sizepolicy>
-                <hsizetype>1</hsizetype>
-                <vsizetype>0</vsizetype>
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <item>
-               <property name="text" >
-                <string/>
-               </property>
-              </item>
-              <item>
-               <property name="text" >
-                <string>External Program</string>
-               </property>
-               <property name="icon" >
-                <iconset resource="profit.qrc" >:/images/icons/terminal.png</iconset>
-               </property>
-              </item>
-              <item>
-               <property name="text" >
-                <string>Object</string>
-               </property>
-               <property name="icon" >
-                <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
-               </property>
-              </item>
-              <item>
-               <property name="text" >
-                <string>Object Factory</string>
-               </property>
-               <property name="icon" >
-                <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
-               </property>
-              </item>
-              <item>
-               <property name="text" >
-                <string>Source Code</string>
-               </property>
-               <property name="icon" >
-                <iconset resource="profit.qrc" >:/images/icons/source_py.png</iconset>
-               </property>
-              </item>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QFrame" name="callableSourceGroup" >
-           <property name="frameShape" >
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow" >
-            <enum>QFrame::Plain</enum>
-           </property>
-           <layout class="QVBoxLayout" >
-            <property name="margin" >
-             <number>0</number>
-            </property>
-            <property name="spacing" >
-             <number>6</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="label_2" >
-              <property name="sizePolicy" >
-               <sizepolicy>
-                <hsizetype>1</hsizetype>
-                <vsizetype>1</vsizetype>
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text" >
-               <string>Source Code:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="SourceEditor" name="callableSourceEditor" >
-              <property name="sizePolicy" >
-               <sizepolicy>
-                <hsizetype>7</hsizetype>
-                <vsizetype>7</vsizetype>
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="frameShape" >
-               <enum>QFrame::NoFrame</enum>
-              </property>
-              <property name="frameShadow" >
-               <enum>QFrame::Plain</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </widget>
          </item>
          <item>
@@ -1600,9 +1427,9 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SourceEditor</class>
+   <class>CallableSelectWidget</class>
    <extends>QFrame</extends>
-   <header>sourceeditor.h</header>
+   <header>callableselectwidget.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -1652,7 +1479,7 @@ p, li { white-space: pre-wrap; }
     </hint>
     <hint type="destinationlabel" >
      <x>259</x>
-     <y>415</y>
+     <y>739</y>
     </hint>
    </hints>
   </connection>
@@ -1667,8 +1494,8 @@ p, li { white-space: pre-wrap; }
      <y>267</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>245</x>
-     <y>262</y>
+     <x>254</x>
+     <y>709</y>
     </hint>
    </hints>
   </connection>
@@ -1679,12 +1506,12 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>457</x>
-     <y>168</y>
+     <x>640</x>
+     <y>140</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>457</x>
-     <y>197</y>
+     <x>640</x>
+     <y>169</y>
     </hint>
    </hints>
   </connection>
@@ -1695,8 +1522,8 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>457</x>
-     <y>168</y>
+     <x>640</x>
+     <y>140</y>
     </hint>
     <hint type="destinationlabel" >
      <x>457</x>
@@ -1711,8 +1538,8 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>457</x>
-     <y>168</y>
+     <x>640</x>
+     <y>140</y>
     </hint>
     <hint type="destinationlabel" >
      <x>457</x>
@@ -1727,12 +1554,12 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>457</x>
-     <y>332</y>
+     <x>640</x>
+     <y>324</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>457</x>
-     <y>197</y>
+     <x>640</x>
+     <y>169</y>
     </hint>
    </hints>
   </connection>
@@ -1743,8 +1570,8 @@ p, li { white-space: pre-wrap; }
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>457</x>
-     <y>332</y>
+     <x>640</x>
+     <y>324</y>
     </hint>
     <hint type="destinationlabel" >
      <x>457</x>
@@ -1759,8 +1586,8 @@ p, li { white-space: pre-wrap; }
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>457</x>
-     <y>332</y>
+     <x>640</x>
+     <y>324</y>
     </hint>
     <hint type="destinationlabel" >
      <x>457</x>
@@ -1779,8 +1606,8 @@ p, li { white-space: pre-wrap; }
      <y>665</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>457</x>
-     <y>197</y>
+     <x>640</x>
+     <y>169</y>
     </hint>
    </hints>
   </connection>

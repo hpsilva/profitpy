@@ -1,0 +1,235 @@
+<ui version="4.0" >
+ <class>CallableSelectWidget</class>
+ <widget class="QWidget" name="CallableSelectWidget" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>383</width>
+    <height>354</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>0</number>
+   </property>
+   <property name="spacing" >
+    <number>6</number>
+   </property>
+   <item>
+    <layout class="QGridLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item row="1" column="2" >
+      <widget class="QPushButton" name="callableLocationSelect" >
+       <property name="text" >
+        <string>Select...</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" >
+      <widget class="QLineEdit" name="callableLocation" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>7</hsizetype>
+         <vsizetype>0</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" >
+      <widget class="QComboBox" name="callableType" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>1</hsizetype>
+         <vsizetype>0</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <item>
+        <property name="text" >
+         <string/>
+        </property>
+       </item>
+       <item>
+        <property name="text" >
+         <string>External Program</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="profit.qrc" >:/images/icons/terminal.png</iconset>
+        </property>
+       </item>
+       <item>
+        <property name="text" >
+         <string>Object</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="profit.qrc" >:/images/icons/profitdevice_logo.png</iconset>
+        </property>
+       </item>
+       <item>
+        <property name="text" >
+         <string>Object Factory</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
+        </property>
+       </item>
+       <item>
+        <property name="text" >
+         <string>Source Code</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="profit.qrc" >:/images/icons/source_py.png</iconset>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="0" column="2" >
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType" >
+        <enum>QSizePolicy::Minimum</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>81</width>
+         <height>21</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="0" >
+      <widget class="QLabel" name="label" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>1</hsizetype>
+         <vsizetype>5</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text" >
+        <string>Location:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" >
+      <widget class="QLabel" name="label" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>1</hsizetype>
+         <vsizetype>5</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text" >
+        <string>Type:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget" >
+     <property name="currentIndex" >
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="page0" />
+     <widget class="QWidget" name="page1" />
+     <widget class="QWidget" name="page2" />
+     <widget class="QWidget" name="page3" />
+     <widget class="QWidget" name="page4" >
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>9</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label" >
+         <property name="sizePolicy" >
+          <sizepolicy>
+           <hsizetype>1</hsizetype>
+           <vsizetype>1</vsizetype>
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text" >
+          <string>View and Edit Source Code:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="SourceEditor" name="callableSourceEditor" >
+         <property name="sizePolicy" >
+          <sizepolicy>
+           <hsizetype>7</hsizetype>
+           <vsizetype>7</vsizetype>
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape" >
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow" >
+          <enum>QFrame::Plain</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SourceEditor</class>
+   <extends>QFrame</extends>
+   <header>sourceeditor.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>callableType</tabstop>
+  <tabstop>callableLocation</tabstop>
+  <tabstop>callableLocationSelect</tabstop>
+ </tabstops>
+ <resources>
+  <include location="profit.qrc" />
+ </resources>
+ <connections>
+  <connection>
+   <sender>callableType</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>stackedWidget</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>189</x>
+     <y>46</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>189</x>
+     <y>202</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
