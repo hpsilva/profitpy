@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
+ <class>ProfitDeviceWindow</class>
+ <widget class="QMainWindow" name="ProfitDeviceWindow" >
   <property name="geometry" >
    <rect>
     <x>0</x>

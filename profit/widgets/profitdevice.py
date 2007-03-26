@@ -32,7 +32,7 @@ from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
-from profit.widgets.ui_mainwindow import Ui_MainWindow
+from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
 
 
 applicationName = QApplication.applicationName
@@ -40,7 +40,7 @@ instance = QApplication.instance
 processEvents = QApplication.processEvents
 
 
-class MainWindow(QMainWindow, Ui_MainWindow):
+class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
     documentationUrl = \
         'http://code.google.com/p/profitpy/w/list?q=label:Documentation'
     iconName = ':images/icons/blockdevice.png'

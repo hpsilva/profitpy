@@ -7,12 +7,12 @@
 
 import sys
 from PyQt4.QtGui import QApplication
-from profit.main import MainWindow
 from profit.lib.core import Settings
+from profit.widgets.profitdevice import ProfitDeviceWindow
 
 app = QApplication(sys.argv)
 app.setApplicationName(Settings.keys.app)
-window = MainWindow()
+window = ProfitDeviceWindow()
 window.show()
 sys.exit(app.exec_())
 
