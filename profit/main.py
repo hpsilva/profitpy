@@ -8,10 +8,8 @@
 # TODO: account display plots
 # TODO: modify orders display to use model/tree view
 # TODO: add strategy display
-# TODO: move strategy and builders out of session module; implement user values
 # TODO: add default colors for arbitrary plot curves
 # TODO: cancel threads on save/export msg box abort
-# TODO: add request session signal and remove manual calls to session passing
 # TODO: add a slow session importer
 
 from functools import partial
@@ -29,12 +27,10 @@ from PyQt4.QtGui import QIcon, QDesktopServices
 from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
-
 from profit.widgets import profit_rc
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
-
 from profit.widgets.shell import PythonShell
 from profit.widgets.ui_mainwindow import Ui_MainWindow
 
@@ -53,8 +49,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
         self.setupUi(self)
-        self.setupLeftDock()
-        self.setupBottomDock()
+        self.setupDockWidgets()
         self.setupMenus()
         self.setupMainIcon()
         self.setupRecentSessions()
@@ -69,12 +64,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
-
-    def closeEvent(self, event):
-        if self.checkClose():
-            event.accept()
-        else:
-            event.ignore()
 
     def checkClose(self):
         check = True
@@ -100,6 +89,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.actionSaveSession.trigger()
         return check
 
+    def closeEvent(self, event):
+        if self.checkClose():
+            event.accept()
+        else:
+            event.ignore()
+
     def closeProcessGroup(self):
         self.writeSettings()
         try:
@@ -113,11 +108,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.emit(Signals.sessionCreated, self.session)
         self.connect(self.session, Signals.statusMessage,
                      self.statusBar().showMessage)
-
-    @pyqtSignature('')
-    def openRecentSession(self):
-        filename = str(self.sender().data().toString())
-        self.on_actionOpenSession_triggered(filename)
 
     @pyqtSignature('')
     def on_actionAboutProfitDevice_triggered(self):
@@ -332,38 +322,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 msg = 'Not Connected'
             self.trayIcon.showMessage('Connection Status:', msg)
 
-    def setCurrentSession(self, filename):
+    @pyqtSignature('')
+    def openRecentSession(self):
+        filename = str(self.sender().data().toString())
+        self.on_actionOpenSession_triggered(filename)
+
+    def readSettings(self):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
-        files = settings.value('recentSessions').toStringList()
-        files.removeAll(filename)
-        files.prepend(filename)
-        files = files[:self.maxRecentSessions]
-        settings.setValue('recentSessions', files)
-        self.updateRecentSessions()
-
-    def setupBottomDock(self):
-        area = Qt.BottomDockWidgetArea
-        self.stdoutDock = Dock('Standard Output', self, OutputWidget, area)
-        self.stderrDock = Dock('Standard Error', self, OutputWidget, area)
-        makeShell = partial(PythonShell,
-                            stdout=self.stdoutDock.widget(),
-                            stderr=self.stderrDock.widget())
-        self.shellDock = Dock('Python Shell', self, makeShell, area)
-        self.tabifyDockWidget(self.shellDock, self.stdoutDock)
-        self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
-
-    def setupMenus(self):
-        #self.menuView.clear()
-        self.menuView.addAction(self.sessionDock.toggleViewAction())
-        self.menuView.addAction(self.shellDock.toggleViewAction())
-        self.menuView.addAction(self.stdoutDock.toggleViewAction())
-        self.menuView.addAction(self.stderrDock.toggleViewAction())
-        self.menuView.addSeparator()
-        self.menuView.addAction(self.actionStatusBar)
-        self.menuView.addMenu(self.menuToolbars)
-        for toolbar in self.findChildren(QToolBar):
-            self.menuToolbars.addAction(toolbar.toggleViewAction())
+        size = settings.value(settings.keys.size,
+                              settings.defaultSize).toSize()
+        pos = settings.value(settings.keys.position,
+                             settings.defaultPosition).toPoint()
+        maxed = settings.value(settings.keys.maximized, False).toBool()
+        self.resize(size)
+        self.move(pos)
+        if maxed:
+            self.showMaximized()
+        state = settings.value(settings.keys.winstate, QVariant())
+        self.restoreState(state.toByteArray())
+        settings.endGroup()
 
     def setupColors(self):
         settings = Settings()
@@ -375,12 +353,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                      for key, attr in zip(keys, attrs)]
         cls.setColors(*values)
 
+    def setCurrentSession(self, filename):
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        files = settings.value('recentSessions').toStringList()
+        files.removeAll(filename)
+        files.prepend(filename)
+        files = files[:self.maxRecentSessions]
+        settings.setValue('recentSessions', files)
+        self.updateRecentSessions()
+
+    def setupDockWidgets(self):
+        self.sessionDock = Dock('Session', self, SessionTree)
+        area = Qt.BottomDockWidgetArea
+        self.stdoutDock = Dock('Standard Output', self, OutputWidget, area)
+        self.stderrDock = Dock('Standard Error', self, OutputWidget, area)
+        makeShell = partial(PythonShell,
+                            stdout=self.stdoutDock.widget(),
+                            stderr=self.stderrDock.widget())
+        self.shellDock = Dock('Python Shell', self, makeShell, area)
+        self.tabifyDockWidget(self.shellDock, self.stdoutDock)
+        self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
+
     def setupMainIcon(self):
         icon = QIcon(self.iconName)
         self.setWindowIcon(icon)
 
-    def setupLeftDock(self):
-        self.sessionDock = Dock('Session', self, SessionTree)
+    def setupMenus(self):
+        self.menuView.addAction(self.sessionDock.toggleViewAction())
+        self.menuView.addAction(self.shellDock.toggleViewAction())
+        self.menuView.addAction(self.stdoutDock.toggleViewAction())
+        self.menuView.addAction(self.stderrDock.toggleViewAction())
+        self.menuView.addSeparator()
+        self.menuView.addAction(self.actionStatusBar)
+        self.menuView.addMenu(self.menuToolbars)
+        for toolbar in self.findChildren(QToolBar):
+            self.menuToolbars.addAction(toolbar.toggleViewAction())
 
     def setupRecentSessions(self):
         self.recentSessionsActions = actions = \
@@ -423,22 +431,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 trayIcon.hide()
 
-    def readSettings(self):
-        settings = Settings()
-        settings.beginGroup(settings.keys.main)
-        size = settings.value(settings.keys.size,
-                              settings.defaultSize).toSize()
-        pos = settings.value(settings.keys.position,
-                             settings.defaultPosition).toPoint()
-        maxed = settings.value(settings.keys.maximized, False).toBool()
-        self.resize(size)
-        self.move(pos)
-        if maxed:
-            self.showMaximized()
-        state = settings.value(settings.keys.winstate, QVariant())
-        self.restoreState(state.toByteArray())
-        settings.endGroup()
-
     def updateRecentSessions(self):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
@@ -474,7 +466,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings.setValue(settings.keys.maximized, self.isMaximized())
         settings.setValue(settings.keys.winstate, self.saveState())
         settings.endGroup()
-
 
 
 class WaitMessageBox(QMessageBox):

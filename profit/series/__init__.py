@@ -8,8 +8,16 @@
 # TODO: write docstrings on series types
 
 from time import time
-from Numeric import arctan, array, log
-from scipy.stats import linregress, mean, std, median, mode
+
+try:
+    from Numeric import arctan, array, log
+except (ImportError, ):
+    arctan = array = log = None
+
+try:
+    from scipy.stats import linregress, mean, std, median, mode
+except (ImportError, ):
+     linregress = mean = std = median = mode = None
 
 
 class Series(list):
