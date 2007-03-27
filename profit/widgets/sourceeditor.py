@@ -5,8 +5,6 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from PyQt4.QtGui import QFrame
-
-
 try:
     from Qsci.qsciscintilla import QsciScintilla
 except (ImportError, ):
@@ -15,19 +13,14 @@ except (ImportError, ):
     sys.modules['Qsci'] = new.module('Qsci')
     sys.modules['Qsci.qsciscintilla'] = new.module('Qsci.qsciscintilla')
     sys.modules['Qsci.qsciscintilla'].QsciScintilla = PyQt4.Qsci.QsciScintilla
-
-
 try:
     from profit.widgets.ui_advancededitor import Ui_AdvancedEditor as Editor
 except (ImportError, ):
     from profit.widgets.ui_basiceditor import Ui_BasicEditor as Editor
-
 try:
     from PyQt4.Qsci import QsciLexerPython
 except (ImportError, ):
     QsciLexerPython = None
-
-print QsciLexerPython
 
 
 from profit.lib.core import Signals

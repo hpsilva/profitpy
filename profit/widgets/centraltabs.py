@@ -109,7 +109,8 @@ class CentralTabs(QTabWidget):
             icon = item.icon()
         cls = importItem('profit.widgets.plotdisplay.PlotDisplay')
         widget = cls(self)
-        widget.setSession(self.session, tickerId, *args)
+        widget.setSession(
+            self.session, self.session.tickerCollection, tickerId, *args)
         index = self.addTab(widget, symbol)
         self.setTabIcon(index, icon)
         self.setCurrentIndex(index)

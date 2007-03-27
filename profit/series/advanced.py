@@ -5,15 +5,14 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from Numeric import arctan, array, log
-from scipy.stats import linregress, mean, std, median, mode
+from numpy import arctan, array, log, mean, std, median
+from scipy.stats import linregress, mode
 
-from profit.series.basic import (
-    Series, BaseIndex, SeriesIndex, MovingAverageIndex)
+from profit.series.basic import SeriesIndex, MovingAverageIndex
 
 
 class FisherTransform(MovingAverageIndex):
-    """ FisherTransform -> er?
+    """ FisherTransform
 
     """
     params = [

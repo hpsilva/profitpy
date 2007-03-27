@@ -385,19 +385,19 @@ class Plot(QFrame, Ui_Plot):
         self.connect(self.zoomer, Signals.zoomed, self.on_zoomer_zoomed)
         self.enableAutoScale()
 
-    def setSession(self, session, tickerId, *indexes):
+    def setSession(self, session, collection, key, *indexes):
         """ Associate a session with this instance.
 
         @param session Session instance
-        @param tickerId id of ticker as integer
+        @param key id of ticker as integer
         @param *indexes unused
         @return None
         """
         self.controlsTreeItems = []
         self.highlightMarkers = []
         self.session = session
-        self.tickerCollection = session.tickerCollection
-        self.tickerId = tickerId
+        self.collection = collection
+        self.key = key
         settings = self.settings
         name = self.plotName()
         statekey = '%s/%s' % (name, settings.keys.splitstate)
@@ -432,7 +432,7 @@ class Plot(QFrame, Ui_Plot):
 
         @return None
         """
-        ticker = self.tickerCollection[self.tickerId]
+        ticker = self.collection[self.key]
         tree = self.controlsTree
         tree.header().hide()
         self.controlsTreeModel = model = QStandardItemModel(self)
@@ -672,7 +672,10 @@ class Plot(QFrame, Ui_Plot):
         """ The name of this plot.
 
         """
-        return '%s/%s' % (self.tickerId, self.objectName())
+        try:
+            return '%s/%s' % (self.key, self.objectName())
+        except (AttributeError, ):
+            return 'noname/%s' % (self.objectName(), )
 
     def referenceAxisWidget(self):
         """ Returns a referece axis widget.
@@ -831,15 +834,15 @@ class Plot(QFrame, Ui_Plot):
 
     ## session signal handlers
 
-    def on_session_createdSeries(self, tickerId, field):
+    def on_session_createdSeries(self, key, field):
         """ Signal handler called when new Series objects are created.
 
-        @param tickerId id of ticker with new series
+        @param key id of ticker with new series
         @param field series field
         """
-        if tickerId != self.tickerId:
+        if key != self.key:
             return
-        series = self.tickerCollection[self.tickerId].series[field]
+        series = self.collection[self.key].series[field]
         self.addSeries(TickType.getField(field), series)
         self.controlsTree.sortByColumn(0, Qt.AscendingOrder)
 
@@ -849,7 +852,7 @@ class Plot(QFrame, Ui_Plot):
         @param message Message instance
         @return None
         """
-        if message.tickerId != self.tickerId:
+        if message.tickerId != self.key:
             return
         items = [i for i in self.controlsTreeItems if i.curve.isVisible()]
         for item in items:
@@ -1125,9 +1128,14 @@ class Plot(QFrame, Ui_Plot):
         @param item changed tree widget item
         @return None
         """
-        self.enableCurve(item, enable=item.checkState()==Qt.Checked)
-        self.updateAxis()
-        self.saveSelections()
+        try:
+            curve = item.curve
+        except (AttributeError, ):
+            pass
+        else:
+            self.enableCurve(item, enable=item.checkState()==Qt.Checked)
+            self.updateAxis()
+            self.saveSelections()
 
     def on_controlsTree_customContextMenuRequested(self, pos):
         """ Signal handler for context menu request over control tree.

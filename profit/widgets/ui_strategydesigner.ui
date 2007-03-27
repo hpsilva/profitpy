@@ -186,7 +186,7 @@ p, li { white-space: pre-wrap; }
         <enum>QFrame::StyledPanel</enum>
        </property>
        <property name="currentIndex" >
-        <number>4</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="unknownPage" >
         <layout class="QVBoxLayout" >
@@ -814,6 +814,14 @@ p, li { white-space: pre-wrap; }
          </item>
          <item>
           <widget class="CallableSelectWidget" name="callableEditor" >
+           <property name="sizePolicy" >
+            <sizepolicy>
+             <hsizetype>7</hsizetype>
+             <vsizetype>7</vsizetype>
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize" >
             <size>
              <width>64</width>
@@ -821,19 +829,6 @@ p, li { white-space: pre-wrap; }
             </size>
            </property>
           </widget>
-         </item>
-         <item>
-          <spacer>
-           <property name="orientation" >
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" >
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </widget>

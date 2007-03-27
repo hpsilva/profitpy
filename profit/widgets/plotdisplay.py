@@ -46,8 +46,8 @@ class PlotDisplay(QFrame, Ui_PlotDisplay):
         self.connect(plot.actionNewPlot, Signals.triggered, self.addPlot)
         self.connect(plot.actionClosePlot, Signals.triggered, self.closePlot)
         if self.sessionArgs:
-            session, tickerId, args = self.sessionArgs
-            plot.setSession(session, tickerId, *args)
+            session, collection, tickerId, args = self.sessionArgs
+            plot.setSession(session, collection, tickerId, *args)
         splitter.insertWidget(after, plot)
         plot.show()
 
@@ -69,22 +69,20 @@ class PlotDisplay(QFrame, Ui_PlotDisplay):
         self.saveCount()
 
     def reconnectSplitters(self):
+        connect = self.connect
+        disconnect = self.disconnect
         widgets = self.plotWidgets
         signal = Signals.splitterMoved
         for widget in widgets:
+            wsplit = widget.plotSplitter
             for other in [w for w in widgets if w is not widget]:
-                self.disconnect(
-                    widget.plotSplitter, signal,
-                    other.plotSplitter.moveSplitter)
-                self.disconnect(
-                    other.plotSplitter, signal,
-                    widget.plotSplitter.moveSplitter)
+                disconnect(wsplit, signal, other.plotSplitter.moveSplitter)
+                disconnect(other.plotSplitter, signal, wsplit.moveSplitter)
         if widgets:
             first, others = widgets[0], widgets[1:]
+            fsplit = first.plotSplitter
             for other in others:
-                self.connect(
-                    first.plotSplitter, signal,
-                    other.plotSplitter.moveSplitter)
+                connect(fsplit, signal, other.plotSplitter.moveSplitter)
 
     def renamePlots(self):
         for index, plot in enumerate(self.plotWidgets):
@@ -103,7 +101,7 @@ class PlotDisplay(QFrame, Ui_PlotDisplay):
             plot.actionClosePlot.setEnabled(not single)
             plot.actionNewPlot.setEnabled(not maxed)
 
-    def setSession(self, session, tickerId, *args):
+    def setSession(self, session, collection, tickerId, *args):
         """ Associate a session with this instance.
 
         @param session Session instance
@@ -111,7 +109,7 @@ class PlotDisplay(QFrame, Ui_PlotDisplay):
         @param *indexes unused
         @return None
         """
-        self.sessionArgs = (session, tickerId, args)
+        self.sessionArgs = (session, collection, tickerId, args)
         if not self.plotWidgets:
             settings = Settings()
             settings.beginGroup('Plots')
@@ -121,4 +119,4 @@ class PlotDisplay(QFrame, Ui_PlotDisplay):
                 self.addPlot()
         else:
             for plot in self.plotWidgets:
-                plot.setSession(session, tickerId, *args)
+                plot.setSession(session, collection, tickerId, *args)

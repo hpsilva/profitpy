@@ -50,7 +50,6 @@ class TickerCollection(QObject):
 
     def on_session_TickPrice_TickSize(self, message):
         tickerId = message.tickerId
-        field = message.field
         try:
             tickerdata = self.tickers[tickerId]
         except (KeyError, ):
@@ -60,6 +59,7 @@ class TickerCollection(QObject):
             value = message.price
         except (AttributeError, ):
             value = message.size
+        field = message.field
         try:
             seq = tickerdata.series[field]
         except (KeyError, ):

@@ -6,10 +6,10 @@
 # Author: Troy Melhase <troy@gci.net>
 
 # TODO: account display plots
-# TODO: modify orders display to use model/tree view
 # TODO: add strategy display
 # TODO: add default colors for arbitrary plot curves
 # TODO: cancel threads on save/export msg box abort
+# TODO: plotdisplay.py should become tickerdisplay.py
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp

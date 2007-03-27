@@ -5,35 +5,35 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from PyQt4.QtCore import QAbstractTableModel, QSize, QVariant, Qt
-from PyQt4.QtGui import QFrame
+from PyQt4.QtGui import QFrame, QStandardItemModel, QStandardItem
 
 from profit.lib.core import Signals, valueAlign
+from profit.series import Series
+from profit.widgets.plot import PlotCurve
 from profit.widgets.ui_accountdisplay import Ui_AccountDisplay
 
 
-class AccountTableModel(QAbstractTableModel):
-    """ Data model class for account messages.
+class AccountModelItem(QStandardItem):
+    def __init__(self, name=False):
+        QStandardItem.__init__(self)
+        self.setEditable(False)
+        self.name = lambda :name
+        if name:
+            self.curve = PlotCurve(name)
+            self.data = Series()
 
-    """
-    columnTitles = ['Item', 'Currency', 'Value', 'Account', 'Plot']
-    dataExtractors = {
-        0:lambda m:m.key,
-        1:lambda m:m.currency,
-        2:lambda m:m.value,
-        3:lambda m:m.accountName
-    }
-    alignments = {
-        2:valueAlign,
-        3:valueAlign,
-        }
+    def isChecked(self):
+        return self.checkState() == Qt.Checked
+
+
+class AccountTableModel(QStandardItemModel):
+    columnTitles = ['Item', 'Currency', 'Value', 'Account',]
 
     def __init__(self, session, parent=None):
-        """ Constructor.
-
-        @param session Session instance
-        @param parent ancestor object
-        """
-        QAbstractTableModel.__init__(self, parent)
+        QStandardItemModel.__init__(self, parent)
+        self.setHorizontalHeaderLabels(self.columnTitles)
+        self.items = {}
+        self.bareItems = []
         self.setSession(session)
 
     def setSession(self, session):
@@ -43,94 +43,46 @@ class AccountTableModel(QAbstractTableModel):
         @return None
         """
         self.session = session
-        self.messageItems = items = {}
-        self.messageIndex = indexed = []
         try:
             messages = session.typedMessages['UpdateAccountValue']
         except (KeyError, ):
             pass
         else:
             for mtime, message, mindex in messages:
-                items[(message.key, message.currency)] = message
-            indexed.extend(sorted(items.keys()))
+                self.on_session_UpdateAccountValue(message)
             self.reset()
         session.registerMeta(self)
 
     def on_session_UpdateAccountValue(self, message):
-        """ Signal handler for incoming execution details messages.
-
-        @param message ExecDetails message instance
-        @return None
-        """
         key = (message.key, message.currency)
-        items = self.messageItems
+        row = self.rowCount()
+        colcount = len(self.columnTitles)
         try:
-            items[key]
+            items = self.items[key]
+            row = items[0].row()
         except (KeyError, ):
-            items[key] = message
-            self.messageIndex = sorted(items.keys())
+            t = '/'.join(key)
+            self.insertRow(row, [AccountModelItem(t), ] + \
+                                [AccountModelItem() for i in
+                                 range(colcount-1)])
+            items = \
+                  self.items[key] = \
+                      [self.item(row, i) for i in range(colcount)]
+            self.bareItems.append(items[0])
             self.emit(Signals.layoutChanged)
-        else:
-            items[key] = message
-            row = self.messageIndex.index(key)
-            self.emit(Signals.dataChanged,
-                      self.createIndex(row, 0),
-                      self.createIndex(row, 4))
-
-    def data(self, index, role):
-        """ Framework hook to determine data stored at index for given role.
-
-        @param index QModelIndex instance
-        @param role Qt.DisplayRole flags
-        @return QVariant instance
-        """
-        if not index.isValid():
-            return QVariant()
-        row = index.row()
-        col = index.column()
-        key = self.messageIndex[row]
-        message = self.messageItems[key]
-        if role == Qt.TextAlignmentRole:
-            try:
-                val = QVariant(self.alignments[col])
-            except (KeyError, ):
-                val = QVariant()
-            return val
-        elif role != Qt.DisplayRole:
-            return QVariant()
+        items[0].setText(message.key)
+        items[1].setText(message.currency)
+        items[2].setText(message.value)
+        items[3].setText(message.accountName)
         try:
-            val = QVariant(self.dataExtractors[col](message))
-        except (KeyError, ):
-            val = QVariant()
-        return val
-
-    def headerData(self, section, orientation, role):
-        """ Framework hook to determine header data.
-
-        @param section integer specifying header (e.g., column number)
-        @param orientation Qt.Orientation value
-        @param role Qt.DisplayRole flags
-        @return QVariant instance
-        """
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self.columnTitles[section])
-        return QVariant()
-
-    def rowCount(self, parent=None):
-        """ Framework hook to determine data model row count.
-
-        @param parent ignored
-        @return number of rows (number of execution details messages)
-        """
-        return len(self.messageIndex)
-
-    def columnCount(self, parent=None):
-        """ Framework hook to determine data model column count.
-
-        @param parent ignored
-        @return number of columns (see columnTitles)
-        """
-        return len(self.columnTitles)
+            value = float(message.value)
+            items[0].setCheckable(True)
+            items[0].data.append(value)
+        except (Exception, ):
+            pass
+        self.emit(Signals.dataChanged,
+                  self.createIndex(row, 0),
+                  self.createIndex(row, 4))
 
 
 class AccountDisplay(QFrame, Ui_AccountDisplay):
@@ -145,7 +97,6 @@ class AccountDisplay(QFrame, Ui_AccountDisplay):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.accountValuesTable.verticalHeader().hide()
         self.setupModel(session)
 
     def setupModel(self, session):
@@ -156,4 +107,9 @@ class AccountDisplay(QFrame, Ui_AccountDisplay):
         """
         self.session = session
         self.dataModel = AccountTableModel(session, self)
-        self.accountValuesTable.setModel(self.dataModel)
+        self.plot.controlsTreeModel = self.dataModel
+        self.plot.controlsTree.setModel(self.dataModel)
+        self.plot.controlsTreeItems = self.dataModel.bareItems
+        self.connect(self.dataModel, Signals.standardItemChanged,
+                     self.plot.on_controlsTree_itemChanged)
+

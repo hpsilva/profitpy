@@ -15,7 +15,7 @@ from profit.widgets.ui_sessionreplay import Ui_SessionReplayWidget
 
 
 class SessionReplay(QDialog, Ui_SessionReplayWidget):
-    def __init__(self, interval=0, parent=None):
+    def __init__(self, interval=50, parent=None):
         QDialog.__init__(self, parent)
         self.setupUi(self)
         self.interval = interval
