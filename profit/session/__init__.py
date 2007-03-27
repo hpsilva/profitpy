@@ -318,10 +318,12 @@ class Session(QObject):
                 return message.typeName in types
             try:
                 messages = filter(messageFilter, load(handle))
-                yield len(messages)
-                for index, (mtime, message) in enumerate(messages):
-                    self.receiveMessage(message, lambda:mtime)
-                    yield index
+                def importer():
+                    yield len(messages)
+                    for index, (mtime, message) in enumerate(messages):
+                        self.receiveMessage(message, lambda:mtime)
+                        yield index
+                return importer
             except (UnpicklingError, ):
                 pass
             finally:

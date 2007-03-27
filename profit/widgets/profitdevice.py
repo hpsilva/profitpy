@@ -10,7 +10,6 @@
 # TODO: add strategy display
 # TODO: add default colors for arbitrary plot curves
 # TODO: cancel threads on save/export msg box abort
-# TODO: add a slow session importer
 
 from functools import partial
 from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
@@ -30,6 +29,7 @@ from profit.session import Session
 from profit.widgets import profit_rc
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
+from profit.widgets.sessionreplay import SessionReplay
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
 from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
@@ -176,41 +176,13 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
                 return
             if not self.warningOpenTabs():
                 return
-            dlg = QProgressDialog(self)
-            dlg.setLabelText('Reading session file.')
-            dlg.setCancelButtonText('Abort')
+            dlg = SessionReplay()
+            dlg.setWindowTitle('Reading session file.')
             dlg.setWindowModality(Qt.WindowModal)
-            dlg.setWindowTitle('Importing...')
-            processEvents()
-            dlg.show()
-            processEvents()
-            try:
-                loadit = self.session.importMessages(str(filename), types)
-                count = loadit.next()
-                last = count - 1
-                if not count:
-                    raise StopIteration()
-            except (StopIteration, ):
-                msg = 'Warning messages not imported from "%s"' % filename
-                dlg.close()
-            else:
-                dlg.setLabelText('Importing session messages.')
-                dlg.setWindowTitle('Importing...')
-                dlg.setMaximum(last)
-                msgid = -1
-                for msgid in loadit:
-                    processEvents()
-                    dlg.setValue(msgid)
-                    if dlg.wasCanceled():
-                        dlg.close()
-                        break
-                if msgid == last:
-                    msg = 'Imported %s messages from file "%s".'
-                    msg %= (count, filename)
-                else:
-                    msg = 'Import aborted; loaded %s messages of %s.'
-                    msg %= (msgid+1, count)
-            self.statusBar().showMessage(msg, 5000)
+            dlg.setImport(self.session, filename, types)
+            dlg.exec_()
+
+            #self.statusBar().showMessage(msg, 5000)
 
     @pyqtSignature('bool')
     def on_actionNewSession_triggered(self, checked=False):
