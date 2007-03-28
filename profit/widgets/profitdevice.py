@@ -12,9 +12,12 @@
 # TODO: plotdisplay.py should become tickerdisplay.py
 
 from functools import partial
-from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
+try:
+    from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
+    from signal import SIGQUIT
+except (ImportError, ): # win32
+    pass # for now
 from os.path import abspath, basename
-from signal import SIGQUIT
 from sys import argv
 
 from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature

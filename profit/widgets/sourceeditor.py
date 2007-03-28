@@ -9,10 +9,13 @@ try:
     from Qsci.qsciscintilla import QsciScintilla
 except (ImportError, ):
     import new, sys
-    import PyQt4.Qsci
-    sys.modules['Qsci'] = new.module('Qsci')
-    sys.modules['Qsci.qsciscintilla'] = new.module('Qsci.qsciscintilla')
-    sys.modules['Qsci.qsciscintilla'].QsciScintilla = PyQt4.Qsci.QsciScintilla
+    try:
+        import PyQt4.Qsci
+        sys.modules['Qsci'] = new.module('Qsci')
+        sys.modules['Qsci.qsciscintilla'] = new.module('Qsci.qsciscintilla')
+        sys.modules['Qsci.qsciscintilla'].QsciScintilla = PyQt4.Qsci.QsciScintilla
+    except (ImportError, ):
+        pass
 try:
     from profit.widgets.ui_advancededitor import Ui_AdvancedEditor as Editor
 except (ImportError, ):

@@ -22,8 +22,10 @@ from profit.lib import defaults
 from profit.lib.core import Settings, Signals
 from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
-
-hasXterm = Popen(['which', 'xterm'], stdout=PIPE).communicate()[0].strip()
+try:
+    hasXterm = Popen(['which', 'xterm'], stdout=PIPE).communicate()[0].strip()
+except (Exception, ):
+    hasXterm = False
 
 
 def commandStrings():
