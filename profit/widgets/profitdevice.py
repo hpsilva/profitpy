@@ -16,7 +16,7 @@ try:
     from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
     from signal import SIGQUIT
 except (ImportError, ): # win32
-    pass # for now
+    pass
 from os.path import abspath, basename
 from sys import argv
 
@@ -102,7 +102,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         self.writeSettings()
         try:
             killpg(getpgrp(), SIGQUIT)
-        except (AttributeError, ):
+        except (NameError, ):
             self.close()
 
     def createSession(self):
@@ -189,9 +189,13 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
 
     @pyqtSignature('bool')
     def on_actionNewSession_triggered(self, checked=False):
-        if len(argv) > 1:
-            argv.remove(argv[1])
-        pid = spawnvp(P_NOWAIT, argv[0], argv)
+        try:
+            if len(argv) > 1:
+                argv.remove(argv[1])
+            pid = spawnvp(P_NOWAIT, argv[0], argv)
+        except (NameError, ):
+            import subprocess, sys
+            subprocess.Popen('"%s" "%s"' % (sys.executable, sys.argv[0], ))
 
     @pyqtSignature('')
     def on_actionOpenSession_triggered(self, filename=None):
@@ -204,7 +208,11 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
                     args[1] = filename
                 else:
                     args.append(abspath(str(filename)))
-                pid = spawnvp(P_NOWAIT, args[0], args)
+                try:
+                    pid = spawnvp(P_NOWAIT, args[0], args)
+                except (NameError, ):
+                    import subprocess, sys
+                    subprocess.Popen('"%s" "%s" "%s"' % (sys.executable, args[0], args[1]))
                 return
             if not self.warningOpenTabs():
                 return

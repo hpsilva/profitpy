@@ -18,7 +18,7 @@ from profit.widgets.ui_plotdatadialog import Ui_PlotDataDialog
 class CurveDataTableModel(QAbstractTableModel):
     def __init__(self, parent):
         QAbstractTableModel.__init__(self, parent)
-        self.tickerId = parent.tickerId
+        self.key = parent.key
         self.items = []
         self.itemAlign = QVariant(Qt.AlignRight|Qt.AlignVCenter)
         for item in parent.checkedItems():
@@ -76,7 +76,7 @@ class CurveDataTableModel(QAbstractTableModel):
         @param message Message instance
         @return None
         """
-        if message.tickerId == self.tickerId:
+        if message.tickerId == self.key:
             self.emit(Signals.layoutChanged)
 
 

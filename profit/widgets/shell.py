@@ -161,7 +161,8 @@ class PythonShell(QTextEdit):
                 hist = open(name, 'w')
                 hist.close()
             except (IOError, ), exc:
-                sys.__stdout__.write('%s\n' % (exc, ))
+                pass
+                #sys.__stdout__.write('%s\n' % (exc, ))
 
     def writeShellHistory(self):
         try:
@@ -172,7 +173,8 @@ class PythonShell(QTextEdit):
             histfile.writelines(history)
             histfile.close()
         except (Exception, ), exc:
-            sys.__stdout__.write('%s\n' % (exc, ))
+            pass
+            #sys.__stdout__.write('%s\n' % (exc, ))
 
     def write(self, text):
         cursor = self.textCursor()
