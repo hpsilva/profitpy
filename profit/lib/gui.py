@@ -11,10 +11,12 @@ from PyQt4.QtGui import QMessageBox
 
 from profit.lib.core import valueAlign
 
+
 class ValueColorItem(object):
     increase = QBrush(QColor(Qt.darkGreen))
     neutral = QBrush(QColor(Qt.blue))
     decrease = QBrush(QColor(Qt.red))
+    compMap = {1:increase, -1:decrease, 0:neutral}
 
     @classmethod
     def setColors(cls, increase, neutral, decrease):

@@ -24,6 +24,7 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
 
     def on_restartButton_clicked(self):
         if self.importer:
+            self.timer.setInterval(self.timerSpin.value())
             self.loader = self.importer()
 
     def on_timer_timeout(self):
@@ -35,7 +36,7 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
             try:
                 msgid = self.loader.next()
             except (StopIteration, ):
-                pass
+                self.timer.setInterval(max(self.timer.interval(), 50))
             else:
                 setr(msgid)
                 if msgid == self.last:

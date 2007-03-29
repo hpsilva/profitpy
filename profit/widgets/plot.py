@@ -22,7 +22,7 @@ from PyQt4.Qwt5 import QwtPlotMarker, QwtPlotPanner, QwtSymbol, QwtText
 from ib.ext.TickType import TickType
 
 from profit.lib.core import Settings, Signals
-from profit.lib.gui import colorIcon, complementColor
+from profit.lib.gui import ValueColorItem, colorIcon, complementColor
 from profit.widgets.plotdatadialog import PlotDataDialog
 from profit.widgets.plotitemdialog import PlotItemDialog
 from profit.widgets.ui_plot import Ui_Plot
@@ -269,6 +269,23 @@ class Legend(QwtLegend):
     """
 
 
+class ControlTreeValueItem(QStandardItem, ValueColorItem):
+    def __init__(self, text):
+        QStandardItem.__init__(self, text)
+        self.setTextAlignment(Qt.AlignVCenter|Qt.AlignRight)
+
+    def setText(self, text):
+        try:
+            v = float(self.text())
+            c = float(text)
+        except (ValueError, ):
+            pass
+        else:
+            if c != v: # explicitly ignore unchanged values
+                self.setForeground(self.compMap[cmp(c, v)])
+        QStandardItem.setText(self, text)
+
+
 class ControlTreeItem(QStandardItem):
     """ Self-configuring control tree item.
 
@@ -284,6 +301,8 @@ class ControlTreeItem(QStandardItem):
         self.setCheckState(Qt.Unchecked)
         self.setEditable(False)
         self.curve = PlotCurve(text)
+        self.curve.setYAxis(yRight)
+        self.curve.setVisible(False)
         self.data = data
 
     def isChecked(self):
@@ -432,14 +451,18 @@ class Plot(QFrame, Ui_Plot):
 
         @return None
         """
-        ticker = self.collection[self.key]
         tree = self.controlsTree
-        tree.header().hide()
         self.controlsTreeModel = model = QStandardItemModel(self)
         tree.setModel(model)
+        model.setHorizontalHeaderLabels(['Line', 'Value'])
         tree.sortByColumn(0, Qt.AscendingOrder)
-        for field, series in ticker.series.items():
-            self.addSeries(TickType.getField(field), series)
+        try:
+            ticker = self.collection[self.key]
+        except (KeyError, ):
+            pass
+        else:
+            for field, series in ticker.series.items():
+                self.addSeries(TickType.getField(field), series)
         self.connect(model, Signals.standardItemChanged,
                      self.on_controlsTree_itemChanged)
         for col in range(model.columnCount()):
@@ -451,7 +474,7 @@ class Plot(QFrame, Ui_Plot):
              self.actionChangeCurveAxisY,])
         tree.expandAll()
 
-    def addSeries(self, name, series, parent=None):
+    def addSeries(self, name, series, parent=None, items=[]):
         """ Creates new controls and curve for an individual series.
 
         @param name series key
@@ -460,13 +483,14 @@ class Plot(QFrame, Ui_Plot):
         if parent is None:
             parent = self.controlsTreeModel.invisibleRootItem()
         item = ControlTreeItem(name, series)
-        item.curve.setYAxis(yRight)
-        item.curve.setVisible(False)
         item.setColor(self.loadItemPen(item).color())
-        parent.appendRow(item)
+        if not items:
+            items = [ControlTreeValueItem(''), ]
+        parent.appendRow([item, ] + items)
         self.controlsTreeItems.append(item)
         for index in getattr(series, 'indexes', []):
             self.addSeries(index.key, index, parent=item)
+        return item
 
     def anyCheckedItems(self):
         """ True if any control is checked.
@@ -846,6 +870,22 @@ class Plot(QFrame, Ui_Plot):
         self.addSeries(TickType.getField(field), series)
         self.controlsTree.sortByColumn(0, Qt.AscendingOrder)
 
+    def setItemValue(self, item):
+        idx = self.controlsTreeModel.indexFromItem(item)
+        parent = item.parent()
+        if parent:
+            getc = parent.child
+        else:
+            getc = self.controlsTreeModel.item
+        next = getc(item.row(), item.column()+1)
+        try:
+            next.setText('%.2f' % item.data[-1])
+        except (AttributeError, IndexError, TypeError, ):
+            pass
+        else:
+            for c in [item.child(r, 0) for r in range(item.rowCount())]:
+                self.setItemValue(c)
+
     def on_session_TickPrice_TickSize(self, message):
         """ Signal handler for TickPrice and TickSize session messages.
 
@@ -854,6 +894,8 @@ class Plot(QFrame, Ui_Plot):
         """
         if message.tickerId != self.key:
             return
+        for item in self.controlsTreeItems:
+            self.setItemValue(item)
         items = [i for i in self.controlsTreeItems if i.curve.isVisible()]
         for item in items:
             item.curve.setData(item.data.x, item.data.y)
@@ -874,7 +916,11 @@ class Plot(QFrame, Ui_Plot):
         index = self.controlsTree.indexAt(pos)
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
-            curve = item.curve
+            try:
+                curve = item.curve
+            except (AttributeError, ):
+                print '## that item does not have a curve'
+                return
             if not curve.settingsLoaded:
                 self.loadCurve(self.itemName(item), curve)
             cplot = curve.plot()
@@ -1147,6 +1193,8 @@ class Plot(QFrame, Ui_Plot):
         index = tree.indexAt(pos)
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
+            if not hasattr(item, 'curve'):
+                return
             if item.curve.yAxis() == yRight:
                 self.actionChangeCurveAxisY.setText('Move to Left Axis')
             else:

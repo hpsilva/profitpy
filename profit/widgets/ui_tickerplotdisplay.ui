@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>PlotDisplay</class>
- <widget class="QWidget" name="PlotDisplay" >
+ <class>TickerPlotDisplay</class>
+ <widget class="QWidget" name="TickerPlotDisplay" >
   <property name="geometry" >
    <rect>
     <x>0</x>

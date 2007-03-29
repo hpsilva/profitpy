@@ -9,10 +9,10 @@ from PyQt4.QtGui import QFrame
 
 from profit.lib.core import Settings, Signals
 from profit.widgets.plot import Plot
-from profit.widgets.ui_plotdisplay import Ui_PlotDisplay
+from profit.widgets.ui_tickerplotdisplay import Ui_TickerPlotDisplay
 
 
-class PlotDisplay(QFrame, Ui_PlotDisplay):
+class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):
     """ Combines one or more plot widgets into a single display.
 
     """

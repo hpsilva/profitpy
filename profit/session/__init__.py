@@ -30,30 +30,64 @@ class Ticker(object):
         self.series = {}
 
 
-class TickerCollection(QObject):
-    """
-
-    """
+class DataCollection(QObject):
     def __init__(self, session):
         QObject.__init__(self)
         self.session = session
-        self.tickers = {}
+        self.data = {}
+
+    def __contains__(self, item):
+        return item in self.data
+
+    def __getitem__(self, name):
+        return self.data[name]
+
+    def __setitem__(self, name, value):
+        self.data[name] = value
+
+
+class AccountCollection(DataCollection):
+    def __init__(self, session):
+        DataCollection.__init__(self, session)
+        self.last = {}
+        session.registerMeta(self)
+
+    def on_session_UpdateAccountValue(self, message):
+        key = (message.key, message.currency, message.accountName)
+        try:
+            acctdata = self.data[key]
+        except (KeyError, ):
+            try:
+                iv = float(message.value)
+            except (ValueError, ):
+                pass
+            else:
+                acctdata = self.data[key] = \
+                           self.session.builder.accountData(key)
+                self.emit(Signals.createdAccountData, key, acctdata, iv)
+        try:
+            v = float(message.value)
+        except (ValueError, ):
+            v = message.value
+        else:
+            acctdata.append(v)
+        self.last[key] = v
+
+
+class TickerCollection(DataCollection):
+    def __init__(self, session):
+        DataCollection.__init__(self, session)
         for tid in session.builder.symbols().values():
             self[tid] = session.builder.ticker(tid)
         session.registerMeta(self)
 
-    def __getitem__(self, name):
-        return self.tickers[name]
-
-    def __setitem__(self, name, value):
-        self.tickers[name] = value
-
     def on_session_TickPrice_TickSize(self, message):
         tickerId = message.tickerId
         try:
-            tickerdata = self.tickers[tickerId]
+            tickerdata = self.data[tickerId]
         except (KeyError, ):
-            tickerdata = self.tickers[tickerId] = self.session.builder.ticker(tickerId)
+            tickerdata = self.data[tickerId] = \
+                         self.session.builder.ticker(tickerId)
             self.emit(Signals.createdTicker, tickerId, tickerdata)
         try:
             value = message.price
@@ -63,12 +97,18 @@ class TickerCollection(QObject):
         try:
             seq = tickerdata.series[field]
         except (KeyError, ):
-            seq = tickerdata.series[field] = self.session.builder.series(tickerId, field)
+            seq = tickerdata.series[field] = \
+                  self.session.builder.series(tickerId, field)
             self.emit(Signals.createdSeries, tickerId, field)
         seq.append(value)
 
 
 class SessionBuilder(object):
+    def accountData(self, *k):
+        s = Series()
+        s.addIndex('EMA-25', EMA, s, 25)
+        return s
+
     def strategy(self):
         return None
 
@@ -111,7 +151,11 @@ class Session(QObject):
         self.nextId = None
         self.typedMessages = {}
         self.bareMessages = []
+        self.accountCollection = AccountCollection(self)
         self.tickerCollection = TickerCollection(self)
+        self.connect(
+            self.accountCollection, Signals.createdAccountData,
+            self, Signals.createdAccountData)
         self.connect(
             self.tickerCollection, Signals.createdTicker,
             self, Signals.createdTicker)

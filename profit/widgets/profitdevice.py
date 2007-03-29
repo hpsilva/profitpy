@@ -5,20 +5,21 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-# TODO: account display plots
-# TODO: add strategy display
+# TODO: fix account display plots
+# TODO: complete strategy display; integrate strategy designer
 # TODO: add default colors for arbitrary plot curves
 # TODO: cancel threads on save/export msg box abort
-# TODO: plotdisplay.py should become tickerdisplay.py
+# TODO: add text values to plot control items
 
 from functools import partial
 try:
     from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
     from signal import SIGQUIT
-except (ImportError, ): # win32
+except (ImportError, ):
     pass
 from os.path import abspath, basename
-from sys import argv
+from subprocess import Popen
+from sys import argv, executable
 
 from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QApplication, QColor, QMainWindow
@@ -194,8 +195,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
                 argv.remove(argv[1])
             pid = spawnvp(P_NOWAIT, argv[0], argv)
         except (NameError, ):
-            import subprocess, sys
-            subprocess.Popen('"%s" "%s"' % (sys.executable, sys.argv[0], ))
+            Popen('"%s" "%s"' % (executable, argv[0], ))
 
     @pyqtSignature('')
     def on_actionOpenSession_triggered(self, filename=None):
@@ -211,8 +211,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
                 try:
                     pid = spawnvp(P_NOWAIT, args[0], args)
                 except (NameError, ):
-                    import subprocess, sys
-                    subprocess.Popen('"%s" "%s" "%s"' % (sys.executable, args[0], args[1]))
+                    Popen('"%s" "%s" "%s"' % (executable, args[0], args[1]))
                 return
             if not self.warningOpenTabs():
                 return

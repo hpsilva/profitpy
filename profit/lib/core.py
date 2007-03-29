@@ -15,6 +15,7 @@ class Signals:
     activated = SIGNAL('activated(QSystemTrayIcon::ActivationReason)')
     clicked = SIGNAL('clicked()')
     connectedTWS = SIGNAL('connectedTWS')
+    createdAccountData = SIGNAL('createdAccountData')
     createdSeries = SIGNAL('createdSeries')
     createdTicker = SIGNAL('createdTicker')
     currentChanged = SIGNAL('currentChanged(int)')
