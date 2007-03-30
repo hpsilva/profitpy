@@ -494,6 +494,7 @@ class Plot(QFrame, Ui_Plot):
         if not items:
             items = [ControlTreeValueItem(''), ]
         parent.appendRow([item, ] + items)
+        item.setColor(self.loadItemPen(item).color())
         for index in getattr(series, 'indexes', []):
             self.addSeries(index.key, index, parent=item)
         return item
