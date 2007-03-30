@@ -4,39 +4,14 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-# TODO: item curve settings not saved
-# TODO: hide or enable plot button
-
 from PyQt4.QtCore import QAbstractTableModel, QSize, QVariant, Qt
 from PyQt4.QtGui import QFrame, QStandardItemModel, QStandardItem
 
 from profit.lib.core import Signals, valueAlign
 from profit.lib.gui import colorIcon, complementColor
 from profit.series import Series
-from profit.widgets.plot import PlotCurve, ControlTreeItem
+from profit.widgets.plot import PlotCurve, ControlTreeValueItem
 from profit.widgets.ui_accountdisplay import Ui_AccountDisplay
-
-
-class AccountModelItem(QStandardItem):
-    def __init__(self, name=None):
-        QStandardItem.__init__(self)
-        self.setEditable(False)
-        self.name = lambda :name
-        if name:
-            self.curve = PlotCurve(name)
-            self.data = Series()
-
-    def isChecked(self):
-        return self.checkState() == Qt.Checked
-
-    def setColor(self, color):
-        """ Sets the icon and color for this item.
-
-        @param color QColor instance
-        @return None
-        """
-        self.color = color
-        self.setIcon(colorIcon(color))
 
 
 class AccountTableModel(QStandardItemModel):
@@ -96,28 +71,31 @@ class AccountDisplay(QFrame, Ui_AccountDisplay):
         @return None
         """
         self.session = session
-        self.dataModel = AccountTableModel(session, self)
-        self.plot.setSession(session, session.accountCollection, 'account')
-        self.plot.controlsTreeModel = self.dataModel
-        self.plot.controlsTree.setModel(self.dataModel)
-        self.plot.controlsTree.header().show()
+        self.dataModel = model = AccountTableModel(session, self)
+        plot = self.plot
+        plot.plotButton.setVisible(False)
+        plot.setSession(session, session.accountCollection, 'account')
+        plot.controlsTreeModel = model
+        plot.controlsTree.setModel(model)
+        plot.controlsTree.header().show()
         for key, series in session.accountCollection.data.items():
             self.on_createdAccountData(
                 key, series, session.accountCollection.last.get(key, None))
         self.connect(session, Signals.createdAccountData,
                      self.on_createdAccountData)
-        self.connect(self.dataModel, Signals.standardItemChanged,
-                     self.plot.on_controlsTree_itemChanged)
-        self.connect(self.dataModel, Signals.rowsInserted,
+        self.connect(model, Signals.standardItemChanged,
+                     plot.on_controlsTree_itemChanged)
+        self.connect(model, Signals.rowsInserted,
                      self.on_rowsInserted)
+        plot.loadSelections()
 
     def on_createdAccountData(self, key, series, value):
         cols = range(len(self.dataModel.columnTitles))
-        items = [AccountModelItem() for i in cols[1:]]
+        items = [ControlTreeValueItem('') for i in cols[1:]]
         items[0].setText(key[1])
         items[1].setText(str(value))
         items[2].setText(key[2])
-        item = self.plot.addSeries(key[0], series, items=items)
+        item = self.plot.addSeries(key, series, items=items)
 
     def on_rowsInserted(self, parent, start, end):
         model = self.dataModel

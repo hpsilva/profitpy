@@ -290,7 +290,7 @@ class ControlTreeItem(QStandardItem):
     """ Self-configuring control tree item.
 
     """
-    def __init__(self, text, data):
+    def __init__(self, text, data, key):
         """ Constructor.
 
         @param text value for this item
@@ -304,6 +304,7 @@ class ControlTreeItem(QStandardItem):
         self.curve.setYAxis(yRight)
         self.curve.setVisible(False)
         self.data = data
+        self.key = key
 
     def isChecked(self):
         """ True if this item is checked.
@@ -317,7 +318,7 @@ class ControlTreeItem(QStandardItem):
         """
         names = []
         while self:
-            names.append(str(self.text()))
+            names.append(getattr(self, 'key', str(self.text())))
             self = self.parent()
         return str.join('/', reversed(names))
 
@@ -423,7 +424,6 @@ class Plot(QFrame, Ui_Plot):
         state = settings.value(statekey, defaultSplitterState())
         self.plotSplitter.restoreState(state.toByteArray())
         self.setupTree()
-        self.loadSelections()
         self.loadGrids()
         self.loadCanvasColor()
         self.loadLegend()
@@ -480,14 +480,20 @@ class Plot(QFrame, Ui_Plot):
         @param name series key
         @return None
         """
+        try:
+            name + ()
+        except (TypeError, ):
+            key = name
+        else:
+            key = '/'.join(name)
+            name = name[0]
         if parent is None:
             parent = self.controlsTreeModel.invisibleRootItem()
-        item = ControlTreeItem(name, series)
-        item.setColor(self.loadItemPen(item).color())
+        item = ControlTreeItem(name, series, key)
+        self.controlsTreeItems.append(item)
         if not items:
             items = [ControlTreeValueItem(''), ]
         parent.appendRow([item, ] + items)
-        self.controlsTreeItems.append(item)
         for index in getattr(series, 'indexes', []):
             self.addSeries(index.key, index, parent=item)
         return item
@@ -685,8 +691,7 @@ class Plot(QFrame, Ui_Plot):
         @return None
         """
         key = '%s/checkeditems' % self.plotName()
-        names = self.settings.value(key).toStringList()
-        names = [str(name) for name in names]
+        names = [str(n) for n in self.settings.value(key).toStringList()]
         for item in self.controlsTreeItems:
             if self.itemName(item) in names:
                 item.setCheckState(Qt.Checked)
@@ -896,6 +901,16 @@ class Plot(QFrame, Ui_Plot):
             return
         for item in self.controlsTreeItems:
             self.setItemValue(item)
+        items = [i for i in self.controlsTreeItems if i.curve.isVisible()]
+        for item in items:
+            item.curve.setData(item.data.x, item.data.y)
+        if items:
+            self.plot.replot()
+        self.on_zoomer_zoomed(None)
+
+    def on_session_UpdateAccountValue(self, message):
+        if self.key != 'account':
+            return
         items = [i for i in self.controlsTreeItems if i.curve.isVisible()]
         for item in items:
             item.curve.setData(item.data.x, item.data.y)

@@ -5,11 +5,9 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-# TODO: fix account display plots
 # TODO: complete strategy display; integrate strategy designer
 # TODO: add default colors for arbitrary plot curves
 # TODO: cancel threads on save/export msg box abort
-# TODO: add text values to plot control items
 
 from functools import partial
 try:
