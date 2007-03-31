@@ -10,6 +10,7 @@ from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
 
 from profit.lib import importItem
 from profit.lib.core import Signals, tickerIdRole
+from profit.lib.gui import SessionHandler
 from profit.widgets.ui_closetabbutton import Ui_CloseTabButton
 from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
 
@@ -17,7 +18,8 @@ from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
 def tabWidgetMethod(name, reloaded=False):
     def method(self, title):
         cls = importItem('profit.widgets.' + name, reloaded=reloaded)
-        widget = cls(self.session, self)
+        widget = cls(self)
+        widget.setSession(self.session)
         index = self.addTab(widget, title)
         return index
     return method
@@ -37,7 +39,7 @@ class DetachTabButton(QPushButton, Ui_DetachTabButton):
         self.addAction(self.actionDetachTab)
 
 
-class CentralTabs(QTabWidget):
+class CentralTabs(QTabWidget, SessionHandler):
     def __init__(self, parent=None):
         QTabWidget.__init__(self, parent)
         self.session = None
@@ -45,15 +47,16 @@ class CentralTabs(QTabWidget):
         self.detachTab = detachTab = DetachTabButton(self)
         self.setCornerWidget(closeTab, Qt.TopRightCorner)
         self.setCornerWidget(detachTab, Qt.TopLeftCorner)
+        self.setupSession()
         window = self.window()
         connect = self.connect
-        connect(window, Signals.sessionCreated, self.on_session_created)
-        connect(window, Signals.modelDoubleClicked, self.on_item_clicked)
-        connect(closeTab, Signals.clicked, self.on_closeTab_clicked)
-        connect(detachTab, Signals.clicked, self.on_detachTab_clicked)
+        connect(window, Signals.modelClicked, self.showItemTab)
+        connect(window, Signals.modelDoubleClicked, self.newItemTab)
+        connect(closeTab, Signals.clicked, self.closeItemTab)
+        connect(detachTab, Signals.clicked, self.detachItemTab)
 
     @pyqtSignature('')
-    def on_closeTab_clicked(self):
+    def closeItemTab(self):
         index = self.currentIndex()
         widget = self.widget(index)
         if widget:
@@ -62,7 +65,7 @@ class CentralTabs(QTabWidget):
             widget.close()
 
     @pyqtSignature('')
-    def on_detachTab_clicked(self):
+    def detachItemTab(self):
         index = self.currentIndex()
         widget = self.widget(index)
         icon = self.tabIcon(index)
@@ -80,17 +83,17 @@ class CentralTabs(QTabWidget):
         widget.connect(action, Signals.triggered, widget.close)
         widget.show()
 
-    def on_item_clicked(self, index):
+    def newItemTab(self, index):
         text = name = str(index.data().toString())
         text = text.replace(' ', '_').lower()
         icon = QIcon(index.data(Qt.DecorationRole))
         tickerId, tickerIdValid = index.data(tickerIdRole).toInt()
         if tickerIdValid:
-            self.on_symbol_clicked(
+            self.newSymbolItemTab(
                 item=None, symbol=name, tickerId=tickerId, icon=icon)
         else:
             try:
-                call = getattr(self, 'on_%s_clicked' % text)
+                call = getattr(self, 'new_%sItem' % text)
                 tabIndex = call(name)
             except (AttributeError, TypeError, ), exc:
                 print '## session item create exception:', exc
@@ -98,10 +101,7 @@ class CentralTabs(QTabWidget):
                 self.setCurrentIndex(tabIndex)
                 self.setTabIcon(tabIndex, icon)
 
-    def on_session_created(self, session):
-        self.session = session
-
-    def on_symbol_clicked(self, item, index=None, symbol=None,
+    def newSymbolItemTab(self, item, index=None, symbol=None,
                          tickerId=None, icon=None, *args):
         if item is not None:
             symbol = str(item.text())
@@ -109,30 +109,36 @@ class CentralTabs(QTabWidget):
             icon = item.icon()
         cls = importItem('profit.widgets.tickerplotdisplay.TickerPlotDisplay')
         widget = cls(self)
-        widget.setSession(
+        widget.setSessionPlot(
             self.session, self.session.tickerCollection, tickerId, *args)
         index = self.addTab(widget, symbol)
         self.setTabIcon(index, icon)
         self.setCurrentIndex(index)
 
-    def on_tickers_clicked(self, text):
+    def showItemTab(self, index):
+        name = index.data().toString()
+        pages = dict([(self.tabText(i), i) for i in range(self.count())])
+        if name in pages:
+            self.setCurrentIndex(pages[name])
+        else:
+            self.newItemTab(index)
+
+    # handlers for the various named items in the session widget
+
+    def new_tickersItem(self, text):
         cls = importItem('profit.widgets.tickerdisplay.TickerDisplay')
-        widget = cls(self.session, self)
+        widget = cls(self)
+        widget.setSession(self.session)
         index = self.addTab(widget, text)
-        self.connect(widget, Signals.tickerClicked, self.on_symbol_clicked)
+        self.connect(widget, Signals.tickerClicked, self.newSymbolItemTab)
         return index
 
-    on_account_clicked = \
-        tabWidgetMethod('accountdisplay.AccountDisplay', reloaded=True)
-    on_connection_clicked = \
-        tabWidgetMethod('connectiondisplay.ConnectionDisplay')
-    on_executions_clicked = \
-        tabWidgetMethod('executionsdisplay.ExecutionsDisplay')
-    on_messages_clicked = \
-        tabWidgetMethod('messagedisplay.MessageDisplay')
-    on_orders_clicked = \
-        tabWidgetMethod('orderdisplay.OrderDisplay')
-    on_portfolio_clicked = \
-        tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
-    on_strategy_clicked = \
-        tabWidgetMethod('strategydisplay.StrategyDisplay')
+    new_accountItem = tabWidgetMethod('accountdisplay.AccountDisplay')
+    new_connectionItem = tabWidgetMethod(
+        'connectiondisplay.ConnectionDisplay')
+    new_executionsItem = tabWidgetMethod(
+        'executionsdisplay.ExecutionsDisplay')
+    new_messagesItem = tabWidgetMethod('messagedisplay.MessageDisplay')
+    new_ordersItem = tabWidgetMethod('orderdisplay.OrderDisplay')
+    new_portfolioItem = tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
+    new_strategyItem = tabWidgetMethod('strategydisplay.StrategyDisplay')

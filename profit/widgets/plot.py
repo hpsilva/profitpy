@@ -405,7 +405,7 @@ class Plot(QFrame, Ui_Plot):
         self.connect(self.zoomer, Signals.zoomed, self.on_zoomer_zoomed)
         self.enableAutoScale()
 
-    def setSession(self, session, collection, key, *indexes):
+    def setSessionPlot(self, session, collection, key, *indexes):
         """ Associate a session with this instance.
 
         @param session Session instance

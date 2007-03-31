@@ -20,6 +20,7 @@ QtGui.QwtThermo = QwtThermo
 
 from profit.lib import defaults
 from profit.lib.core import Settings, Signals
+from profit.lib.gui import SessionHandler
 from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
 try:
@@ -46,18 +47,21 @@ def saveMethod(sig, key):
     return method
 
 
-class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
-    def __init__(self, session, parent=None):
+class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
+    def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupSession()
         self.setupControls()
+        self.startTimer(500)
+
+    def setSession(self, session):
         self.session = session
         connected = session.isConnected
         self.setControlsEnabled(not connected, connected)
         session.registerMeta(self)
         session.registerAll(self.updateLastMessage)
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
-        self.startTimer(500)
 
     def on_session_ConnectionClosed(self, message):
         self.setControlsEnabled(True, False)
@@ -165,7 +169,10 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget):
         self.hostNameEdit.setReadOnly(disconnect)
 
     def timerEvent(self, event):
-        last = self.session.messages[-20:]
+        try:
+            last = self.session.messages[-20:]
+        except (AttributeError, ):
+            return
         try:
             rate = len(last) / (time() - last[0][0])
         except (IndexError, ZeroDivisionError, ):

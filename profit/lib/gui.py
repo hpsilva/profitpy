@@ -9,7 +9,7 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QBrush, QColor, QIcon, QPixmap, QTableWidgetItem
 from PyQt4.QtGui import QMessageBox
 
-from profit.lib.core import valueAlign
+from profit.lib.core import Signals, valueAlign
 
 
 class ValueColorItem(object):
@@ -119,3 +119,14 @@ def complementColor(c):
     hx = str(c.name())[1:]
     comp = ['%.2X' % (255 - int(a, 16)) for a in (hx[0:2], hx[2:4], hx[4:6])]
     return QColor('#' + str.join('', comp))
+
+
+class SessionHandler(object):
+    def setupSession(self):
+        self.session = None
+        window = self.window()
+        self.connect(window, Signals.sessionCreated, self.setSession)
+
+    def setSession(self, session):
+        self.session = session
+

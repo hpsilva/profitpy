@@ -9,30 +9,32 @@ from PyQt4.QtCore import pyqtSignature
 from PyQt4.QtGui import QFileDialog, QFrame, QInputDialog, QMessageBox
 
 from profit.lib.core import Settings, Signals
+from profit.lib.gui import SessionHandler
 from profit.widgets.settingsdialog import SysPathDialog
 from profit.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
 
-class StrategyDisplay(QFrame, Ui_StrategyDisplay):
+class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
     def __init__(self, session, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.session = session
+        self.setupSession()
         self.settings = Settings()
         self.settings.beginGroup(Settings.keys.strategy)
         self.setupWidgets()
 
     def setupWidgets(self):
-        wid = self.callableSelect
-        wid.revertSource = \
-            lambda :self.settings.value('source', '').toString()
-        wid.saveSource = \
-            lambda src:self.settings.setValue('source', src)
+        def revert():
+            return self.settings.value('source', '').toString()
+        def save(src):
+            self.settings.setValue('source', src)
         getv = self.settings.value
-        wid.basicSetup(
+        self.callableSelect.basicSetup(
             callType=getv('typeindex', 0).toInt()[0],
             locationText=getv('location', '').toString(),
-            sourceEditorText=getv('source', '').toString())
+            sourceEditorText=getv('source', '').toString(),
+            revertSource=revert,
+            saveSource=save)
 
     @pyqtSignature('int')
     def on_callableType_currentIndexChanged(self, index):

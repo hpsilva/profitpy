@@ -14,7 +14,7 @@ from ib.ext.TickType import TickType
 
 from profit.lib import defaults
 from profit.lib.core import Settings, Signals, disabledUpdates, nameIn
-from profit.lib.gui import ValueTableItem
+from profit.lib.gui import SessionHandler, ValueTableItem
 from profit.widgets.portfoliodisplay import replayPortfolio
 from profit.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
@@ -46,18 +46,24 @@ def separator():
     return sep
 
 
-class TickerDisplay(QFrame, Ui_TickerDisplay):
-    def __init__(self, session, parent=None):
+class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
+    def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupSession()
         self.selectedItem = None
+        self.symbols = {}
         self.tickerItems = {}
         self.settings = Settings()
-        self.symbols = symbols = session.builder.symbols()
         self.tickerTable.verticalHeader().hide()
         self.contextActions = [
             separator(), self.actionChart, self.actionOrder, separator(),
         ]
+
+    def setSession(self, session):
+        self.session = session
+        symbols = self.symbols
+        symbols.update(session.builder.symbols())
         replayTick(session.messages, symbols,
                    self.on_session_TickPrice_TickSize)
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)

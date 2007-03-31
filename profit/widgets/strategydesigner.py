@@ -469,10 +469,16 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
 
     def setupCallableItem(self, item):
         self.callableName.setText(item.text())
+        def revert():
+            return item.moduleSource
+        def save(src):
+            item.moduleSource = self.callableEditor.sourceEditorText
         self.callableEditor.basicSetup(
             callType=item.callType,
             locationText=item.callLocation,
-            sourceEditorText=item.moduleSource)
+            sourceEditorText=item.moduleSource,
+            revertSource=revert,
+            saveSource=save)
 
     def setupTickerItem(self, item):
         """ Configures ticker page widgets from given item.
@@ -1099,7 +1105,7 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
                 editItem.messageTypes.discard(key)
             self.emit(Signals.modified)
 
-    def on_textEdit_textChanged(self):
+    def __on_textEdit_textChanged(self):
         item = self.editItem
         if item:
             item.moduleSource = self.callableEditor.sourceEditorText

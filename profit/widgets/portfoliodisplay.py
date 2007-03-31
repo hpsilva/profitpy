@@ -10,7 +10,7 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
 from profit.lib.core import disabledUpdates, nameIn
-from profit.lib.gui import ValueTableItem
+from profit.lib.gui import SessionHandler, ValueTableItem
 from profit.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
 
 
@@ -25,12 +25,15 @@ def replayPortfolio(messages, callback):
             break
 
 
-class PortfolioDisplay(QFrame, Ui_PortfolioDisplay):
-    def __init__(self, session, parent=None):
+class PortfolioDisplay(QFrame, Ui_PortfolioDisplay, SessionHandler):
+    def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupSession()
         self.portfolioItems = {}
         self.portfolioTable.verticalHeader().hide()
+
+    def setSession(self, session):
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
         session.registerMeta(self)
 

@@ -10,7 +10,7 @@ from PyQt4.QtCore import QAbstractTableModel, QVariant, Qt
 from PyQt4.QtGui import QFrame
 
 from profit.lib.core import Signals, Slots, nameIn, valueAlign
-from profit.lib.gui import symbolIcon
+from profit.lib.gui import SessionHandler, symbolIcon
 from profit.widgets.ui_executionsdisplay import Ui_ExecutionsDisplay
 
 
@@ -159,22 +159,21 @@ class ExecutionsTableModel(QAbstractTableModel):
         return len(self.columnTitles)
 
 
-class ExecutionsDisplay(QFrame, Ui_ExecutionsDisplay):
+class ExecutionsDisplay(QFrame, Ui_ExecutionsDisplay, SessionHandler):
     """ Combines a search filter bar (not working) and an exec details table.
 
     """
-    def __init__(self, session, parent=None):
+    def __init__(self, parent=None):
         """ Constructor.
 
-        @param session Session instance
         @param parent ancestor object
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupSession()
         self.executionsTable.verticalHeader().hide()
-        self.setupModel(session)
 
-    def setupModel(self, session):
+    def setSession(self, session):
         """ Configures this instance for a session.
 
         @param session Session instance

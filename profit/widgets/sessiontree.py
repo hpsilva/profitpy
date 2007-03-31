@@ -11,6 +11,7 @@ from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel)
 
+from profit.lib.gui import SessionHandler
 from profit.lib.core import Signals, tickerIdRole
 from profit.widgets.ui_sessiontree import Ui_SessionTree
 
@@ -99,7 +100,7 @@ class SessionTreeModel(QStandardItemModel):
                 item.appendRow(subitem)
 
 
-class SessionTree(QFrame, Ui_SessionTree):
+class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
     """ Tree view of a Session object.
 
     """
@@ -110,28 +111,29 @@ class SessionTree(QFrame, Ui_SessionTree):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupSession()
         connect = self.connect
         tree = self.treeView
-        window = self.window()
-        connect(window, Signals.sessionCreated, self.on_session_created)
-        connect(tree, Signals.modelDoubleClicked,
-                window, Signals.modelDoubleClicked)
         tree.header().hide()
         tree.setAnimated(True)
+        window = self.window()
+        connect(tree, Signals.modelClicked, window, Signals.modelClicked)
+        connect(tree, Signals.modelDoubleClicked,
+                window, Signals.modelDoubleClicked)
 
-    def on_session_created(self, session):
+    def setSession(self, session):
         """ Signal handler called when new Session object is created.
 
         @param session new Session instance
         @return None
         """
         self.session = session
-        self.dataModel = dataModel = SessionTreeModel(session, self)
+        self.dataModel = model = SessionTreeModel(session, self)
         view = self.treeView
-        view.setModel(dataModel)
+        view.setModel(model)
         if not sys.argv[1:]:
             try:
-                item = dataModel.findItems('connection')[0]
+                item = model.findItems('connection')[0]
             except (IndexError, ):
                 pass
             else:

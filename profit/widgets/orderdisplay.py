@@ -10,6 +10,7 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame
 
 from profit.lib.core import disabledUpdates, nameIn
+from profit.lib.gui import SessionHandler
 from profit.widgets.ui_orderdisplay import Ui_OrderDisplay
 
 
@@ -22,13 +23,17 @@ def replayOrders(messages, obj):
         call(message)
 
 
-class OrderDisplay(QFrame, Ui_OrderDisplay):
-    def __init__(self, session, parent=None):
+class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
+    def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setupUi(self)
         self.orderItems = {}
         self.orderTable.verticalHeader().hide()
+        self.setupSession()
+
+    def setSession(self, session):
+        self.session = session
         replayOrders(session.messages, self)
         session.registerMeta(self)
 

@@ -14,7 +14,7 @@ from PyQt4.QtGui import QPixmap, QSortFilterProxyModel
 from ib.opt.message import registry
 
 from profit.lib.core import Settings, Signals, Slots, nogc
-from profit.lib.gui import colorIcon
+from profit.lib.gui import SessionHandler, colorIcon
 from profit.widgets.ui_messagedisplay import Ui_MessageDisplay
 
 
@@ -85,19 +85,11 @@ class MessagesTableModel(QAbstractTableModel):
         @param parent ancestor object
         """
         QAbstractTableModel.__init__(self, parent)
-        self.brushes = brushes
-        self.setSession(session)
-
-    def setSession(self, session):
-        """ Saves reference to session.
-
-        @param session Session instance
-        @return None
-        """
         self.session = session
+        self.brushes = brushes
         self.messagesview = self.messages = session.messages
         self.messagetypes = []
-        session.registerAll(self.on_sessionMessage) # , Signals.layoutChanged)
+        session.registerAll(self.on_sessionMessage)
 
     def setPaused(self, paused):
         """ Pauses or resumes signals emitted from this model.
@@ -204,7 +196,7 @@ class MessagesFilterModel(QSortFilterProxyModel):
         return msg.typeName in self.types
 
 
-class MessageDisplay(QFrame, Ui_MessageDisplay):
+class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
     """ Table view of session messages with nifty controls.
 
     """
@@ -218,21 +210,21 @@ class MessageDisplay(QFrame, Ui_MessageDisplay):
         False:'Pause',
     }
 
-    def __init__(self, session, parent=None):
+    def __init__(self, parent=None):
         """ Constructor.
 
-        @param session instance of Session
         @param parent ancestor of this widget
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupSession()
+        self.brushMap = {}
+        self.displayTypes = messageTypeNames()
         self.messageTable.verticalHeader().hide()
         self.settings = settings = Settings()
         settings.beginGroup(settings.keys.messages)
-        self.setupModel(session)
         self.setupColorButton()
         self.setupDisplayButton()
-        session.registerAll(self.messageTable, Slots.scrollToBottom)
 
     def setupColorButton(self):
         """ Configures the color highlight button.
@@ -272,7 +264,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay):
             self.connect(action, Signals.triggered, self.on_displayChange)
         allAction.setChecked(True)
 
-    def setupModel(self, session):
+    def setSession(self, session):
         """ Configures this instance for a session.
 
         @param session Session instance
@@ -280,11 +272,10 @@ class MessageDisplay(QFrame, Ui_MessageDisplay):
         """
         self.session = session
         self.messages = session.messages
-        self.brushMap = brushes = {}
-        self.model = MessagesTableModel(session, brushes, self)
-        self.displayTypes = types = messageTypeNames()
+        self.model = MessagesTableModel(session, self.brushMap, self)
         self.proxyModel = None
         self.messageTable.setModel(self.model)
+        session.registerAll(self.messageTable, Slots.scrollToBottom)
 
     def on_colorChange(self):
         """ Signal handler for color change actions.

@@ -47,7 +47,7 @@ class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):
         self.connect(plot.actionClosePlot, Signals.triggered, self.closePlot)
         if self.sessionArgs:
             session, collection, tickerId, args = self.sessionArgs
-            plot.setSession(session, collection, tickerId, *args)
+            plot.setSessionPlot(session, collection, tickerId, *args)
         splitter.insertWidget(after, plot)
         plot.show()
 
@@ -101,7 +101,7 @@ class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):
             plot.actionClosePlot.setEnabled(not single)
             plot.actionNewPlot.setEnabled(not maxed)
 
-    def setSession(self, session, collection, tickerId, *args):
+    def setSessionPlot(self, session, collection, tickerId, *args):
         """ Associate a session with this instance.
 
         @param session Session instance
@@ -119,4 +119,4 @@ class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):
                 self.addPlot()
         else:
             for plot in self.plotWidgets:
-                plot.setSession(session, collection, tickerId, *args)
+                plot.setSessionPlot(session, collection, tickerId, *args)

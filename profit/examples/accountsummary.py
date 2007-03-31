@@ -124,7 +124,7 @@ class AccountSummaryModel(QStandardItemModel):
         self.setHorizontalHeaderLabels(['Item', 'Currency', 'Value'])
         if parent:
             self.connect(parent.window(), Signals.sessionCreated,
-                         self.on_session_created)
+                         self.setSession)
 
     def setAccountKeyDisplay(self, key, currency, show, view):
         """ Enable or disable display of specified account key.
@@ -149,7 +149,7 @@ class AccountSummaryModel(QStandardItemModel):
             self.removeRow(item.index().row())
             keys[displayKey] = None
 
-    def on_session_created(self, session):
+    def setSession(self, session):
         """ Slot called when session object is created.
 
         @param session instance of Sessino

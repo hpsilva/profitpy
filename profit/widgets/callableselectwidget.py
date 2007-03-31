@@ -39,9 +39,14 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
             setr(key, QVariant(value))
 
     def basicSetup(self,  **kwds):
-        self.callType = kwds.get('callType', self.unsetType)
-        self.locationText = kwds.get('locationText', '')
-        self.sourceEditorText = kwds.get('sourceEditorText', '')
+        items = [
+            ('callType', self.unsetType),
+            ('locationText', ''),
+            ('sourceEditorText', ''),
+            ('revertSource', None),
+            ('saveSource', None), ]
+        for name, default in items:
+            setattr(self, name, kwds.get(name, default))
         self.saveButton.setEnabled(False)
         self.revertButton.setEnabled(False)
 
@@ -75,14 +80,14 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
     sourceEditorText = property(getSourceEditorText, setSourceEditorText)
 
     def warn(self, text):
-        format = '<b>Warning:</b> %s' if text else '%s'
-        self.locationWarning.setText('%s' % text)
+        format = '<b>Warning:</b> %s.' if text else '%s'
+        self.locationWarning.setText(format % text)
 
     def on_textEdit_textChanged(self):
         try:
             self.callableCode()
         except (SyntaxError, ):
-            msg = 'Warning:  invalid syntax.'
+            msg = 'invalid syntax'
         else:
             msg = ''
         self.warn(msg)
@@ -99,7 +104,7 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
 
     def checkLocationExists(self):
         if not exists(abspath(self.locationText)):
-            msg = 'Warning: location does not exist.'
+            msg = 'location does not exist'
         else:
             msg = ''
         self.warn(msg)
@@ -112,15 +117,15 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
         self.warn('')
         if self.callType == self.sourceType:
             try:
-                self.callableCode()
+                code = self.callableCode()
             except (SyntaxError, ):
-                msg = 'Warning:  invalid syntax.'
+                msg = 'invalid syntax'
             else:
                 text = str(text)
                 if text and text in code.co_names:
                     msg = ''
                 else:
-                    msg = 'Warning:  expression not found in source.'
+                    msg = 'expression not found in source'
             self.warn(msg)
         elif self.callType == self.externalType:
             self.checkLocationExists()

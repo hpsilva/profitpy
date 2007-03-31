@@ -8,7 +8,7 @@ from PyQt4.QtCore import QAbstractTableModel, QSize, QVariant, Qt
 from PyQt4.QtGui import QFrame, QStandardItemModel, QStandardItem
 
 from profit.lib.core import Signals, valueAlign
-from profit.lib.gui import colorIcon, complementColor
+from profit.lib.gui import SessionHandler, colorIcon, complementColor
 from profit.series import Series
 from profit.widgets.plot import PlotCurve, ControlTreeValueItem
 from profit.widgets.ui_accountdisplay import Ui_AccountDisplay
@@ -50,21 +50,20 @@ class AccountTableModel(QStandardItemModel):
             items[2].setText(message.value)
 
 
-class AccountDisplay(QFrame, Ui_AccountDisplay):
+class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
     """ Table view of an account.
 
     """
-    def __init__(self, session, parent=None):
+    def __init__(self, parent=None):
         """ Constructor.
 
-        @param session Session instance
         @param parent ancestor object
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupModel(session)
+        self.setupSession()
 
-    def setupModel(self, session):
+    def setSession(self, session):
         """ Configures this instance for a session.
 
         @param session Session instance
@@ -74,7 +73,7 @@ class AccountDisplay(QFrame, Ui_AccountDisplay):
         self.dataModel = model = AccountTableModel(session, self)
         plot = self.plot
         plot.plotButton.setVisible(False)
-        plot.setSession(session, session.accountCollection, 'account')
+        plot.setSessionPlot(session, session.accountCollection, 'account')
         plot.controlsTreeModel = model
         plot.controlsTree.setModel(model)
         plot.controlsTree.header().show()
