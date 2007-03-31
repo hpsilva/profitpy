@@ -8,6 +8,7 @@
 # TODO: complete strategy display; integrate strategy designer
 # TODO: add default colors for arbitrary plot curves
 # TODO: cancel threads on save/export msg box abort
+# TODO: add csv tick data import/export
 
 from functools import partial
 try:

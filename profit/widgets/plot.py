@@ -425,6 +425,7 @@ class Plot(QFrame, Ui_Plot):
         self.plotSplitter.restoreState(state.toByteArray())
         self.setupTree()
         self.loadGrids()
+        self.loadSelections()
         self.loadCanvasColor()
         self.loadLegend()
         self.updateAxis()

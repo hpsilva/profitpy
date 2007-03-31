@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>383</width>
-    <height>354</height>
+    <width>536</width>
+    <height>583</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -14,7 +14,7 @@
   </property>
   <layout class="QVBoxLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <property name="spacing" >
     <number>6</number>
@@ -27,6 +27,21 @@
      <property name="spacing" >
       <number>6</number>
      </property>
+     <item row="0" column="0" >
+      <widget class="QLabel" name="label" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>1</hsizetype>
+         <vsizetype>5</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text" >
+        <string>Type:</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="2" >
       <widget class="QPushButton" name="callableLocationSelect" >
        <property name="text" >
@@ -34,17 +49,21 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1" >
-      <widget class="QLineEdit" name="callableLocation" >
-       <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>7</hsizetype>
-         <vsizetype>0</vsizetype>
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+     <item row="0" column="2" >
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
+       <property name="sizeType" >
+        <enum>QSizePolicy::Minimum</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>81</width>
+         <height>21</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item row="0" column="1" >
       <widget class="QComboBox" name="callableType" >
@@ -95,21 +114,17 @@
        </item>
       </widget>
      </item>
-     <item row="0" column="2" >
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
+     <item row="1" column="1" >
+      <widget class="QLineEdit" name="callableLocation" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>7</hsizetype>
+         <vsizetype>0</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <property name="sizeType" >
-        <enum>QSizePolicy::Minimum</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>81</width>
-         <height>21</height>
-        </size>
-       </property>
-      </spacer>
+      </widget>
      </item>
      <item row="1" column="0" >
       <widget class="QLabel" name="label" >
@@ -126,18 +141,10 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label" >
-       <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>1</hsizetype>
-         <vsizetype>5</vsizetype>
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+     <item row="2" column="1" >
+      <widget class="QLabel" name="locationWarning" >
        <property name="text" >
-        <string>Type:</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -161,7 +168,7 @@
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="label" >
+        <widget class="QLabel" name="sourceIntroLabel" >
          <property name="sizePolicy" >
           <sizepolicy>
            <hsizetype>1</hsizetype>
@@ -185,13 +192,70 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="frameShape" >
-          <enum>QFrame::NoFrame</enum>
-         </property>
          <property name="frameShadow" >
           <enum>QFrame::Plain</enum>
          </property>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="sourceWarning" >
+           <property name="text" >
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="externalEditButton" >
+           <property name="text" >
+            <string>Editor...</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/kedit.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="saveButton" >
+           <property name="text" >
+            <string>Save</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/filesave.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="revertButton" >
+           <property name="text" >
+            <string>Revert</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/undo.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>

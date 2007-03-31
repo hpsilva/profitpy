@@ -4,6 +4,8 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
+# TODO: expand callable items on create
+
 from cPickle import dump, load
 from os.path import split
 
@@ -22,7 +24,7 @@ from profit.lib.core import Settings, Signals
 from profit.strategy.treeitems import (
     CallableItem, TickerItem, FieldItem, IndexItem, RunnerItem)
 
-from profit.widgets.settingsdialog import SysPathDialog, sysPathSelectMethod
+from profit.widgets.settingsdialog import SysPathDialog
 from profit.widgets.ui_strategydesigner import Ui_StrategyDesigner
 
 
@@ -102,6 +104,8 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
             self.on_actionOpenStrategy_triggered(filename)
         else:
             self.resetWindowTitle()
+        self.connect(
+            self.callableEditor, Signals.modified, self, Signals.modified)
 
     # index parameter and documentation group methods
 
@@ -465,12 +469,10 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
 
     def setupCallableItem(self, item):
         self.callableName.setText(item.text())
-        editor = self.callableEditor
-        editor.callableLocation.setText(item.callLocation)
-        editor.callableSourceEditor.setText(item.moduleSource)
-        widget = editor.callableType
-        widget.setCurrentIndex(widget.findData(QVariant(item.callType)))
-        editor.callableLocationSelect.setEnabled(item.callType!='source')
+        self.callableEditor.basicSetup(
+            callType=item.callType,
+            locationText=item.callLocation,
+            sourceEditorText=item.moduleSource)
 
     def setupTickerItem(self, item):
         """ Configures ticker page widgets from given item.
@@ -531,10 +533,6 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
         self.treeView.header().hide()
         self.initialTitle = self.windowTitle()
         self.connect(self, Signals.modified, self.checkModified)
-        self.connect(
-            self.callableEditor.callableSourceEditor,
-            Signals.textChangedEditor,
-            self.on_callableSourceEditor_textChanged)
         for toolbar in self.findChildren(QToolBar):
             self.menuToolbars.addAction(toolbar.toggleViewAction())
         self.indexCombo.addItem('<none>', QVariant())
@@ -549,12 +547,6 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
             'execType', QVariant('single'))
         self.runnerThread.setProperty(
             'execType', QVariant('thread'))
-        setr = self.callableEditor.callableType.setItemData
-        setr(0, QVariant(''))
-        setr(1, QVariant('external'))
-        setr(2, QVariant('object'))
-        setr(3, QVariant('factory'))
-        setr(4, QVariant('source'))
 
     def showMessage(self, text, duration=3000):
         """ Displays text in the window status bar.
@@ -1107,18 +1099,15 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
                 editItem.messageTypes.discard(key)
             self.emit(Signals.modified)
 
-    def on_callableSourceEditor_textChanged(self):
+    def on_textEdit_textChanged(self):
         item = self.editItem
         if item:
-            item.moduleSource = str(
-                self.callableEditor.callableSourceEditor.text())
-            self.emit(Signals.modified)
+            item.moduleSource = self.callableEditor.sourceEditorText
 
     def on_callableLocation_textChanged(self, text):
         item = self.editItem
         if item:
-            item.callLocation = str(text)
-            self.emit(Signals.modified)
+            item.callLocation = self.callableEditor.locationText
 
     @pyqtSignature('QString')
     def on_callableType_currentIndexChanged(self, text):
@@ -1127,27 +1116,14 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
             calltype = self.callableEditor.callableType.itemData(
                 self.callableEditor.callableType.currentIndex()).toString()
             item.callType = str(calltype)
-            self.callableEditor.callableLocationSelect.setEnabled(
-                item.callType != 'source')
-            self.emit(Signals.modified)
 
     @pyqtSignature('')
     def on_callableLocationSelect_clicked(self):
         item = self.editItem
         if item:
             current = item.callLocation
-            if item.callType == 'external':
-                filename = QFileDialog.getOpenFileName(
-                    self, 'Select Program', '', 'Executable file (*.*)')
-                if filename:
-                    self.callableEditor.callableLocation.setText(filename)
-            elif item.callType:
-                dlg = SysPathDialog(self)
-                if dlg.exec_() == dlg.Accepted:
-                    widget = self.callableEditor.callableLocation
-                    widget.setText(dlg.selectedEdit.text())
-            if current != str(self.callableEditor.callableLocation.text()):
-                self.emit(Signals.modified)
+            if current != self.callableEditor.locationText:
+                item.callLocation = self.callableEditor.locationText
 
     @pyqtSignature('')
     def on_actionPrintStrategy_triggered(self):

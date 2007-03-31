@@ -38,6 +38,7 @@ class Signals:
     modelDoubleClicked = SIGNAL('doubleClicked (const QModelIndex &)')
     modelReset = SIGNAL('modelReset()')
     modified = SIGNAL('modified')
+    processFinished = SIGNAL('finished(int, QProcess::ExitStatus)')
     rowsInserted = SIGNAL('rowsInserted(const QModelIndex &, int, int)')
     selectionChanged = \
         SIGNAL('selectionChanged(const QItemSelection &, '
@@ -86,6 +87,7 @@ class Settings(QSettings):
         session = 'Session'
         size = 'Size'
         splitstate  = 'SplitterState'
+        strategy = 'Strategy'
         tickerurls = 'TickerUrls'
         urls = 'Urls'
         strategy = 'Strategy'
