@@ -4,7 +4,6 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-from compiler import parse
 from os.path import abspath, exists
 from string import Template
 from tempfile import NamedTemporaryFile
@@ -81,7 +80,7 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
 
     def on_textEdit_textChanged(self):
         try:
-            ast = parse(self.sourceEditorText)
+            self.callableCode()
         except (SyntaxError, ):
             msg = 'Warning:  invalid syntax.'
         else:
@@ -105,12 +104,15 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
             msg = ''
         self.warn(msg)
 
+    def callableCode(self):
+        src = self.sourceEditorText
+        return compile(src, 'strategyeditsrc', 'exec')
+
     def on_callableLocation_textChanged(self, text):
         self.warn('')
         if self.callType == self.sourceType:
-            src = self.sourceEditorText
             try:
-                code = compile(src, 'strategyeditsrc', 'exec')
+                self.callableCode()
             except (SyntaxError, ):
                 msg = 'Warning:  invalid syntax.'
             else:
