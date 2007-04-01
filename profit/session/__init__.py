@@ -23,7 +23,7 @@ from ib.opt.message import registry
 
 from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram, EMA, KAMA
-
+from profit.strategy import Strategy
 
 class Ticker(object):
     def __init__(self):
@@ -153,6 +153,7 @@ class Session(QObject):
         self.bareMessages = []
         self.accountCollection = AccountCollection(self)
         self.tickerCollection = TickerCollection(self)
+        self.strategy = Strategy(self)
         self.connect(
             self.accountCollection, Signals.createdAccountData,
             self, Signals.createdAccountData)

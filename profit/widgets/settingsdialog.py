@@ -69,6 +69,7 @@ def setList(o, v):
 schema = {}
 
 schema[Settings.keys.main] = [
+    ('confirmActivateStrategy', getCheckState, setCheckState, Qt.Checked),
     ('confirmCloseWhenModified', getCheckState, setCheckState, Qt.Checked),
     ('confirmCloseWhenConnected', getCheckState, setCheckState, Qt.Checked),
     ('useSystemTrayIcon', getCheckState, setCheckState, Qt.Checked),

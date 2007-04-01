@@ -6,9 +6,6 @@
 # Author: Troy Melhase <troy@gci.net>
 
 # TODO: complete strategy display; integrate strategy designer
-# TODO: add default colors for arbitrary plot curves
-# TODO: cancel threads on save/export msg box abort
-# TODO: add csv tick data import/export
 
 from functools import partial
 try:
@@ -451,6 +448,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
 
     def sessionRequested(self):
         self.emit(Signals.sessionReference, self.session)
+
 
 class WaitMessageBox(QMessageBox):
     def __init__(self, callback, parent):

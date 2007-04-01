@@ -51,6 +51,7 @@ class Signals:
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')
     statusMessage = SIGNAL('statusMessage')
+    strategyEnabled = SIGNAL('strategyEnabled(bool)')
     terminated = SIGNAL('terminated()')
     textChanged = SIGNAL('textChanged(const QString &)')
     textChangedEditor = SIGNAL('textChanged()')

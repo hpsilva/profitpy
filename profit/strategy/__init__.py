@@ -8,13 +8,38 @@
 from PyQt4.QtCore import QObject
 
 from profit.lib import logging
-from profit.lib.core import Settings
+from profit.lib.core import Settings, Signals
 
 
-class Strategy:
-    def __init__(self):
+class Strategy(QObject):
+    def __init__(self, parent=None):
+        QObject.__init__(self, parent)
+        self.isEnabled = False
         self.threads = []
         self.tickers = []
+
+    def getEnabled(self):
+        return self.isEnabled
+
+    def setEnabled(self, enable=True):
+        if not enable and self.isEnabled:
+            self.deactivate()
+        else:
+            self.activate()
+        self.isEnabled = enable
+        self.emit(Signals.strategyEnabled, enable)
+
+    enabled = property(getEnabled, setEnabled)
+
+    def deactivate(self):
+        #self.session.strategy = None
+        pass
+
+    def activate(self):
+        #self.session.strategy = self
+        pass
+
+## questionable
 
     @classmethod
     def fromSchema(cls, schema):
@@ -67,13 +92,13 @@ class Strategy:
             execute_object_shell_or_factory(call)
 
     def associate_message_handlers(self):
-            """
-            callable object or callable factory (never external program)
-            location arguments inspected only once when created
-            callable object given message to process
-            callable factory result object given message to process
-            factories (but not callables) can access strategy instance
-            """
-            for call in self.callables:
-                register_callable_for_its_message_types(call)
+        """
+        callable object or callable factory (never external program)
+        location arguments inspected only once when created
+        callable object given message to process
+        callable factory result object given message to process
+        factories (but not callables) can access strategy instance
+        """
+        for call in self.callables:
+            register_callable_for_its_message_types(call)
 

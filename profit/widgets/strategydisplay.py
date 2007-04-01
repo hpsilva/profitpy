@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import pyqtSignature
-from PyQt4.QtGui import QFileDialog, QFrame, QInputDialog, QMessageBox
+from PyQt4.QtGui import QFileDialog, QFrame, QIcon, QInputDialog, QMessageBox
 
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import SessionHandler
@@ -36,9 +36,41 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
             revertSource=revert,
             saveSource=save)
 
+    def setSession(self, session):
+        self.session = session
+        self.strategy = session.strategy
+        self.connect(
+            self.strategy, Signals.strategyEnabled, self.on_strategy_enabled)
+        self.on_strategy_enabled(session.strategy.enabled)
+
+    def on_strategy_enabled(self, status):
+        self.callableGroup.setDisabled(status)
+        icofs = ':/images/icons/connect_%s.png'
+        buttonitems = {
+            True:[('Active.  Click to Deactivate', icofs % 'established'), ],
+            False:[('Inactive.  Click to Activate.', icofs % 'no'), ],
+        }
+        for text, icon in buttonitems[status]:
+            self.statusButton.setText(text)
+            self.statusButton.setIcon(QIcon(icon))
+
     @pyqtSignature('int')
     def on_callableType_currentIndexChanged(self, index):
         self.settings.setValue('typeindex', index)
 
     def on_callableLocation_textChanged(self, text):
         self.settings.setValue('location', text)
+
+    @pyqtSignature('')
+    def on_statusButton_clicked(self):
+        settings = Settings()
+        settings.beginGroup(Settings.keys.main)
+        confirm = settings.value('confirmActivateStrategy', True).toBool()
+        if confirm and not self.strategy.enabled:
+            mb = QMessageBox
+            if mb.question(self,
+                'Activate Trading Strategy?',
+                'Do you really want to activate your trading strategy?',
+                mb.Yes|mb.No) != mb.Yes:
+                return
+        self.strategy.enabled = not self.strategy.enabled

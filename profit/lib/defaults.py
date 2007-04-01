@@ -5,6 +5,10 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+from PyQt4.QtCore import QByteArray, Qt
+from PyQt4.QtGui import QColor, QPen
+
+
 def tickerUrls():
     return [
         'Profile:http://www.marketwatch.com/tools/quotes/profile.asp?symb=$symbol',
@@ -16,7 +20,48 @@ def tickerUrls():
         'Options:http://www.marketwatch.com/tools/quotes/options1.asp?symb=$symbol',
     ]
 
+
 class connection:
     host = 'localhost'
     port = 7496
     client = 0
+
+def canvasColor():
+    """ Reasonable default for canvas color.
+
+    @return QColor instance
+    """
+    return QColor(240, 240, 240)
+
+
+def itemPen(name):
+    return QPen()
+
+def majorGridPen():
+    """ Reasonable default for major grid pen.
+
+    @return QPen instance
+    """
+    pen = QPen(QColor(170, 170, 170))
+    pen.setStyle(Qt.DashLine)
+    return pen
+
+
+def minorGridPen():
+    """ Reasonable default for minor grid pen.
+
+    @return QPen instance
+    """
+    pen = QPen(QColor(210, 210, 210))
+    pen.setStyle(Qt.DotLine)
+    return pen
+
+
+def plotSplitterState():
+    """ Resonable default for plot splitter state.
+
+    @return QByteArray suitable for use with QSplitter.restoreState
+    """
+    return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAAAiQAAAm8BAAAABgEAAAAB')
+
+

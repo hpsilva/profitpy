@@ -103,6 +103,16 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QCheckBox" name="confirmActivateStrategy" >
+          <property name="text" >
+           <string>Activate trading strategy</string>
+          </property>
+          <property name="checked" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

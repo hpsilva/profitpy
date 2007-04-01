@@ -11,7 +11,7 @@
 #
 ##
 
-from PyQt4.QtCore import QByteArray, QRectF, QString, QTimer, QVariant
+from PyQt4.QtCore import QRectF, QString, QTimer, QVariant
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QBrush, QColor, QColorDialog, QFont, QFontDialog
 from PyQt4.QtGui import QStandardItem, QStandardItemModel, QMenu, QPen, QFrame
@@ -21,6 +21,7 @@ from PyQt4.Qwt5 import QwtPlotMarker, QwtPlotPanner, QwtSymbol, QwtText
 
 from ib.ext.TickType import TickType
 
+from profit.lib import defaults
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import ValueColorItem, colorIcon, complementColor
 from profit.widgets.plotdatadialog import PlotDataDialog
@@ -62,42 +63,6 @@ def changeColor(getr, setr, parent):
     if newcolor.isValid():
         setr(newcolor)
         return newcolor
-
-
-def defaultCanvasColor():
-    """ Reasonable default for canvas color.
-
-    @return QColor instance
-    """
-    return QColor(240, 240, 240)
-
-
-def defaultMajorGridPen():
-    """ Reasonable default for major grid pen.
-
-    @return QPen instance
-    """
-    pen = QPen(QColor(170, 170, 170))
-    pen.setStyle(Qt.DashLine)
-    return pen
-
-
-def defaultMinorGridPen():
-    """ Reasonable default for minor grid pen.
-
-    @return QPen instance
-    """
-    pen = QPen(QColor(210, 210, 210))
-    pen.setStyle(Qt.DotLine)
-    return pen
-
-
-def defaultSplitterState():
-    """ Resonable default for plot splitter state.
-
-    @return QByteArray suitable for use with QSplitter.restoreState
-    """
-    return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAAAiQAAAm8BAAAABgEAAAAB')
 
 
 class PlotCurve(QwtPlotCurve):
@@ -422,7 +387,7 @@ class Plot(QFrame, Ui_Plot):
         settings = self.settings
         name = self.plotName()
         statekey = '%s/%s' % (name, settings.keys.splitstate)
-        state = settings.value(statekey, defaultSplitterState())
+        state = settings.value(statekey, defaults.plotSplitterState())
         self.plotSplitter.restoreState(state.toByteArray())
         self.setupTree()
         self.loadGrids()
@@ -598,7 +563,7 @@ class Plot(QFrame, Ui_Plot):
         @return None
         """
         color = self.settings.value(
-            '%s/canvascolor' % self.plotName(), defaultCanvasColor())
+            '%s/canvascolor' % self.plotName(), defaults.canvasColor())
         self.plot.setCanvasBackground(QColor(color))
 
     def loadCurve(self, name, curve):
@@ -653,9 +618,9 @@ class Plot(QFrame, Ui_Plot):
         name = self.plotName()
         grid = self.grid
         getv = self.settings.value
-        pen = getv('%s/major/pen' % name, defaultMajorGridPen())
+        pen = getv('%s/major/pen' % name, defaults.majorGridPen())
         grid.setMajPen(QPen(pen))
-        pen = getv('%s/minor/pen' % name, defaultMinorGridPen())
+        pen = getv('%s/minor/pen' % name, defaults.minorGridPen())
         grid.setMinPen(QPen(pen))
         items = [('%s/major/x/enabled', self.actionDrawMajorX),
                  ('%s/major/y/enabled', self.actionDrawMajorY),
@@ -676,7 +641,7 @@ class Plot(QFrame, Ui_Plot):
         if pen.isValid():
             pen = QPen(pen)
         else:
-            pen = QPen() # lookup
+            pen = defaults.itemPen(item.name())
         return pen
 
     def loadLegend(self):
