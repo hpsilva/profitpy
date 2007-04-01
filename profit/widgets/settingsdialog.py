@@ -74,6 +74,7 @@ schema[Settings.keys.main] = [
     ('confirmCloseWhenConnected', getCheckState, setCheckState, Qt.Checked),
     ('useSystemTrayIcon', getCheckState, setCheckState, Qt.Checked),
     ('startupScript', getText, setText, ''),
+    ('externalEditor', getText, setText, ''),
 ]
 
 schema[Settings.keys.strategy] = [
@@ -150,14 +151,21 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
     @pyqtSignature('')
     def on_selectStartupScript_clicked(self):
         filename = QFileDialog.getOpenFileName(
-            self, 'Select Startup Script', '', 'Python scripts (*.py)')
+            self, 'Select Startup Script', '', 'Python Script (*.py)')
         if filename:
             self.startupScript.setText(filename)
 
     @pyqtSignature('')
+    def on_selectExternalEditor_clicked(self):
+        filename = QFileDialog.getOpenFileName(
+            self, 'Select External Editor', '', 'Any File (*)')
+        if filename:
+            self.externalEditor.setText(filename)
+
+    @pyqtSignature('')
     def on_selectStrategySchema_clicked(self):
         filename = QFileDialog.getOpenFileName(
-            self, 'Select Strategy Schema', '', 'Schema Files (*schema)')
+            self, 'Select Strategy Schema', '', 'Strategy Files (*.strategy)')
         if filename:
             self.strategySchema.setText(filename)
 

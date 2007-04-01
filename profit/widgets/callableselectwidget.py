@@ -20,15 +20,25 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
     revertSource = None
     saveSource = None
 
-    unsetType, externalType, objectType, factoryType, sourceType = range(5)
-    pythonTypes = (objectType, factoryType, sourceType)
+    (unsetType, externalType, objectType, factoryType,
+     sourceType, fileType) = range(6)
     callTypeMap = {
         unsetType:'',
         externalType:'external',
         objectType:'object',
         factoryType:'factory',
         sourceType:'source',
+        fileType:'file',
     }
+    pythonTypes = [
+        callTypeMap[objectType],
+        callTypeMap[factoryType],
+        callTypeMap[sourceType],
+    ]
+    fsTypes = [
+        callTypeMap[externalType],
+        callTypeMap[fileType],
+    ]
 
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
@@ -39,6 +49,12 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
             setr(key, QVariant(value))
 
     def basicSetup(self,  **kwds):
+        for key, value in self.callTypeMap.items():
+            if kwds.get('disable%sType' % value.title(), False):
+                self.callableType.removeItem(
+                    self.callableType.findData(QVariant(value)))
+                self.stackedWidget.removeWidget(
+                    self.stackedWidget.widget(key))
         items = [
             ('callType', self.unsetType),
             ('locationText', ''),
@@ -50,16 +66,19 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
         self.saveButton.setEnabled(False)
         self.revertButton.setEnabled(False)
 
+
+    def callTypeText(self):
+        return self.callableType.currentText()
+
+    callTypeText = property(callTypeText)
+
     def getCallType(self):
-        return self.callableType.currentIndex()
+        wid = self.callableType
+        return str(wid.itemData(wid.currentIndex()).toString())
 
     def setCallType(self, value):
         wid = self.callableType
-        try:
-            index = value + 0
-        except (TypeError, ):
-            index = wid.findData(QVariant(value))
-        wid.setCurrentIndex(index)
+        wid.setCurrentIndex(wid.findData(QVariant(value)))
 
     callType = property(getCallType, setCallType)
 
@@ -101,7 +120,8 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
     def on_callableType_currentIndexChanged(self, index):
         if index == self.externalType:
             self.checkLocationExists()
-        self.callableLocationSelect.setEnabled(index != self.sourceType)
+        self.callableLocationSelect.setDisabled(
+            self.callType == self.callTypeMap[self.sourceType])
         self.emit(Signals.modified)
 
     def checkLocationExists(self):
@@ -117,7 +137,7 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
 
     def on_callableLocation_textChanged(self, text):
         self.warn('')
-        if self.callType == self.sourceType:
+        if self.callType == self.callTypeMap[self.sourceType]:
             try:
                 code = self.callableCode()
             except (SyntaxError, ):
@@ -129,16 +149,17 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
                 else:
                     msg = 'expression not found in source'
             self.warn(msg)
-        elif self.callType == self.externalType:
+        elif self.callType in self.fsTypes:
             self.checkLocationExists()
         self.emit(Signals.modified)
 
     @pyqtSignature('')
     def on_callableLocationSelect_clicked(self):
         name = None
-        if self.callType == self.externalType:
+        if self.callType in self.fsTypes:
             filename = QFileDialog.getOpenFileName(
-                self, 'Select Program', '', 'Executable file (*.*)')
+                self, 'Select %s' % self.callTypeText, '',
+                'Executable file (*.*)')
             if filename:
                 name = filename
         elif self.callType in self.pythonTypes:
@@ -154,15 +175,15 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
     @pyqtSignature('')
     def on_externalEditButton_clicked(self):
         settings = Settings()
-        settings.beginGroup(settings.keys.app)
-        editor = str(settings.value('editor', '').toString())
+        settings.beginGroup(settings.keys.main)
+        editor = str(settings.value('externalEditor', '').toString())
         if not editor:
             editor, okay = QInputDialog.getText(
                 self, 'Configure Source Editor',
                 'Enter editor command name.  '
                 'Use $f as filename argument placeholder.')
             if okay:
-                settings.setValue('editor', editor)
+                settings.setValue('externalEditor', editor)
                 editor = str(editor)
             else:
                 editor = None

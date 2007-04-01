@@ -4,8 +4,6 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-# TODO: expand callable items on create
-
 from cPickle import dump, load
 from os.path import split
 
@@ -478,7 +476,8 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
             locationText=item.callLocation,
             sourceEditorText=item.moduleSource,
             revertSource=revert,
-            saveSource=save)
+            saveSource=save,
+            disableFileType=True)
 
     def setupTickerItem(self, item):
         """ Configures ticker page widgets from given item.
@@ -914,6 +913,7 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
             item = CallableItem.fromSchema()
             item.setIcon(self.actionInsertCallable.icon())
             self.editItem.appendRow(item)
+            self.treeView.expand(item.parent().index())
             self.emit(Signals.modified)
 
     @pyqtSignature('')

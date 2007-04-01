@@ -288,7 +288,13 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
     @pyqtSignature('')
     def on_actionStrategyDesigner_triggered(self):
         from profit.widgets.strategydesigner import StrategyDesigner
-        win = StrategyDesigner(parent=self)
+        settings = Settings()
+        settings.beginGroup(settings.keys.strategy)
+        if settings.value('type', '').toString()=='file':
+            filename = settings.value('location', '').toString()
+        else:
+            filename = None
+        win = StrategyDesigner(filename=filename, parent=self)
         win.show()
 
     def on_trayIcon_activated(self, reason):

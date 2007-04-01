@@ -112,6 +112,14 @@
          <iconset resource="profit.qrc" >:/images/icons/source_py.png</iconset>
         </property>
        </item>
+       <item>
+        <property name="text" >
+         <string>File</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="profit.qrc" >:/images/icons/empty.png</iconset>
+        </property>
+       </item>
       </widget>
      </item>
      <item row="1" column="1" >
@@ -153,7 +161,7 @@
    <item>
     <widget class="QStackedWidget" name="stackedWidget" >
      <property name="currentIndex" >
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page0" />
      <widget class="QWidget" name="page1" />
@@ -244,6 +252,7 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="page5" />
     </widget>
    </item>
   </layout>

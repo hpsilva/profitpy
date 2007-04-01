@@ -6,11 +6,10 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import pyqtSignature
-from PyQt4.QtGui import QFileDialog, QFrame, QIcon, QInputDialog, QMessageBox
+from PyQt4.QtGui import QFrame, QIcon, QMessageBox
 
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import SessionHandler
-from profit.widgets.settingsdialog import SysPathDialog
 from profit.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
 
@@ -30,11 +29,12 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
             self.settings.setValue('source', src)
         getv = self.settings.value
         self.callableSelect.basicSetup(
-            callType=getv('typeindex', 0).toInt()[0],
+            callType=getv('type', '').toString(),
             locationText=getv('location', '').toString(),
             sourceEditorText=getv('source', '').toString(),
             revertSource=revert,
-            saveSource=save)
+            saveSource=save,
+            disableFactoryType=True)
 
     def setSession(self, session):
         self.session = session
@@ -56,7 +56,8 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
 
     @pyqtSignature('int')
     def on_callableType_currentIndexChanged(self, index):
-        self.settings.setValue('typeindex', index)
+        self.settings.setValue(
+            'type', self.callableSelect.callableType.itemData(index))
 
     def on_callableLocation_textChanged(self, text):
         self.settings.setValue('location', text)
