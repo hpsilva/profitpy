@@ -61,7 +61,7 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
+        self.requestSession()
 
     def setSession(self, session):
         """ Configures this instance for a session.

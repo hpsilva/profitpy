@@ -45,6 +45,8 @@ class Signals:
         SIGNAL('selectionChanged(const QItemSelection &, '
                'const QItemSelection &)')
     sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
+    sessionReference = SIGNAL('sessionReference(PyQt_PyObject)')
+    sessionRequest = SIGNAL('sessionRequest')
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')

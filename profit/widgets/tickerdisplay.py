@@ -50,7 +50,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
         self.selectedItem = None
         self.symbols = {}
         self.tickerItems = {}
@@ -59,6 +58,7 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
         self.contextActions = [
             separator(), self.actionChart, self.actionOrder, separator(),
         ]
+        self.requestSession()
 
     def setSession(self, session):
         self.session = session

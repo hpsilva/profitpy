@@ -122,11 +122,45 @@ def complementColor(c):
 
 
 class SessionHandler(object):
-    def setupSession(self):
-        self.session = None
+    """ Mixin to provide Qt objects and widgets basic session handling.
+
+    Clients of this class should include it as a base class, then call
+    'requestSession' to retrieve an existing session and connect to
+    the 'sessionCreated' signal.
+    """
+    session = None
+
+    def existingSession(self, session):
+        """ Connects this object to an existing session instance.
+
+        This method is provided so classes that mix in SessionHandler
+        do not have to call the base class implementation of
+        setSession.
+
+        @param session Session instance
+        @return None
+        """
+        self.disconnect(
+            self.window(), Signals.sessionReference, self.existingSession)
+        if not session is self.session:
+            self.setSession(session)
+
+    def requestSession(self):
+        """ Sends request for existing session.
+
+        @return None
+        """
         window = self.window()
-        self.connect(window, Signals.sessionCreated, self.setSession)
+        connect = self.connect
+        connect(window, Signals.sessionCreated, self.setSession)
+        # relay our session request off the main window
+        connect(self, Signals.sessionRequest, window, Signals.sessionRequest)
+        connect(window, Signals.sessionReference, self.existingSession)
+        self.emit(Signals.sessionRequest)
 
     def setSession(self, session):
-        self.session = session
+        """ Default implementation sets session as attribute.
 
+        Subclasses should reimplement this method.
+        """
+        self.session = session

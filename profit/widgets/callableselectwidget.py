@@ -79,9 +79,11 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
 
     sourceEditorText = property(getSourceEditorText, setSourceEditorText)
 
-    def warn(self, text):
+    def warn(self, text, widget=None):
         format = '<b>Warning:</b> %s.' if text else '%s'
-        self.locationWarning.setText(format % text)
+        if widget is None:
+            widget = self.locationWarning
+        widget.setText(format % text)
 
     def on_textEdit_textChanged(self):
         try:
@@ -90,7 +92,7 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
             msg = 'invalid syntax'
         else:
             msg = ''
-        self.warn(msg)
+        self.warn(msg, self.sourceWarning)
         self.saveButton.setEnabled(True)
         self.revertButton.setEnabled(True)
         self.emit(Signals.modified)

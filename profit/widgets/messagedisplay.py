@@ -217,7 +217,6 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
         self.brushMap = {}
         self.displayTypes = messageTypeNames()
         self.messageTable.verticalHeader().hide()
@@ -225,6 +224,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         settings.beginGroup(settings.keys.messages)
         self.setupColorButton()
         self.setupDisplayButton()
+        self.requestSession()
 
     def setupColorButton(self):
         """ Configures the color highlight button.

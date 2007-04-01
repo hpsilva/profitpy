@@ -272,6 +272,7 @@ class Legend(QwtLegend):
 class ControlTreeValueItem(QStandardItem, ValueColorItem):
     def __init__(self, text):
         QStandardItem.__init__(self, text)
+        self.setEditable(False)
         self.setTextAlignment(Qt.AlignVCenter|Qt.AlignRight)
 
     def setText(self, text):

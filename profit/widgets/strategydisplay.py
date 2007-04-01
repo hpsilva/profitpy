@@ -15,13 +15,13 @@ from profit.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
 
 class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
-    def __init__(self, session, parent=None):
+    def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
         self.settings = Settings()
         self.settings.beginGroup(Settings.keys.strategy)
         self.setupWidgets()
+        self.requestSession()
 
     def setupWidgets(self):
         def revert():

@@ -19,7 +19,6 @@ def tabWidgetMethod(name, reloaded=False):
     def method(self, title):
         cls = importItem('profit.widgets.' + name, reloaded=reloaded)
         widget = cls(self)
-        widget.setSession(self.session)
         index = self.addTab(widget, title)
         return index
     return method
@@ -47,7 +46,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.detachTab = detachTab = DetachTabButton(self)
         self.setCornerWidget(closeTab, Qt.TopRightCorner)
         self.setCornerWidget(detachTab, Qt.TopLeftCorner)
-        self.setupSession()
+        self.requestSession()
         window = self.window()
         connect = self.connect
         connect(window, Signals.modelClicked, self.showItemTab)
@@ -125,14 +124,6 @@ class CentralTabs(QTabWidget, SessionHandler):
 
     # handlers for the various named items in the session widget
 
-    def new_tickersItem(self, text):
-        cls = importItem('profit.widgets.tickerdisplay.TickerDisplay')
-        widget = cls(self)
-        widget.setSession(self.session)
-        index = self.addTab(widget, text)
-        self.connect(widget, Signals.tickerClicked, self.newSymbolItemTab)
-        return index
-
     new_accountItem = tabWidgetMethod('accountdisplay.AccountDisplay')
     new_connectionItem = tabWidgetMethod(
         'connectiondisplay.ConnectionDisplay')
@@ -142,3 +133,11 @@ class CentralTabs(QTabWidget, SessionHandler):
     new_ordersItem = tabWidgetMethod('orderdisplay.OrderDisplay')
     new_portfolioItem = tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
     new_strategyItem = tabWidgetMethod('strategydisplay.StrategyDisplay')
+
+    new_tickersItemHelper = tabWidgetMethod('tickerdisplay.TickerDisplay')
+    def new_tickersItem(self, text):
+        index = self.new_tickersItemHelper(text)
+        widg = self.widget(index)
+        self.connect(widg, Signals.tickerClicked, self.newSymbolItemTab)
+        return index
+

@@ -51,7 +51,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
+        self.requestSession()
         self.setupControls()
         self.startTimer(500)
 

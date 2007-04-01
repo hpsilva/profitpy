@@ -30,7 +30,7 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         self.setupUi(self)
         self.orderItems = {}
         self.orderTable.verticalHeader().hide()
-        self.setupSession()
+        self.requestSession()
 
     def setSession(self, session):
         self.session = session

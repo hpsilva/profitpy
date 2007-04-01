@@ -63,6 +63,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         connect = self.connect
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
+        connect(self, Signals.sessionRequest, self.sessionRequested)
         connect(instance(), Signals.lastWindowClosed, self.writeSettings)
         self.createSession()
         if len(argv) > 1:
@@ -448,6 +449,8 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         settings.setValue(settings.keys.winstate, self.saveState())
         settings.endGroup()
 
+    def sessionRequested(self):
+        self.emit(Signals.sessionReference, self.session)
 
 class WaitMessageBox(QMessageBox):
     def __init__(self, callback, parent):

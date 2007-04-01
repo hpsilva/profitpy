@@ -29,11 +29,12 @@ class PortfolioDisplay(QFrame, Ui_PortfolioDisplay, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
         self.portfolioItems = {}
         self.portfolioTable.verticalHeader().hide()
+        self.requestSession()
 
     def setSession(self, session):
+        self.session = session
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
         session.registerMeta(self)
 

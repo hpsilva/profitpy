@@ -170,7 +170,7 @@ class ExecutionsDisplay(QFrame, Ui_ExecutionsDisplay, SessionHandler):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
+        self.requestSession()
         self.executionsTable.verticalHeader().hide()
 
     def setSession(self, session):

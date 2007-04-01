@@ -111,7 +111,6 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.setupSession()
         connect = self.connect
         tree = self.treeView
         tree.header().hide()
@@ -120,6 +119,7 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
         connect(tree, Signals.modelClicked, window, Signals.modelClicked)
         connect(tree, Signals.modelDoubleClicked,
                 window, Signals.modelDoubleClicked)
+        self.requestSession()
 
     def setSession(self, session):
         """ Signal handler called when new Session object is created.
@@ -137,4 +137,4 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
             except (IndexError, ):
                 pass
             else:
-                view.emit(Signals.modelDoubleClicked, item.index())
+                view.emit(Signals.modelClicked, item.index())
