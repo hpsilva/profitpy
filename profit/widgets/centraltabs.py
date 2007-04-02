@@ -5,7 +5,9 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from PyQt4.QtCore import Qt, pyqtSignature
+from sys import platform
+
+from PyQt4.QtCore import QTimer, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
 
 from profit.lib import importItem
@@ -80,7 +82,15 @@ class CentralTabs(QTabWidget, SessionHandler):
         action.setShortcut('Ctrl+W')
         widget.addAction(action)
         widget.connect(action, Signals.triggered, widget.close)
-        widget.show()
+        if platform.startswith('win'):
+            def show():
+                widget.setParent(None)
+                widget.show()
+        else:
+            def show():
+                widget.show()
+        show.circleref = show
+        QTimer.singleShot(100, show)
 
     def newItemTab(self, index):
         text = name = str(index.data().toString())

@@ -92,6 +92,10 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
 
     def closeEvent(self, event):
         if self.checkClose():
+            try:
+                self.trayIcon.deleteLater()
+            except (AttributeError, ):
+                pass
             event.accept()
         else:
             event.ignore()
