@@ -29,7 +29,6 @@ from profit.session import Session
 from profit.widgets import profit_rc
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
-from profit.widgets.sessionreplay import SessionReplay
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
 from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
@@ -57,14 +56,18 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         self.setupColors()
         self.readSettings()
         self.setWindowTitle('%s (0.2 alpha)' % applicationName())
+        app = instance()
+        sessreq = lambda :app.emit(Signals.sessionReference, self.session)
         connect = self.connect
+        connect(app, Signals.sessionRequest, sessreq)
+        connect(app, Signals.lastWindowClosed, self.writeSettings)
+        connect(self, Signals.sessionCreated, app, Signals.sessionCreated)
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
-        connect(self, Signals.sessionRequest, self.sessionRequested)
-        connect(instance(), Signals.lastWindowClosed, self.writeSettings)
         self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
+
 
     def checkClose(self):
         check = True
@@ -108,11 +111,11 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
             self.close()
 
     def createSession(self):
-        ## lookup builder and pass instance here
-        self.session = Session()
-        self.emit(Signals.sessionCreated, self.session)
-        self.connect(self.session, Signals.statusMessage,
-                     self.statusBar().showMessage)
+        self.session = session = Session()
+        #self.emit(Signals.sessionCreated, session)
+        instance().emit(Signals.sessionCreated, session)
+        self.connect(
+            session, Signals.sessionStatus, self.statusBar().showMessage)
 
     @pyqtSignature('')
     def on_actionAboutProfitDevice_triggered(self):
@@ -169,6 +172,8 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
     @pyqtSignature('')
     def on_actionImportSession_triggered(self, filename=None):
         from profit.widgets.importexportdialog import ImportExportDialog
+        from profit.widgets.sessionreplay import SessionReplay
+
         if not filename:
             filename = QFileDialog.getOpenFileName(
                 self, 'Import Session From File')
@@ -259,7 +264,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
 
     @pyqtSignature('')
     def on_actionSaveSession_triggered(self):
-        if self.session.filename is None:
+        if self.session.sessionFile is None:
             self.actionSaveSessionAs.trigger()
         else:
             if self.session.saveInProgress:
@@ -278,7 +283,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
     def on_actionSaveSessionAs_triggered(self):
         filename = QFileDialog.getSaveFileName(self, 'Save Session As')
         if filename:
-            self.session.filename = str(filename)
+            self.session.sessionFile = str(filename)
             self.actionSaveSession.trigger()
 
     @pyqtSignature('')
@@ -296,7 +301,11 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         settings.beginGroup(settings.keys.strategy)
         if settings.value('type', '').toString()=='file':
             filename = settings.value('location', '').toString()
+            def x(name):
+                print '## strategy file named %s updated' % (name, )
         else:
+            def x(name):
+                print "## strategy file updated but i don't care"
             filename = None
         win = StrategyDesigner(filename=filename, parent=self)
         win.show()
@@ -455,9 +464,6 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         settings.setValue(settings.keys.maximized, self.isMaximized())
         settings.setValue(settings.keys.winstate, self.saveState())
         settings.endGroup()
-
-    def sessionRequested(self):
-        self.emit(Signals.sessionReference, self.session)
 
 
 class WaitMessageBox(QMessageBox):

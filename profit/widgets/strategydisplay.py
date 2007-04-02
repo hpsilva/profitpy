@@ -8,8 +8,7 @@
 from PyQt4.QtCore import pyqtSignature
 from PyQt4.QtGui import QFrame, QIcon, QMessageBox
 
-from profit.lib.core import Settings, Signals
-from profit.lib.gui import SessionHandler
+from profit.lib.core import SessionHandler, Settings, Signals
 from profit.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
 

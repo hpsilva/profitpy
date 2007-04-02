@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from PyQt4.QtCore import QObject
+from PyQt4.QtCore import QObject, QCoreApplication
 
 from profit.lib import logging
 from profit.lib.core import Settings, Signals
@@ -17,6 +17,12 @@ class Strategy(QObject):
         self.isEnabled = False
         self.threads = []
         self.tickers = []
+        app = QCoreApplication.instance()
+        self.connect(
+            app, Signals.strategyFileUpdated, self.externalFileUpdated)
+
+    def externalFileUpdated(self, filename):
+        print '## strategy external file updated.'
 
     def getEnabled(self):
         return self.isEnabled

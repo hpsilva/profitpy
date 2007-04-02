@@ -13,8 +13,8 @@ from PyQt4.QtGui import QPixmap, QSortFilterProxyModel
 
 from ib.opt.message import registry
 
-from profit.lib.core import Settings, Signals, Slots, nogc
-from profit.lib.gui import SessionHandler, colorIcon
+from profit.lib.core import SessionHandler, Settings, Signals, Slots
+from profit.lib.gui import colorIcon
 from profit.widgets.ui_messagedisplay import Ui_MessageDisplay
 
 

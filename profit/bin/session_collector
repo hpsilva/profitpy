@@ -139,7 +139,7 @@ class CollectorThread(QThread):
         options = self.options
         interval = options.interval * 60
         self.session = session = Session()
-        session.filename = options.output
+        session.sessionFile = options.output
         session.connectTWS(
             options.host, options.port, options.clientid)
         if not session.isConnected:
@@ -150,7 +150,7 @@ class CollectorThread(QThread):
         session.requestAccount()
         session.requestOrders()
         session.requestTickers()
-        self.connect(session, Signals.statusMessage, logging.debug)
+        self.connect(session, Signals.sessionStatus, logging.debug)
         while True:
             now = time.time()
             if stop is not None:

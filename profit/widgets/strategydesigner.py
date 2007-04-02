@@ -104,6 +104,9 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
             self.resetWindowTitle()
         self.connect(
             self.callableEditor, Signals.modified, self, Signals.modified)
+        self.connect(
+            self, Signals.strategyFileUpdated,
+            QApplication.instance(), Signals.strategyFileUpdated)
 
     # index parameter and documentation group methods
 
@@ -1063,6 +1066,7 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
                         self, 'Error', 'Unable to save schema file.')
                 else:
                     self.setWindowModified(False)
+                    self.emit(Signals.strategyFileUpdated, self.strategyFile)
                 finally:
                     handle.close()
 

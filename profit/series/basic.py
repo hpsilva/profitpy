@@ -41,24 +41,10 @@ class Series(list):
         return index
 
 
-class BaseIndex(list):
+class BaseIndex(Series):
     """ Base class for index types.
 
     """
-    def __init__(self):
-        list.__init__(self)
-        self.x = []
-        self.y = []
-
-
-    def append(self, value):
-        """ append value to this series and update its indexes
-
-        """
-        list.append(self, value)
-        if value is not None:
-            self.x.append(len(self)-1)
-            self.y.append(value)
 
 
 class SeriesIndex(BaseIndex):

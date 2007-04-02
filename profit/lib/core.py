@@ -5,8 +5,10 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from PyQt4.QtCore import QPoint, QSettings, QSize, QVariant, Qt, SIGNAL, SLOT
+from PyQt4.QtCore import (QCoreApplication, QPoint, QSettings, QSize,
+                          QVariant, Qt, SIGNAL, SLOT)
 
+from profit.lib import logging
 
 class Signals:
     """ Contains SIGNAL attributes for easy and consistent reference.
@@ -47,11 +49,12 @@ class Signals:
     sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
     sessionReference = SIGNAL('sessionReference(PyQt_PyObject)')
     sessionRequest = SIGNAL('sessionRequest')
+    sessionStatus = SIGNAL('sessionStatus')
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')
-    statusMessage = SIGNAL('statusMessage')
     strategyEnabled = SIGNAL('strategyEnabled(bool)')
+    strategyFileUpdated = SIGNAL('strategyFileUpdated(PyQt_PyObject)')
     terminated = SIGNAL('terminated()')
     textChanged = SIGNAL('textChanged(const QString &)')
     textChangedEditor = SIGNAL('textChanged()')
@@ -139,44 +142,6 @@ tickerIdRole = Qt.UserRole + 32
 valueAlign = Qt.AlignRight | Qt.AlignVCenter
 
 
-##
-# Set for the nogc function/function decorator.
-extra_references = set()
-
-
-def nogc(obj):
-    """ Prevents garbage collection. Usable as a decorator.
-
-    @param obj any object
-    @return obj
-    """
-    extra_references.add(obj)
-    return obj
-
-
-def disabledUpdates(name):
-    """ Creates decorator to wrap table access with setUpdatesEnabled calls.
-
-    @param name name of table attribute
-    @return decorator function
-    """
-    def disableDeco(meth):
-        """ Wraps method with table update disable-enable calls.
-
-        @param meth method to wrap
-        @return replacement method
-        """
-        def method(self, *a, **b):
-            table = getattr(self, name)
-            table.setUpdatesEnabled(False)
-            try:
-                meth(self, *a, **b)
-            finally:
-                table.setUpdatesEnabled(True)
-        return method
-    return disableDeco
-
-
 def nameIn(*names):
     def check(obj):
         try:
@@ -185,3 +150,61 @@ def nameIn(*names):
             return False
     return check
 
+
+instance = QCoreApplication.instance
+
+
+class SessionHandler(object):
+    """ Mixin to provide Qt objects and widgets basic session handling.
+
+    Clients of this class should include it as a base class, then call
+    'requestSession' to retrieve an existing session and connect to
+    the 'sessionCreated' signal.
+    """
+    sessionref = None
+
+    def session_getter(self):
+        return self.sessionref
+
+    def session_setter(self, value):
+        if self.sessionref:
+            for child in self.children() + [self, ]:
+                self.sessionref.deregisterMeta(child)
+        logging.debug('session set for %s to %s' % (self.objectName(), value))
+        self.sessionref = value
+
+    session = property(session_getter, session_setter)
+
+    def existingSession(self, session):
+        """ Connects this object to an existing session instance.
+
+        This method is provided so classes that mix in SessionHandler
+        do not have to call the base class implementation of
+        setSession.
+
+        @param session Session instance
+        @return None
+        """
+        self.disconnect(
+            instance(), Signals.sessionReference, self.existingSession)
+        if not session is self.session:
+            self.setSession(session)
+
+    def requestSession(self):
+        """ Sends request for existing session.
+
+        @return None
+        """
+        app = instance()
+        connect = self.connect
+        connect(app, Signals.sessionCreated, self.setSession)
+        connect(app, Signals.sessionReference, self.existingSession)
+        connect(self, Signals.sessionRequest, app, Signals.sessionRequest)
+        self.emit(Signals.sessionRequest)
+
+    def setSession(self, session):
+        """ Default implementation sets session as attribute.
+
+        Subclasses should reimplement this method.
+        """
+        self.session = session

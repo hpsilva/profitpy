@@ -9,8 +9,8 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
-from profit.lib.core import disabledUpdates, nameIn
-from profit.lib.gui import SessionHandler, ValueTableItem
+from profit.lib.core import SessionHandler, nameIn
+from profit.lib.gui import ValueTableItem
 from profit.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
 
 
@@ -38,7 +38,6 @@ class PortfolioDisplay(QFrame, Ui_PortfolioDisplay, SessionHandler):
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
         session.registerMeta(self)
 
-    @disabledUpdates('portfolioTable')
     def on_session_UpdatePortfolio(self, message):
         sym = message.contract.m_symbol
         table = self.portfolioTable

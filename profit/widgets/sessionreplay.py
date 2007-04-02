@@ -5,31 +5,83 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from itertools import tee
+##
+# This module defines the SessionReplay dialog class.
+#
+# SessionReplay dialogs offer the user widgets to control the replay
+# of a session.  It includes a delivery interval spinner and
+# associated slider, and also a button to restart the session replay.
+##
 
 from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QDialog, QMessageBox
 
 from profit.lib.core import Signals
 from profit.widgets.ui_sessionreplay import Ui_SessionReplayWidget
 
 
 class SessionReplay(QDialog, Ui_SessionReplayWidget):
+    """ Dialog for controlling the replay of a session.
+
+    After the dialog instance is constructed, clients should call
+    the 'setSession' to associate the dialog with a session.
+
+    Clients should use 'exec_()' to display the dialog, not 'show'.
+    """
     def __init__(self, interval=50, parent=None):
+        """ Constructor.
+
+        @param interval=50 milliseconds between message delivery
+        @param parent=None ancestor of this dialog
+        """
         QDialog.__init__(self, parent)
         self.setupUi(self)
         self.interval = interval
-        self.session = self.filename = self.types = self.loader = self.importer = None
+        self.session = self.filename = self.types = self.loader = \
+            self.importer = None
         self.timer = QTimer()
 
+    def exec_(self):
+        """ Dialog main loop.
+
+        @return DialogCode result
+        """
+        c = self.connect
+        c(self.timerSlider, Signals.intValueChanged, self.timer.setInterval)
+        c(self.timerSpin, Signals.intValueChanged, self.timer.setInterval)
+        c(self.timer, Signals.timeout, self.on_timer_timeout)
+        self.timer.start(self.interval)
+        return QDialog.exec_(self)
+
     def on_restartButton_clicked(self):
+        """ Signal handler for restart button clicked signals.
+
+        """
         if self.importer:
             self.timer.setInterval(self.timerSpin.value())
             self.loader = self.importer()
 
     def on_timer_timeout(self):
+        """ Signal handler for the delivery timer timeout signal.
+
+        If the instance has a session but no loader, it will attempt
+        to import the session object and initiate the replay.
+
+        If a loader is present (possibly added by importSession), the
+        the next message is requested from the loader.
+
+        @return None
+        """
         if self.session and not self.loader:
-            self.importSession(self.session, self.filename, self.types)
+            try:
+                self.importSession(self.session, self.filename, self.types)
+            except (Exception, ), ex:
+                QMessageBox.critical(
+                    self, 'Import Exception',
+                    'Exception "%s" during import.  '
+                    'Import not completed.' % ex)
+                self.close()
+                return
         if self.loader:
             setr = self.importProgress.setValue
             msgid = -1
@@ -64,11 +116,3 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
             self.importProgress.setMaximum(self.last)
             self.importer = importer
             self.loader = loader
-
-    def exec_(self):
-        c = self.connect
-        c(self.timerSlider, Signals.intValueChanged, self.timer.setInterval)
-        c(self.timerSpin, Signals.intValueChanged, self.timer.setInterval)
-        c(self.timer, Signals.timeout, self.on_timer_timeout)
-        self.timer.start(self.interval)
-        return QDialog.exec_(self)

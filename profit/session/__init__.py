@@ -25,6 +25,7 @@ from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram, EMA, KAMA
 from profit.strategy import Strategy
 
+
 class Ticker(object):
     def __init__(self):
         self.series = {}
@@ -55,14 +56,14 @@ class AccountCollection(DataCollection):
     def on_session_UpdateAccountValue(self, message):
         key = (message.key, message.currency, message.accountName)
         try:
-            acctdata = self.data[key]
+            acctdata = self[key]
         except (KeyError, ):
             try:
                 iv = float(message.value)
             except (ValueError, ):
                 pass
             else:
-                acctdata = self.data[key] = \
+                acctdata = self[key] = \
                            self.session.builder.accountData(key)
                 self.emit(Signals.createdAccountData, key, acctdata, iv)
         try:
@@ -84,9 +85,9 @@ class TickerCollection(DataCollection):
     def on_session_TickPrice_TickSize(self, message):
         tickerId = message.tickerId
         try:
-            tickerdata = self.data[tickerId]
+            tickerdata = self[tickerId]
         except (KeyError, ):
-            tickerdata = self.data[tickerId] = \
+            tickerdata = self[tickerId] = \
                          self.session.builder.ticker(tickerId)
             self.emit(Signals.createdTicker, tickerId, tickerdata)
         try:
@@ -134,20 +135,20 @@ class SessionBuilder(object):
         s = Series()
         s.addIndex('EMA-20', EMA, s, 20)
         s.addIndex('EMA-40', EMA, s, 40)
-        s.addIndex('KAMA-10', KAMA, s, 10)
+        v = s.addIndex('KAMA-10', KAMA, s, 10)
+        v.addIndex('EMA-5', EMA, v, 5)
         return s
 
 
 class Session(QObject):
-    def __init__(self, data=None, builder=None):
+    def __init__(self, builder=None):
         QObject.__init__(self)
         self.setObjectName('session')
-        self.data = data if data else {}
         self.builder = builder if builder else SessionBuilder()
         self.connection = None
         self.messages = []
         self.savedLength = 0
-        self.filename = None
+        self.sessionFile = None
         self.nextId = None
         self.typedMessages = {}
         self.bareMessages = []
@@ -163,6 +164,10 @@ class Session(QObject):
         self.connect(
             self.tickerCollection, Signals.createdSeries,
             self, Signals.createdSeries)
+
+    def __str__(self):
+        return '<Session 0x%x (messages=%s connected=%s>' % \
+               (id(self), len(self.messages), self.isConnected)
 
     def items(self):
         return [
@@ -226,7 +231,13 @@ class Session(QObject):
                 self.disconnect(self, SIGNAL(name), obj, other)
 
     def deregisterMeta(self, instance):
-        raise NotImplementedError()
+        prefix = 'on_session_'
+        names = [n for n in dir(instance) if n.startswith('on_session_')]
+        for name in names:
+            keys = name[len(prefix):].split('_')
+            for key in keys:
+                self.deregister(getattr(instance, name), key)
+
 
     def connectTWS(self, hostName, portNo, clientId, enableLogging=False):
         self.connection = con = ibConnection(hostName, portNo, clientId)
@@ -239,9 +250,13 @@ class Session(QObject):
     def on_nextValidId(self, message):
         self.nextId = int(message.orderId)
 
-    def receiveMessage(self, message, timefunc=time):
+    def receiveMessage(self, message, mtime=time):
         messages = self.messages
-        current = (timefunc(), message)
+        try:
+            mtime = mtime()
+        except (TypeError, ):
+            pass
+        current = (mtime, message)
         messages.append(current)
         typename = message.typeName
         typed = self.typedMessages.setdefault(typename, [])
@@ -288,7 +303,7 @@ class Session(QObject):
             msg = 'Session file saved.  Wrote %s messages.' % count
         else:
             msg = 'Error saving file.'
-        self.emit(Signals.statusMessage, msg)
+        self.emit(Signals.sessionStatus, msg)
 
     def exportFinished(self):
         if self.exportThread.status:
@@ -296,13 +311,13 @@ class Session(QObject):
             msg = 'Session exported.  Wrote %s messages.' % count
         else:
             msg = 'Error exporting messages.'
-        self.emit(Signals.statusMessage, msg)
+        self.emit(Signals.sessionStatus, msg)
 
     def saveTerminated(self):
-        self.emit(Signals.statusMessage, 'Session file save terminated.')
+        self.emit(Signals.sessionStatus, 'Session file save terminated.')
 
     def exportTerminated(self):
-        self.emit(Signals.statusMessage, 'Session export terminated.')
+        self.emit(Signals.sessionStatus, 'Session export terminated.')
 
     @property
     def saveInProgress(self):
@@ -317,11 +332,11 @@ class Session(QObject):
         if self.saveInProgress:
             return
         self.saveThread = thread = \
-            SaveThread(filename=self.filename, types=None, parent=self)
+            SaveThread(filename=self.sessionFile, types=None, parent=self)
         self.connect(thread, Signals.finished, self.saveFinished)
         self.connect(thread, Signals.terminated, self.saveTerminated)
         thread.start()
-        self.emit(Signals.statusMessage, 'Started session file save.')
+        self.emit(Signals.sessionStatus, 'Started session file save.')
 
     def load(self, filename):
         """ Restores session messages from file.
@@ -344,16 +359,27 @@ class Session(QObject):
                 messages = load(handle)
                 yield len(messages)
                 for index, (mtime, message) in enumerate(messages):
-                    self.receiveMessage(message, lambda:mtime)
+                    self.receiveMessage(message, mtime)
                     yield index
             except (UnpicklingError, ):
                 pass
             finally:
-                self.filename = filename
+                self.sessionFile= filename
                 self.savedLength = len(messages)
                 handle.close()
 
     def importMessages(self, filename, types):
+        """ Import messages directly into this session instance.
+
+        This function is a generator; it first yields the total number
+        of messages it has imported, then yields the message's index.
+        Prior to yielding the message index, the message object is
+        sent thru the Qt signal plumbing.
+
+        @param filename name of serialized messages file
+        @param types sequence or set of types to import
+        @return None
+        """
         try:
             handle = open(filename, 'rb')
         except (IOError, ):
@@ -366,7 +392,7 @@ class Session(QObject):
                 def importer():
                     yield len(messages)
                     for index, (mtime, message) in enumerate(messages):
-                        self.receiveMessage(message, lambda:mtime)
+                        self.receiveMessage(message, mtime)
                         yield index
                 return importer
             except (UnpicklingError, ):
@@ -391,7 +417,7 @@ class Session(QObject):
         self.connect(thread, Signals.finished, self.exportFinished)
         self.connect(thread, Signals.terminated, self.exportTerminated)
         thread.start()
-        self.emit(Signals.statusMessage, 'Started session export.')
+        self.emit(Signals.sessionStatus, 'Started session export.')
 
 
 class SaveThread(QThread):

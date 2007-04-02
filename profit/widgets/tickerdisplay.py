@@ -13,8 +13,8 @@ from PyQt4.QtGui import QAction, QDesktopServices, QFrame, QIcon, QMenu
 from ib.ext.TickType import TickType
 
 from profit.lib import defaults
-from profit.lib.core import Settings, Signals, disabledUpdates, nameIn
-from profit.lib.gui import SessionHandler, ValueTableItem
+from profit.lib.core import SessionHandler, Settings, Signals, nameIn
+from profit.lib.gui import ValueTableItem
 from profit.widgets.portfoliodisplay import replayPortfolio
 from profit.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
@@ -161,7 +161,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
         elif  (2 < col < 9):
             self.emit(Signals.tickerClicked, item, col)
 
-    @disabledUpdates('tickerTable')
     def on_session_UpdatePortfolio(self, message):
         sym = message.contract.m_symbol
         try:
@@ -173,7 +172,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
             items[1].setValue(message.position)
             items[2].setValue(message.marketValue)
 
-    @disabledUpdates('tickerTable')
     def on_session_TickPrice_TickSize(self, message):
         tid = message.tickerId
         table = self.tickerTable

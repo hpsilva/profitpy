@@ -19,8 +19,7 @@ from PyQt4.Qwt5 import QwtThermo
 QtGui.QwtThermo = QwtThermo
 
 from profit.lib import defaults
-from profit.lib.core import Settings, Signals
-from profit.lib.gui import SessionHandler
+from profit.lib.core import SessionHandler, Settings, Signals
 from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
 try:

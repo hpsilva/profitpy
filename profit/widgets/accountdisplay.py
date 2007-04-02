@@ -7,8 +7,8 @@
 from PyQt4.QtCore import QAbstractTableModel, QSize, QVariant, Qt
 from PyQt4.QtGui import QFrame, QStandardItemModel, QStandardItem
 
-from profit.lib.core import Signals, valueAlign
-from profit.lib.gui import SessionHandler, colorIcon, complementColor
+from profit.lib.core import SessionHandler, Signals, valueAlign
+from profit.lib.gui import colorIcon, complementColor
 from profit.series import Series
 from profit.widgets.plot import PlotCurve, ControlTreeValueItem
 from profit.widgets.ui_accountdisplay import Ui_AccountDisplay

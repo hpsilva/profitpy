@@ -9,8 +9,7 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib.core import disabledUpdates, nameIn
-from profit.lib.gui import SessionHandler
+from profit.lib.core import SessionHandler, nameIn
 from profit.widgets.ui_orderdisplay import Ui_OrderDisplay
 
 
@@ -37,7 +36,6 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         replayOrders(session.messages, self)
         session.registerMeta(self)
 
-    @disabledUpdates('orderTable')
     def on_session_OrderStatus(self, message):
         orderId = message.orderId
         try:
@@ -56,7 +54,6 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         items[15].setText(message.permId)
         table.resizeColumnsToContents()
 
-    @disabledUpdates('orderTable')
     def on_session_OpenOrder(self, message):
         table = self.orderTable
         contract = message.contract

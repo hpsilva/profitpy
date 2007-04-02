@@ -11,8 +11,7 @@ from PyQt4.QtCore import QTimer, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
 
 from profit.lib import importItem
-from profit.lib.core import Signals, tickerIdRole
-from profit.lib.gui import SessionHandler
+from profit.lib.core import SessionHandler, Signals, tickerIdRole
 from profit.widgets.ui_closetabbutton import Ui_CloseTabButton
 from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
 
@@ -43,7 +42,6 @@ class DetachTabButton(QPushButton, Ui_DetachTabButton):
 class CentralTabs(QTabWidget, SessionHandler):
     def __init__(self, parent=None):
         QTabWidget.__init__(self, parent)
-        self.session = None
         self.closeTab = closeTab = CloseTabButton(self)
         self.detachTab = detachTab = DetachTabButton(self)
         self.setCornerWidget(closeTab, Qt.TopRightCorner)
