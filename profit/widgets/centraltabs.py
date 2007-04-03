@@ -96,7 +96,7 @@ class CentralTabs(QTabWidget, SessionHandler):
                 widget.show()
         else:
             def show():
-		    widget.setParent(self.window())
+                  widget.setParent(self.window())
 	          widget.setWindowFlags(Qt.Window)
                 widget.show()
         show.circleref = show
