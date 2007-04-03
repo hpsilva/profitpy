@@ -145,28 +145,26 @@ class Session(QObject):
         QObject.__init__(self)
         self.setObjectName('session')
         self.builder = builder if builder else SessionBuilder()
-        self.connection = None
+        self.connection = self.sessionFile = self.nextId = None
         self.messages = []
         self.savedLength = 0
-        self.sessionFile = None
-        self.nextId = None
         self.typedMessages = {}
         self.bareMessages = []
-        self.accountCollection = AccountCollection(self)
-        self.tickerCollection = TickerCollection(self)
+        self.accountCollection = ac = AccountCollection(self)
+        self.tickerCollection = tc = TickerCollection(self)
         self.strategy = Strategy(self)
-        self.connect(
-            self.accountCollection, Signals.createdAccountData,
-            self, Signals.createdAccountData)
-        self.connect(
-            self.tickerCollection, Signals.createdTicker,
-            self, Signals.createdTicker)
-        self.connect(
-            self.tickerCollection, Signals.createdSeries,
-            self, Signals.createdSeries)
+        connect = self.connect
+        connect(
+            ac, Signals.createdAccountData, self, Signals.createdAccountData)
+        connect(
+            tc, Signals.createdSeries, self, Signals.createdSeries)
+        connect(
+            tc, Signals.createdTicker, self, Signals.createdTicker)
+
+
 
     def __str__(self):
-        return '<Session 0x%x (messages=%s connected=%s>' % \
+        return '<Session 0x%x (messages=%s connected=%s)>' % \
                (id(self), len(self.messages), self.isConnected)
 
     def items(self):

@@ -103,8 +103,6 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
         else:
             self.resetWindowTitle()
         self.connect(
-            self.callableEditor, Signals.modified, self, Signals.modified)
-        self.connect(
             self, Signals.strategyFileUpdated,
             QApplication.instance(), Signals.strategyFileUpdated)
 
@@ -470,17 +468,21 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
 
     def setupCallableItem(self, item):
         self.callableName.setText(item.text())
+        editor = self.callableEditor
+        modified = Signals.modified
+        self.disconnect(editor, modified, self, modified)
         def revert():
             return item.moduleSource
         def save(src):
-            item.moduleSource = self.callableEditor.sourceEditorText
-        self.callableEditor.basicSetup(
+            item.moduleSource = editor.sourceEditorText
+        editor.basicSetup(
             callType=item.callType,
             locationText=item.callLocation,
             sourceEditorText=item.moduleSource,
             revertSource=revert,
             saveSource=save,
             disableFileType=True)
+        self.connect(editor, modified, self, modified)
 
     def setupTickerItem(self, item):
         """ Configures ticker page widgets from given item.

@@ -10,17 +10,25 @@ from sys import platform
 from PyQt4.QtCore import QTimer, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
 
-from profit.lib import importItem
+from profit.lib import importItem, logging
 from profit.lib.core import SessionHandler, Signals, tickerIdRole
 from profit.widgets.ui_closetabbutton import Ui_CloseTabButton
 from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
 
 
+disallowMultiples = ['strategydisplay.StrategyDisplay', ]
+
+
 def tabWidgetMethod(name, reloaded=False):
-    def method(self, title):
+    def method(self, title, itemindex=None):
         cls = importItem('profit.widgets.' + name, reloaded=reloaded)
-        widget = cls(self)
-        index = self.addTab(widget, title)
+        index = None
+        if name in disallowMultiples and itemindex:
+            pages = self.pageMap()
+            index = pages.get(itemindex.data().toString(), None)
+        if index is None:
+            widget = cls(self)
+            index = self.addTab(widget, title)
         return index
     return method
 
@@ -53,6 +61,9 @@ class CentralTabs(QTabWidget, SessionHandler):
         connect(window, Signals.modelDoubleClicked, self.newItemTab)
         connect(closeTab, Signals.clicked, self.closeItemTab)
         connect(detachTab, Signals.clicked, self.detachItemTab)
+
+    def pageMap(self):
+        return dict([(self.tabText(i), i) for i in range(self.count())])
 
     @pyqtSignature('')
     def closeItemTab(self):
@@ -101,9 +112,9 @@ class CentralTabs(QTabWidget, SessionHandler):
         else:
             try:
                 call = getattr(self, 'new_%sItem' % text)
-                tabIndex = call(name)
-            except (AttributeError, TypeError, ), exc:
-                print '## session item create exception:', exc
+                tabIndex = call(name, index)
+            except (Exception, ), exc:
+                logging.debug('Session item create exception: %s', exc)
             else:
                 self.setCurrentIndex(tabIndex)
                 self.setTabIcon(tabIndex, icon)
@@ -124,7 +135,7 @@ class CentralTabs(QTabWidget, SessionHandler):
 
     def showItemTab(self, index):
         name = index.data().toString()
-        pages = dict([(self.tabText(i), i) for i in range(self.count())])
+        pages = self.pageMap()
         if name in pages:
             self.setCurrentIndex(pages[name])
         else:
@@ -143,8 +154,8 @@ class CentralTabs(QTabWidget, SessionHandler):
     new_strategyItem = tabWidgetMethod('strategydisplay.StrategyDisplay')
 
     new_tickersItemHelper = tabWidgetMethod('tickerdisplay.TickerDisplay')
-    def new_tickersItem(self, text):
-        index = self.new_tickersItemHelper(text)
+    def new_tickersItem(self, text, itemindex):
+        index = self.new_tickersItemHelper(text, itemindex)
         widg = self.widget(index)
         self.connect(widg, Signals.tickerClicked, self.newSymbolItemTab)
         return index

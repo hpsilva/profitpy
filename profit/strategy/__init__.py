@@ -11,10 +11,38 @@ from profit.lib import logging
 from profit.lib.core import Settings, Signals
 
 
+class StrategyInstance(object):
+    def __init__(self, type, location, source):
+        self.type = type
+        self.location = location
+        self.source = source
+
+    @classmethod
+    def fromProgram(cls):
+        ## execute an external command and use what it writes to
+        ## stdout as a strategy (sequence of schema types).
+        pass
+
+    @classmethod
+    def fromObject(cls):
+        pass
+
+    @classmethod
+    def fromSource(cls):
+        pass
+
+    @classmethod
+    def fromFile(cls):
+        ## read a pickled strategy schema from a file
+        return cls(m)
+
+
+
+
 class Strategy(QObject):
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
-        self.isEnabled = False
+        self.isActive = self.loadMessage = False
         self.threads = []
         self.tickers = []
         app = QCoreApplication.instance()
@@ -22,28 +50,60 @@ class Strategy(QObject):
             app, Signals.strategyFileUpdated, self.externalFileUpdated)
 
     def externalFileUpdated(self, filename):
-        print '## strategy external file updated.'
+        print '## strategy external file updated'
 
-    def getEnabled(self):
-        return self.isEnabled
+    def getActive(self):
+        return self.isActive
 
-    def setEnabled(self, enable=True):
-        if not enable and self.isEnabled:
+    def setActive(self, enable):
+        self.isActive = enable
+        if not enable and self.isActive:
             self.deactivate()
         else:
             self.activate()
-        self.isEnabled = enable
-        self.emit(Signals.strategyEnabled, enable)
+        self.emit(Signals.strategyActivated, enable)
 
-    enabled = property(getEnabled, setEnabled)
+    active = property(getActive, setActive)
+
+
+    def load(self, params):
+        origintype = params.get('type', '') or 'empty'
+        try:
+            call = getattr(self, 'from%s' % origintype.title())
+            okay, message = call(**params)
+            self.loadMessage = message
+            signal = Signals.strategyLoaded if okay else \
+                     Signals.strategyLoadFailed
+            self.emit(signal, message)
+            if okay and params.get('reload', False):
+                self.emit(signal, 'Strategy reloaded')
+        except (Exception, ), ex:
+            self.emit(Signals.strategyLoadFailed, str(ex))
+
+    def fromEmpty(self, **kwds):
+        return (False, 'Cannot create strategy with empty origin type')
+
+    def fromExternal(self, location='', **kwds):
+        return (True, 'Load strategy from external command: %s' % location)
+
+    def fromFile(self, location='', **kwds):
+        return (True, 'Load strategy from file: %s' % location)
+
+    def fromSource(self, location='', source='', **kwds):
+        return (True, 'Load strategy from source: %s' % location)
+
+    def fromObject(self, location='', **kwds):
+        return (True, 'Load strategy from object: %s' % location)
+
+    def unload(self):
+        self.emit(Signals.strategyLoaded, False)
 
     def deactivate(self):
-        #self.session.strategy = None
         pass
 
     def activate(self):
-        #self.session.strategy = self
         pass
+
 
 ## questionable
 

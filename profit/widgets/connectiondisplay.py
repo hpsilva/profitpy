@@ -50,9 +50,9 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.requestSession()
         self.setupControls()
         self.startTimer(500)
+        self.requestSession()
 
     def setSession(self, session):
         self.session = session
@@ -61,6 +61,11 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
         session.registerMeta(self)
         session.registerAll(self.updateLastMessage)
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
+
+    def unsetSession(self):
+        session = self.session
+        session.deregisterAll(self.updateLastMessage)
+        self.disconnect(session, Signals.connectedTWS, self.on_connectedTWS)
 
     def on_session_ConnectionClosed(self, message):
         self.setControlsEnabled(True, False)

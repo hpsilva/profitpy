@@ -53,7 +53,9 @@ class Signals:
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')
-    strategyEnabled = SIGNAL('strategyEnabled(bool)')
+    strategyActivated = SIGNAL('strategyActivated(bool)')
+    strategyLoaded = SIGNAL('strategyLoaded(PyQt_PyObject)')
+    strategyLoadFailed = SIGNAL('strategyLoadFaield(PyQt_PyObject)')
     strategyFileUpdated = SIGNAL('strategyFileUpdated(PyQt_PyObject)')
     terminated = SIGNAL('terminated()')
     textChanged = SIGNAL('textChanged(const QString &)')
@@ -167,9 +169,14 @@ class SessionHandler(object):
         return self.sessionref
 
     def session_setter(self, value):
-        if self.sessionref:
+        session = self.sessionref
+        if session:
             for child in self.children() + [self, ]:
-                self.sessionref.deregisterMeta(child)
+                session.deregisterMeta(child)
+                try:
+                    child.unsetSession()
+                except (AttributeError, ):
+                    pass
         logging.debug('session set for %s to %s' % (self.objectName(), value))
         self.sessionref = value
 

@@ -17,16 +17,19 @@
     <number>9</number>
    </property>
    <property name="spacing" >
-    <number>12</number>
+    <number>22</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
      <property name="title" >
       <string>Parameters</string>
      </property>
+     <property name="flat" >
+      <bool>true</bool>
+     </property>
      <layout class="QVBoxLayout" >
       <property name="margin" >
-       <number>9</number>
+       <number>0</number>
       </property>
       <property name="spacing" >
        <number>6</number>
@@ -166,6 +169,9 @@
      <property name="title" >
       <string>Commands</string>
      </property>
+     <property name="flat" >
+      <bool>true</bool>
+     </property>
      <layout class="QGridLayout" >
       <property name="margin" >
        <number>9</number>
@@ -268,6 +274,9 @@
     <widget class="QGroupBox" name="groupBox" >
      <property name="title" >
       <string>Status</string>
+     </property>
+     <property name="flat" >
+      <bool>true</bool>
      </property>
      <layout class="QVBoxLayout" >
       <property name="margin" >

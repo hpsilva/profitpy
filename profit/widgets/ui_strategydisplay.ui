@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>505</width>
+    <height>471</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -32,41 +32,130 @@
      <property name="title" >
       <string>Status</string>
      </property>
-     <layout class="QHBoxLayout" >
+     <property name="flat" >
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" >
       <property name="margin" >
-       <number>9</number>
+       <number>0</number>
       </property>
       <property name="spacing" >
        <number>6</number>
       </property>
       <item>
-       <widget class="QPushButton" name="statusButton" >
-        <property name="text" >
-         <string>Inactive</string>
-        </property>
-        <property name="icon" >
-         <iconset resource="profit.qrc" >:/images/icons/connect_no.png</iconset>
-        </property>
+       <widget class="QFrame" name="loadGroup" >
+        <layout class="QGridLayout" >
+         <property name="margin" >
+          <number>9</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item row="0" column="2" >
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="1" column="0" colspan="3" >
+          <widget class="QLabel" name="loadLabel" >
+           <property name="sizePolicy" >
+            <sizepolicy>
+             <hsizetype>7</hsizetype>
+             <vsizetype>5</vsizetype>
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text" >
+            <string>Strategy is not loaded.  Click to read it into memory.</string>
+           </property>
+           <property name="wordWrap" >
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" >
+          <widget class="QPushButton" name="reloadButton" >
+           <property name="enabled" >
+            <bool>false</bool>
+           </property>
+           <property name="text" >
+            <string>Reload</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/noatunloopsong.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" >
+          <widget class="QCheckBox" name="loadButton" >
+           <property name="text" >
+            <string>Loaded</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/misc.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <spacer>
-        <property name="orientation" >
-         <enum>Qt::Horizontal</enum>
+       <widget class="QFrame" name="activeGroup" >
+        <property name="enabled" >
+         <bool>false</bool>
         </property>
-        <property name="sizeHint" >
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>9</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="activeButton" >
+           <property name="text" >
+            <string>Active</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="profit.qrc" >:/images/icons/connect_no.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="activeLabel" >
+           <property name="sizePolicy" >
+            <sizepolicy>
+             <hsizetype>7</hsizetype>
+             <vsizetype>5</vsizetype>
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text" >
+            <string>Strategy is not active.  Click to activate.</string>
+           </property>
+           <property name="wordWrap" >
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="callableGroup" >
+    <widget class="QGroupBox" name="originGroup" >
      <property name="sizePolicy" >
       <sizepolicy>
        <hsizetype>5</hsizetype>
@@ -76,7 +165,10 @@
       </sizepolicy>
      </property>
      <property name="title" >
-      <string>Callable</string>
+      <string>Origin</string>
+     </property>
+     <property name="flat" >
+      <bool>true</bool>
      </property>
      <layout class="QVBoxLayout" >
       <property name="margin" >
@@ -107,8 +199,110 @@
    <header>callableselectwidget.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>loadButton</tabstop>
+  <tabstop>activeButton</tabstop>
+  <tabstop>reloadButton</tabstop>
+ </tabstops>
  <resources>
   <include location="profit.qrc" />
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>loadButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>activeGroup</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>88</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>252</x>
+     <y>144</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>loadButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>reloadButton</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>88</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>197</x>
+     <y>48</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>activeButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>reloadButton</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>88</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>197</x>
+     <y>48</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>activeButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>loadButton</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>88</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>88</x>
+     <y>48</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>activeButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>originGroup</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>88</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>252</x>
+     <y>283</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>activeButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>loadGroup</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>252</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>252</x>
+     <y>70</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

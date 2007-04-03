@@ -24,6 +24,12 @@
    </item>
    <item>
     <widget class="LocalTable" name="orderTable" >
+     <property name="frameShape" >
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Plain</enum>
+     </property>
      <property name="selectionMode" >
       <enum>QAbstractItemView::SingleSelection</enum>
      </property>
@@ -116,14 +122,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SearchBar</class>
-   <extends>QWidget</extends>
-   <header>searchbar.h</header>
-  </customwidget>
-  <customwidget>
    <class>LocalTable</class>
    <extends>QTableWidget</extends>
    <header>localtable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SearchBar</class>
+   <extends>QWidget</extends>
+   <header>searchbar.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
