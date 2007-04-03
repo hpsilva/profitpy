@@ -22,10 +22,10 @@ class Signals:
     createdTicker = SIGNAL('createdTicker')
     currentChanged = SIGNAL('currentChanged(int)')
     currentIndexChanged = SIGNAL('currentIndexChanged(int)')
-    customContextMenuRequested = \
-        SIGNAL('customContextMenuRequested(const QPoint &)')
-    dataChanged = \
-        SIGNAL('dataChanged(const QModelIndex &, const QModelIndex &)')
+    customContextMenuRequested = SIGNAL(
+        'customContextMenuRequested(const QPoint &)')
+    dataChanged = SIGNAL(
+        'dataChanged(const QModelIndex &, const QModelIndex &)')
     dialogFinished = SIGNAL('finished(int)')
     disconnectedTWS = SIGNAL('disconnectedTWS')
     doubleValueChanged = SIGNAL('valueChanged(double)')
@@ -43,10 +43,11 @@ class Signals:
     modified = SIGNAL('modified')
     processFinished = SIGNAL('finished(int, QProcess::ExitStatus)')
     rowsInserted = SIGNAL('rowsInserted(const QModelIndex &, int, int)')
-    selectionChanged = \
-        SIGNAL('selectionChanged(const QItemSelection &, '
-               'const QItemSelection &)')
+    selectionChanged = SIGNAL(
+        'selectionChanged(const QItemSelection &, const QItemSelection &)')
     sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
+    sessionItemSelected = modelClicked
+    sessionItemActivated = modelDoubleClicked
     sessionReference = SIGNAL('sessionReference(PyQt_PyObject)')
     sessionRequest = SIGNAL('sessionRequest')
     sessionStatus = SIGNAL('sessionStatus')

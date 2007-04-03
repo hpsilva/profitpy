@@ -115,10 +115,10 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
         tree = self.treeView
         tree.header().hide()
         tree.setAnimated(True)
-        window = self.window()
-        connect(tree, Signals.modelClicked, window, Signals.modelClicked)
+        app = QApplication.instance()
+        connect(tree, Signals.modelClicked, app, Signals.sessionItemSelected)
         connect(tree, Signals.modelDoubleClicked,
-                window, Signals.modelDoubleClicked)
+                app, Signals.sessionItemActivated)
         self.requestSession()
 
     def setSession(self, session):

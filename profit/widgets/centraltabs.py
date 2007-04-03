@@ -55,10 +55,10 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.setCornerWidget(closeTab, Qt.TopRightCorner)
         self.setCornerWidget(detachTab, Qt.TopLeftCorner)
         self.requestSession()
-        window = self.window()
+        app = QApplication.instance()
         connect = self.connect
-        connect(window, Signals.modelClicked, self.showItemTab)
-        connect(window, Signals.modelDoubleClicked, self.newItemTab)
+        connect(app, Signals.sessionItemSelected, self.showItemTab)
+        connect(app, Signals.sessionItemActivated, self.newItemTab)
         connect(closeTab, Signals.clicked, self.closeItemTab)
         connect(detachTab, Signals.clicked, self.detachItemTab)
 
@@ -96,8 +96,8 @@ class CentralTabs(QTabWidget, SessionHandler):
                 widget.show()
         else:
             def show():
-                  widget.setParent(self.window())
-	          widget.setWindowFlags(Qt.Window)
+                widget.setParent(self.window())
+                widget.setWindowFlags(Qt.Window)
                 widget.show()
         show.circleref = show
         QTimer.singleShot(100, show)
