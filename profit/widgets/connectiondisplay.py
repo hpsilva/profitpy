@@ -60,6 +60,11 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
         self.setControlsEnabled(not connected, connected)
         session.registerMeta(self)
         session.registerAll(self.updateLastMessage)
+        if session.connection:
+            self.serverVersionEdit.setText(
+                str(session.connection.serverVersion()))
+            self.connectionTimeEdit.setText(
+                session.connection.TwsConnectionTime())
         self.connect(session, Signals.connectedTWS, self.on_connectedTWS)
 
     def unsetSession(self):

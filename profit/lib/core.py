@@ -46,8 +46,8 @@ class Signals:
     selectionChanged = SIGNAL(
         'selectionChanged(const QItemSelection &, const QItemSelection &)')
     sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
-    sessionItemSelected = modelClicked
-    sessionItemActivated = modelDoubleClicked
+    sessionItemSelected = SIGNAL('itemSelected (const QModelIndex &)')
+    sessionItemActivated = SIGNAL('itemActivated (const QModelIndex &)')
     sessionReference = SIGNAL('sessionReference(PyQt_PyObject)')
     sessionRequest = SIGNAL('sessionRequest')
     sessionStatus = SIGNAL('sessionStatus')

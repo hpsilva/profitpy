@@ -21,23 +21,15 @@ class AccountTableModel(QStandardItemModel):
         QStandardItemModel.__init__(self, parent)
         self.setHorizontalHeaderLabels(self.columnTitles)
         self.items = {}
-        self.setSession(session)
-
-    def setSession(self, session):
-        """ Associates this model with a session.
-
-        @param session Session instance
-        @return None
-        """
         self.session = session
         try:
             messages = session.typedMessages['UpdateAccountValue']
         except (KeyError, ):
             pass
         else:
-            for mtime, message, mindex in messages:
-                self.on_session_UpdateAccountValue(message)
-            self.reset()
+            slot = self.on_session_UpdateAccountValue
+            for mrec in messages:
+                slot(mrec[1])
         session.registerMeta(self)
 
     def on_session_UpdateAccountValue(self, message):
@@ -78,17 +70,17 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         plot.controlsTree.setModel(model)
         plot.controlsTree.header().show()
         for key, series in session.accountCollection.data.items():
-            self.on_createdAccountData(
+            self.newPlotSeries(
                 key, series, session.accountCollection.last.get(key, None))
-        self.connect(session, Signals.createdAccountData,
-                     self.on_createdAccountData)
-        self.connect(model, Signals.standardItemChanged,
-                     plot.on_controlsTree_itemChanged)
-        self.connect(model, Signals.rowsInserted,
-                     self.on_rowsInserted)
+        connect = self.connect
+        connect(session, Signals.createdAccountData, self.newPlotSeries)
+        connect(
+            model, Signals.standardItemChanged,
+            plot.on_controlsTree_itemChanged)
+        connect(model, Signals.rowsInserted, self.modelRowsInserted)
         plot.loadSelections()
 
-    def on_createdAccountData(self, key, series, value):
+    def newPlotSeries(self, key, series, value):
         cols = range(len(self.dataModel.columnTitles))
         items = [ControlTreeValueItem('') for i in cols[1:]]
         items[0].setText(key[1])
@@ -96,7 +88,7 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         items[2].setText(key[2])
         item = self.plot.addSeries(key, series, items=items)
 
-    def on_rowsInserted(self, parent, start, end):
+    def modelRowsInserted(self, parent, start, end):
         model = self.dataModel
         item = model.itemFromIndex(parent)
         if item:

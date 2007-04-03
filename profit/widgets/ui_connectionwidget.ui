@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>488</width>
-    <height>513</height>
+    <width>569</width>
+    <height>418</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -17,7 +17,7 @@
     <number>9</number>
    </property>
    <property name="spacing" >
-    <number>22</number>
+    <number>6</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
@@ -27,139 +27,121 @@
      <property name="flat" >
       <bool>true</bool>
      </property>
-     <layout class="QVBoxLayout" >
+     <layout class="QHBoxLayout" >
       <property name="margin" >
-       <number>0</number>
+       <number>9</number>
       </property>
       <property name="spacing" >
        <number>6</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" >
-        <property name="margin" >
-         <number>0</number>
+       <widget class="QPushButton" name="connectButton" >
+        <property name="text" >
+         <string>Connect</string>
         </property>
-        <property name="spacing" >
-         <number>6</number>
+        <property name="icon" >
+         <iconset resource="profit.qrc" >:/images/icons/connect_established.png</iconset>
         </property>
-        <item>
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>171</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <layout class="QGridLayout" >
-          <property name="margin" >
-           <number>0</number>
-          </property>
-          <property name="spacing" >
-           <number>6</number>
-          </property>
-          <item row="0" column="0" >
-           <widget class="QLabel" name="label" >
-            <property name="text" >
-             <string>Host:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1" >
-           <widget class="QLineEdit" name="hostNameEdit" >
-            <property name="alignment" >
-             <set>Qt::AlignRight</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" >
-           <widget class="QSpinBox" name="portNumberSpin" >
-            <property name="alignment" >
-             <set>Qt::AlignRight</set>
-            </property>
-            <property name="maximum" >
-             <number>65536</number>
-            </property>
-            <property name="minimum" >
-             <number>1024</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" >
-           <widget class="QLabel" name="label" >
-            <property name="text" >
-             <string>Port:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1" >
-           <widget class="QSpinBox" name="clientIdSpin" >
-            <property name="alignment" >
-             <set>Qt::AlignRight</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" >
-           <widget class="QLabel" name="label" >
-            <property name="text" >
-             <string>Client ID:</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
+       </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" >
-        <property name="margin" >
-         <number>0</number>
+       <widget class="QPushButton" name="disconnectButton" >
+        <property name="enabled" >
+         <bool>false</bool>
         </property>
-        <property name="spacing" >
-         <number>6</number>
+        <property name="text" >
+         <string>Disconnect</string>
         </property>
-        <item>
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="connectButton" >
-          <property name="text" >
-           <string>Connect</string>
-          </property>
-          <property name="icon" >
-           <iconset resource="profit.qrc" >:/images/icons/connect_established.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="disconnectButton" >
-          <property name="enabled" >
-           <bool>false</bool>
-          </property>
-          <property name="text" >
-           <string>Disconnect</string>
-          </property>
-          <property name="icon" >
-           <iconset resource="profit.qrc" >:/images/icons/connect_no.png</iconset>
-          </property>
-         </widget>
-        </item>
-       </layout>
+        <property name="icon" >
+         <iconset resource="profit.qrc" >:/images/icons/connect_no.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>1</hsizetype>
+          <vsizetype>5</vsizetype>
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text" >
+         <string>Client ID:</string>
+        </property>
+        <property name="alignment" >
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="clientIdSpin" >
+        <property name="alignment" >
+         <set>Qt::AlignRight</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>1</hsizetype>
+          <vsizetype>5</vsizetype>
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text" >
+         <string>Host:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="hostNameEdit" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>1</hsizetype>
+          <vsizetype>0</vsizetype>
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="alignment" >
+         <set>Qt::AlignRight</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>1</hsizetype>
+          <vsizetype>5</vsizetype>
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text" >
+         <string>Port:</string>
+        </property>
+        <property name="alignment" >
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="portNumberSpin" >
+        <property name="alignment" >
+         <set>Qt::AlignRight</set>
+        </property>
+        <property name="maximum" >
+         <number>65536</number>
+        </property>
+        <property name="minimum" >
+         <number>1024</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -179,29 +161,27 @@
       <property name="spacing" >
        <number>6</number>
       </property>
-      <item row="0" column="2" >
+      <item row="1" column="3" >
+       <widget class="QPushButton" name="keyHelperCommandSelectButton" >
+        <property name="text" >
+         <string>Browse...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3" >
        <widget class="QPushButton" name="brokerCommandSelectButton" >
         <property name="text" >
          <string>Browse...</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0" >
-       <widget class="QLabel" name="label" >
-        <property name="sizePolicy" >
-         <sizepolicy>
-          <hsizetype>1</hsizetype>
-          <vsizetype>5</vsizetype>
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text" >
-         <string>Client Application:</string>
-        </property>
-       </widget>
+      <item row="0" column="2" >
+       <widget class="QLineEdit" name="brokerCommandEdit" />
       </item>
-      <item row="1" column="0" >
+      <item row="1" column="2" >
+       <widget class="QLineEdit" name="keyHelperCommandEdit" />
+      </item>
+      <item row="1" column="1" >
        <widget class="QLabel" name="label" >
         <property name="sizePolicy" >
          <sizepolicy>
@@ -216,19 +196,22 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1" >
-       <widget class="QLineEdit" name="keyHelperCommandEdit" >
+      <item row="0" column="1" >
+       <widget class="QLabel" name="label" >
         <property name="sizePolicy" >
          <sizepolicy>
-          <hsizetype>5</hsizetype>
-          <vsizetype>0</vsizetype>
-          <horstretch>10</horstretch>
+          <hsizetype>1</hsizetype>
+          <vsizetype>5</vsizetype>
+          <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="text" >
+         <string>Client Application:</string>
+        </property>
        </widget>
       </item>
-      <item row="0" column="3" >
+      <item row="0" column="0" >
        <widget class="QPushButton" name="brokerCommandRunButton" >
         <property name="text" >
          <string>Run</string>
@@ -238,32 +221,13 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3" >
+      <item row="1" column="0" >
        <widget class="QPushButton" name="keyHelperCommandRunButton" >
         <property name="text" >
          <string>Run</string>
         </property>
         <property name="icon" >
          <iconset resource="profit.qrc" >:/images/icons/run.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" >
-       <widget class="QPushButton" name="keyHelperCommandSelectButton" >
-        <property name="text" >
-         <string>Browse...</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" >
-       <widget class="QLineEdit" name="brokerCommandEdit" >
-        <property name="sizePolicy" >
-         <sizepolicy>
-          <hsizetype>5</hsizetype>
-          <vsizetype>0</vsizetype>
-          <horstretch>10</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
         </property>
        </widget>
       </item>
@@ -286,7 +250,7 @@
        <number>6</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" >
+       <layout class="QVBoxLayout" >
         <property name="margin" >
          <number>0</number>
         </property>
@@ -294,151 +258,66 @@
          <number>6</number>
         </property>
         <item>
-         <widget class="QLabel" name="label" >
-          <property name="text" >
-           <string>Server Version:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="serverVersionEdit" >
-          <property name="sizePolicy" >
-           <sizepolicy>
-            <hsizetype>7</hsizetype>
-            <vsizetype>0</vsizetype>
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="alignment" >
-           <set>Qt::AlignRight</set>
-          </property>
-          <property name="readOnly" >
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType" >
-           <enum>QSizePolicy::Expanding</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>40</width>
-            <height>24</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label" >
-          <property name="text" >
-           <string>Connection Time:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="connectionTimeEdit" >
-          <property name="sizePolicy" >
-           <sizepolicy>
-            <hsizetype>7</hsizetype>
-            <vsizetype>0</vsizetype>
-            <horstretch>6</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="frame" >
-           <bool>true</bool>
-          </property>
-          <property name="alignment" >
-           <set>Qt::AlignRight</set>
-          </property>
-          <property name="readOnly" >
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType" >
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>10</width>
-            <height>24</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QGridLayout" >
-        <property name="margin" >
-         <number>0</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item row="1" column="2" >
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType" >
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" >
-           <size>
-            <width>4</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="1" column="1" >
-         <widget class="QLineEdit" name="lastMessageEdit" >
-          <property name="enabled" >
-           <bool>false</bool>
-          </property>
-          <property name="focusPolicy" >
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="readOnly" >
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="3" >
          <widget class="QLabel" name="label" >
           <property name="text" >
            <string>Last Message:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" >
-         <spacer>
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
+        <item>
+         <layout class="QHBoxLayout" >
+          <property name="margin" >
+           <number>0</number>
           </property>
-          <property name="sizeType" >
-           <enum>QSizePolicy::Fixed</enum>
+          <property name="spacing" >
+           <number>6</number>
           </property>
-          <property name="sizeHint" >
-           <size>
-            <width>4</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
+          <item>
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType" >
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>10</width>
+              <height>24</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lastMessageEdit" >
+            <property name="focusPolicy" >
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="frame" >
+             <bool>true</bool>
+            </property>
+            <property name="readOnly" >
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType" >
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" >
+             <size>
+              <width>8</width>
+              <height>24</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -462,11 +341,19 @@
         </item>
         <item>
          <widget class="QwtThermo" name="rateThermo" >
+          <property name="sizePolicy" >
+           <sizepolicy>
+            <hsizetype>1</hsizetype>
+            <vsizetype>0</vsizetype>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="alarmColor" >
            <color>
             <red>200</red>
-            <green>0</green>
-            <blue>0</blue>
+            <green>100</green>
+            <blue>100</blue>
            </color>
           </property>
           <property name="alarmEnabled" >
@@ -479,25 +366,136 @@
            <enum>QwtThermo::BottomScale</enum>
           </property>
           <property name="borderWidth" >
-           <number>2</number>
+           <number>1</number>
           </property>
           <property name="fillColor" >
            <color>
-            <red>0</red>
+            <red>100</red>
             <green>200</green>
-            <blue>0</blue>
+            <blue>100</blue>
            </color>
           </property>
           <property name="maxValue" >
            <double>200.000000000000000</double>
           </property>
           <property name="pipeWidth" >
-           <number>10</number>
+           <number>4</number>
           </property>
           <property name="value" >
            <double>195.000000000000000</double>
           </property>
          </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer>
+        <property name="orientation" >
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType" >
+         <enum>QSizePolicy::Minimum</enum>
+        </property>
+        <property name="sizeHint" >
+         <size>
+          <width>438</width>
+          <height>16</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" >
+        <property name="margin" >
+         <number>0</number>
+        </property>
+        <property name="spacing" >
+         <number>6</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label" >
+          <property name="sizePolicy" >
+           <sizepolicy>
+            <hsizetype>1</hsizetype>
+            <vsizetype>5</vsizetype>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text" >
+           <string>Server Version:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="serverVersionEdit" >
+          <property name="sizePolicy" >
+           <sizepolicy>
+            <hsizetype>7</hsizetype>
+            <vsizetype>0</vsizetype>
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize" >
+           <size>
+            <width>32</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="readOnly" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label" >
+          <property name="sizePolicy" >
+           <sizepolicy>
+            <hsizetype>1</hsizetype>
+            <vsizetype>5</vsizetype>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text" >
+           <string>Connection Time:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="connectionTimeEdit" >
+          <property name="sizePolicy" >
+           <sizepolicy>
+            <hsizetype>7</hsizetype>
+            <vsizetype>0</vsizetype>
+            <horstretch>3</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="frame" >
+           <bool>true</bool>
+          </property>
+          <property name="readOnly" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer>
+          <property name="orientation" >
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType" >
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" >
+           <size>
+            <width>8</width>
+            <height>24</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
@@ -511,7 +509,7 @@
      </property>
      <property name="sizeHint" >
       <size>
-       <width>470</width>
+       <width>16</width>
        <height>16</height>
       </size>
      </property>
