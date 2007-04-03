@@ -8,7 +8,7 @@
 from sys import platform
 
 from PyQt4.QtCore import QTimer, Qt, pyqtSignature
-from PyQt4.QtGui import QAction, QIcon, QPushButton, QTabWidget
+from PyQt4.QtGui import QAction, QApplication, QIcon, QPushButton, QTabWidget
 
 from profit.lib import importItem, logging
 from profit.lib.core import SessionHandler, Signals, tickerIdRole
@@ -80,8 +80,6 @@ class CentralTabs(QTabWidget, SessionHandler):
         widget = self.widget(index)
         icon = self.tabIcon(index)
         text = str(self.tabText(index))
-        widget.setParent(self.window())
-        widget.setWindowFlags(Qt.Window)
         widget.setWindowIcon(icon)
         try:
             widget.setWindowTitle(str(widget.windowTitle()) % text)
@@ -93,10 +91,13 @@ class CentralTabs(QTabWidget, SessionHandler):
         widget.connect(action, Signals.triggered, widget.close)
         if platform.startswith('win'):
             def show():
-                widget.setParent(None)
+                widget.setParent(QApplication.desktop())
+                widget.setWindowFlags(Qt.Dialog)
                 widget.show()
         else:
             def show():
+		    widget.setParent(self.window())
+	          widget.setWindowFlags(Qt.Window)
                 widget.show()
         show.circleref = show
         QTimer.singleShot(100, show)
