@@ -7,6 +7,9 @@
 
 # TODO: write docstrings on series types
 
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='numpy')
+
 from profit.series.basic import *
 try:
     from profit.series.advanced import *

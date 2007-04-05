@@ -116,10 +116,10 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
 
     def createSession(self):
         self.session = session = Session()
-        #self.emit(Signals.sessionCreated, session)
-        instance().emit(Signals.sessionCreated, session)
-        self.connect(
-            session, Signals.sessionStatus, self.statusBar().showMessage)
+        app = instance()
+        app.emit(Signals.sessionCreated, session)
+        bar = self.statusBar()
+        self.connect(session, Signals.sessionStatus, bar.showMessage)
 
     @pyqtSignature('')
     def on_actionAboutProfitDevice_triggered(self):
@@ -177,7 +177,6 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
     def on_actionImportSession_triggered(self, filename=None):
         from profit.widgets.importexportdialog import ImportExportDialog
         from profit.widgets.sessionreplay import SessionReplay
-
         if not filename:
             filename = QFileDialog.getOpenFileName(
                 self, 'Import Session From File')
@@ -195,8 +194,6 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
             dlg.setWindowModality(Qt.WindowModal)
             dlg.setImport(self.session, filename, types)
             dlg.exec_()
-
-            #self.statusBar().showMessage(msg, 5000)
 
     @pyqtSignature('bool')
     def on_actionNewSession_triggered(self, checked=False):

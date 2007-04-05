@@ -177,6 +177,9 @@
    <property name="shortcut" >
     <string>Alt+F4</string>
    </property>
+   <property name="menuRole" >
+    <enum>QAction::QuitRole</enum>
+   </property>
   </action>
   <action name="actionQuit" >
    <property name="icon" >
@@ -187,6 +190,9 @@
    </property>
    <property name="shortcut" >
     <string>Ctrl+Q</string>
+   </property>
+   <property name="menuRole" >
+    <enum>QAction::QuitRole</enum>
    </property>
   </action>
   <action name="actionSettings" >
