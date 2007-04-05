@@ -9,10 +9,10 @@ from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QFrame, QIcon, QMessageBox
 
 from profit.lib.core import SessionHandler, Settings, Signals
-from profit.widgets.ui_strategydisplay import Ui_StrategyDisplay
+from profit.widgets.ui_strategytree import Ui_StrategyTree
 
 
-class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
+class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)

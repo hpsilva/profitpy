@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>StrategyDisplay</class>
- <widget class="QWidget" name="StrategyDisplay" >
+ <class>StrategyTree</class>
+ <widget class="QWidget" name="StrategyTree" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Strategy Display</string>
+   <string>Strategy Tree</string>
   </property>
   <layout class="QVBoxLayout" >
    <property name="margin" >
