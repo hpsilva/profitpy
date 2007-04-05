@@ -9,7 +9,7 @@ from string import Template
 from tempfile import NamedTemporaryFile
 
 from PyQt4.QtCore import QProcess, QVariant, pyqtSignature
-from PyQt4.QtGui import QFileDialog, QFrame, QInputDialog
+from PyQt4.QtGui import QFileDialog, QFrame, QInputDialog, QMessageBox
 
 from profit.lib.core import Settings, Signals
 from profit.widgets.settingsdialog import SysPathDialog
@@ -156,16 +156,20 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
     @pyqtSignature('')
     def on_callableLocationSelect_clicked(self):
         name = None
-        if self.callType in self.fsTypes:
+        calltype = self.callType
+        if calltype in self.fsTypes:
             filename = QFileDialog.getOpenFileName(
                 self, 'Select %s' % self.callTypeText, '',
                 'Executable file (*.*)')
             if filename:
                 name = filename
-        elif self.callType in self.pythonTypes:
+        elif calltype in self.pythonTypes:
             dlg = SysPathDialog(self)
             if dlg.exec_() == dlg.Accepted:
                 name = dlg.selectedEdit.text()
+        elif not calltype:
+            QMessageBox.warning(
+                self, 'Invalid Type', 'Select a callable type first.')
         else:
             pass # unknownType item (0) selected
         if name is not None:

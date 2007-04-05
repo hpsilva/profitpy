@@ -84,16 +84,16 @@ class Strategy(QObject):
         return (False, 'Cannot create strategy with empty origin type')
 
     def fromExternal(self, location='', **kwds):
-        return (True, 'Load strategy from external command: %s' % location)
+        return (True, 'Load strategy from external command')
 
     def fromFile(self, location='', **kwds):
-        return (True, 'Load strategy from file: %s' % location)
+        return (True, 'Load strategy from file')
 
     def fromSource(self, location='', source='', **kwds):
-        return (True, 'Load strategy from source: %s' % location)
+        return (True, 'Load strategy from source')
 
     def fromObject(self, location='', **kwds):
-        return (True, 'Load strategy from object: %s' % location)
+        return (True, 'Load strategy from object')
 
     def unload(self):
         self.emit(Signals.strategyLoaded, False)

@@ -103,9 +103,6 @@ class Settings(QSettings):
         strategy = 'Strategy'
         winstate = 'State'
 
-    defaultSize = QSize(720, 560)
-    defaultPosition = QPoint(200, 200)
-
     def __init__(self):
         """ Constructor.
 

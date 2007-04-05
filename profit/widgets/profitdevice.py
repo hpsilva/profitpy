@@ -6,6 +6,8 @@
 # Author: Troy Melhase <troy@gci.net>
 
 # TODO: complete strategy display; integrate strategy designer
+# TODO: fix zoom bugs
+# TODO: fix account display value update
 
 from functools import partial
 try:
@@ -23,6 +25,7 @@ from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
 from PyQt4.QtGui import QSystemTrayIcon, QToolBar
 from PyQt4.QtGui import QIcon, QDesktopServices
 
+from profit.lib import defaults
 from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
@@ -31,6 +34,7 @@ from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
+from profit.widgets.strategydisplay import StrategyDisplay
 from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
 
 
@@ -329,9 +333,9 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
         size = settings.value(settings.keys.size,
-                              settings.defaultSize).toSize()
+                              defaults.windowSize).toSize()
         pos = settings.value(settings.keys.position,
-                             settings.defaultPosition).toPoint()
+                             defaults.windowPosition).toPoint()
         maxed = settings.value(settings.keys.maximized, False).toBool()
         self.resize(size)
         self.move(pos)
@@ -362,28 +366,31 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         self.updateRecentSessions()
 
     def setupDockWidgets(self):
+        bottom = Qt.BottomDockWidgetArea
+        tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
-        area = Qt.BottomDockWidgetArea
-        self.stdoutDock = Dock('Standard Output', self, OutputWidget, area)
-        self.stderrDock = Dock('Standard Error', self, OutputWidget, area)
-        makeShell = partial(PythonShell,
-                            stdout=self.stdoutDock.widget(),
-                            stderr=self.stderrDock.widget())
-        self.shellDock = Dock('Python Shell', self, makeShell, area)
-        self.tabifyDockWidget(self.shellDock, self.stdoutDock)
-        self.tabifyDockWidget(self.stdoutDock, self.stderrDock)
+        self.strategyDock = Dock('Strategy', self, StrategyDisplay)
+        tabify(self.sessionDock, self.strategyDock)
+        self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
+        self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
+        makeShell = partial(
+            PythonShell,
+            stdout=self.stdoutDock.widget(),
+            stderr=self.stderrDock.widget())
+        self.shellDock = Dock('Python Shell', self, makeShell, bottom)
+        tabify(self.shellDock, self.stdoutDock)
+        tabify(self.stdoutDock, self.stderrDock)
 
     def setupMainIcon(self):
         icon = QIcon(self.iconName)
         self.setWindowIcon(icon)
 
     def setupMenus(self):
-        self.menuView.addAction(self.sessionDock.toggleViewAction())
-        self.menuView.addAction(self.shellDock.toggleViewAction())
-        self.menuView.addAction(self.stdoutDock.toggleViewAction())
-        self.menuView.addAction(self.stderrDock.toggleViewAction())
+        addr = self.menuView.addAction
+        for o in self.findChildren(Dock):
+            addr(o.toggleViewAction())
         self.menuView.addSeparator()
-        self.menuView.addAction(self.actionStatusBar)
+        addr(self.actionStatusBar)
         self.menuView.addMenu(self.menuToolbars)
         for toolbar in self.findChildren(QToolBar):
             self.menuToolbars.addAction(toolbar.toggleViewAction())

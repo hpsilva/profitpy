@@ -5,8 +5,11 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from PyQt4.QtCore import QByteArray, Qt
+from PyQt4.QtCore import QByteArray, QPoint, QSize, Qt
 from PyQt4.QtGui import QColor, QPen
+
+windowSize = QSize(1024, 768)
+windowPosition = QPoint(0, 0)
 
 
 def tickerUrls():

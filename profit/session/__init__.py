@@ -161,8 +161,6 @@ class Session(QObject):
         connect(
             tc, Signals.createdTicker, self, Signals.createdTicker)
 
-
-
     def __str__(self):
         return '<Session 0x%x (messages=%s connected=%s)>' % \
                (id(self), len(self.messages), self.isConnected)
@@ -175,7 +173,6 @@ class Session(QObject):
             ('messages', ()),
             ('orders', ()),
             ('portfolio', ()),
-            ('strategy', ()),
             ('tickers', self.builder.symbols()),
             ]
 

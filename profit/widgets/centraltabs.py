@@ -16,7 +16,7 @@ from profit.widgets.ui_closetabbutton import Ui_CloseTabButton
 from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
 
 
-disallowMultiples = ['strategydisplay.StrategyDisplay', ]
+disallowMultiples = []
 
 
 def tabWidgetMethod(name, reloaded=False):
@@ -152,7 +152,6 @@ class CentralTabs(QTabWidget, SessionHandler):
     new_messagesItem = tabWidgetMethod('messagedisplay.MessageDisplay')
     new_ordersItem = tabWidgetMethod('orderdisplay.OrderDisplay')
     new_portfolioItem = tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
-    new_strategyItem = tabWidgetMethod('strategydisplay.StrategyDisplay')
 
     new_tickersItemHelper = tabWidgetMethod('tickerdisplay.TickerDisplay')
     def new_tickersItem(self, text, itemindex):

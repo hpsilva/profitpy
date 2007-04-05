@@ -13,6 +13,8 @@
 # associated slider, and also a button to restart the session replay.
 ##
 
+import logging
+
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QDialog, QMessageBox
 
@@ -46,10 +48,11 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
 
         @return DialogCode result
         """
-        c = self.connect
-        c(self.timerSlider, Signals.intValueChanged, self.timer.setInterval)
-        c(self.timerSpin, Signals.intValueChanged, self.timer.setInterval)
-        c(self.timer, Signals.timeout, self.on_timer_timeout)
+        connect = self.connect
+        setInterval = self.timer.setInterval
+        connect(self.timerSlider, Signals.intValueChanged, setInterval)
+        connect(self.timerSpin, Signals.intValueChanged, setInterval)
+        connect(self.timer, Signals.timeout, self.on_timer_timeout)
         self.timer.start(self.interval)
         return QDialog.exec_(self)
 
@@ -81,20 +84,17 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
                     'Exception "%s" during import.  '
                     'Import not completed.' % ex)
                 self.close()
-                return
         if self.loader:
-            setr = self.importProgress.setValue
-            msgid = -1
             try:
                 msgid = self.loader.next()
             except (StopIteration, ):
                 self.timer.setInterval(max(self.timer.interval(), 50))
             else:
-                setr(msgid)
+                self.importProgress.setValue(msgid)
                 if msgid == self.last:
-                    msg = 'Imported %s messages from file "%s".'
-                    msg %= (self.count, self.filename)
-                    print '##', msg
+                    logging.debug(
+                        'Imported %s messages from file "%s".',
+                        self.count, self.filename)
 
     def setImport(self, session, filename, types):
         self.session = session
@@ -111,7 +111,7 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
                 raise StopIteration()
         except (StopIteration, ):
             self.loader = self.count = self.last = None
-            print 'Warning messages not imported from "%s"' % filename
+            logging.debug('Warning messages not imported from "%s"', filename)
         else:
             self.importProgress.setMaximum(self.last)
             self.importer = importer
