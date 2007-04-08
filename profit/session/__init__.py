@@ -22,7 +22,11 @@ from ib.opt import ibConnection
 from ib.opt.message import registry
 
 from profit.lib.core import Signals
-from profit.series import Series, MACDHistogram, EMA, KAMA
+from profit.series import Series, MACDHistogram
+try:
+    from profit.series import EMA, KAMA
+except (ImportError, ):
+    EMA = KAMA = None
 from profit.strategy import Strategy
 
 
@@ -107,7 +111,8 @@ class TickerCollection(DataCollection):
 class SessionBuilder(object):
     def accountData(self, *k):
         s = Series()
-        s.addIndex('EMA-25', EMA, s, 25)
+        if EMA:
+            s.addIndex('EMA-25', EMA, s, 25)
         return s
 
     def strategy(self):
@@ -133,10 +138,11 @@ class SessionBuilder(object):
 
     def series(self, tickerId, field):
         s = Series()
-        s.addIndex('EMA-20', EMA, s, 20)
-        s.addIndex('EMA-40', EMA, s, 40)
-        v = s.addIndex('KAMA-10', KAMA, s, 10)
-        v.addIndex('EMA-5', EMA, v, 5)
+        if EMA and KAMA:
+            s.addIndex('EMA-20', EMA, s, 20)
+            s.addIndex('EMA-40', EMA, s, 40)
+            v = s.addIndex('KAMA-10', KAMA, s, 10)
+            v.addIndex('EMA-5', EMA, v, 5)
         return s
 
 
