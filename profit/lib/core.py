@@ -31,6 +31,7 @@ class Signals:
     doubleValueChanged = SIGNAL('valueChanged(double)')
     enableCurve = SIGNAL('enableCurve')
     finished = SIGNAL('finished()')
+    finishedHistoricalData = SIGNAL('finishedHistoricalData')
     highlightSelections = SIGNAL('highlightSelections')
     intValueChanged = SIGNAL('valueChanged(int)')
     itemChanged = SIGNAL('itemChanged(QStandardItem *)')
@@ -42,6 +43,7 @@ class Signals:
     modelReset = SIGNAL('modelReset()')
     modified = SIGNAL('modified')
     processFinished = SIGNAL('finished(int, QProcess::ExitStatus)')
+    requestedHistoricalData = SIGNAL('requestedHistoricalData')
     rowsInserted = SIGNAL('rowsInserted(const QModelIndex &, int, int)')
     selectionChanged = SIGNAL(
         'selectionChanged(const QItemSelection &, const QItemSelection &)')

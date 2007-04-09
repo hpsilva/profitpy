@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright 2007 Troy Melhase
+# Copyright 2007 Yichun Wei 
 # Distributed under the terms of the GNU General Public License v2
-# Author: Troy Melhase <troy@gci.net>
+# Author: Yichun Wei <yichun.wei@gmail.com>
 
 import copy
 import logging
@@ -14,52 +14,16 @@ import time
 import os
 
 from cPickle import dump
-from PyQt4.QtCore import QCoreApplication, QThread
+from PyQt4.QtCore import QCoreApplication, QObject, QThread, SLOT
 
 from ib.opt import ibConnection
 from ib.opt.message import registry
 
 from profit.lib.core import Signals
+from profit.lib.scripttools import defaults, check_duration, check_hms
+from profit.lib.scripttools import CollectorThread, WaitingThread
+
 from profit.session import Session, SessionBuilder, Ticker, Order, Contract, Series, DataCollection
-
-
-class defaults:
-    clientid = 1
-    duration = 'forever'
-    host = 'localhost'
-    interval = 60
-    nice = 19
-    output = '%i%0.2i%0.2i.session' % time.localtime()[0:3]
-    port = 7496
-    start = 'immediate'
-    stop = 'none'
-    verbose = False
-
-
-def check_duration(option, opt, value):
-    try:
-        return int(value)
-    except (ValueError, ):
-        if value == defaults.duration:
-            return value
-        else:
-            raise optparse.OptionValueError(
-                'option %s: invalid duration: %r' % (opt, value))
-
-
-def check_hms(option, opt, value):
-    if value.count(':') == 1:
-        value += ':00'
-    try:
-        time.strptime(value, '%H:%M:%S')
-    except (ValueError, ):
-        if value in (defaults.start, defaults.stop):
-            return value
-        else:
-            raise optparse.OptionValueError(
-                'option %s: invalid time: %r' % (opt, value))
-    else:
-        return value
 
 
 class LocalOption(optparse.Option):
@@ -129,202 +93,6 @@ def options(args=None):
     options, args = parser.parse_args()
     return options
 
-class DownloadSessionBuilder(SessionBuilder):
-    def __init__(self):
-        #SessionBuilder.__init__(self)
-        now = time.localtime()
-        yesterday = (now[0], now[1], now[2]-1, 0, 0, 0, 0, 0, 0)
-        self.default_histparams = {
-            "endDateTime" :     time.strftime("%Y%m%d %H:%M:%S PST", yesterday),
-            "durationStr" :     "6 D",
-            "barSizeSetting" :  "1 min",    #5,          # 5 for 1min
-            "whatToShow" :      "TRADES",   #"BID_ASK",  # "TRADES"
-            "useRTH" :          1,          # 0 for not
-            "formatDate" :      2,          # 2 for seconds since 1970/1/1
-            }
-
-    def accountData(self, *k):
-        s = Series()
-        #s.addIndex('EMA-25', EMA, s, 25)
-        return s
-
-    def strategy(self):
-        return None
-
-    def symbols(self):
-        return {'AAPL':100, 'RMBS':101}
-
-    def contract(self, symbol, secType='STK', exchange='SMART',
-                 currency='USD'):
-        contract = Contract()
-        contract.m_symbol = symbol
-        contract.m_secType = secType
-        contract.m_exchange = exchange
-        contract.m_currency = currency
-        return contract
-
-    def order(self):
-        return Order()
-
-    def ticker(self, tickerId):
-        return Ticker()
-
-    def series(self, tickerId, field):
-        s = Series()
-        return s
-
-    def histparams(self, symbol, **kwds):
-        "here we can check and change the params"
-        self.default_histparams.update(kwds)
-        return  self.default_histparams
-
-from PyQt4.QtCore import QObject, QThread, SIGNAL
-
-class HistDataCollection(DataCollection):
-
-    fields = ["date", "open", "high", "low", "close", "volume", "count", "WAP",]
-
-    def __init__(self, session, savedir='./histdata/'):
-        DataCollection.__init__(self, session)
-        self.iter = self.itersym()
-        self.idsym = {}
-        self.savedir = savedir 
-        session.registerMeta(self)
-
-    def on_session_HistoricalData(self, message):
-        reqId = message.reqId
-        try:
-            tickerdata = self.data[reqId]
-        except (KeyError, ):
-            tickerdata = self.data[reqId] = \
-                         self.session.builder.ticker(reqId)
-            self.emit(Signals.createdTicker, reqId, tickerdata)
-
-        for field in self.fields:
-            try:
-                seq = tickerdata.series[field]
-            except (KeyError, ):
-                seq = tickerdata.series[field] = \
-                      self.session.builder.series(reqId, field) # this field is not used
-                self.emit(Signals.createdSeries, reqId, field)
-            seq.append(getattr(message, field))
-            #print seq[-1],
-            if field=="date" and seq[-1].startswith("finished"):
-                print "reqId", reqId, "finished"
-                print
-                self.save(reqId)
-                try:
-                    self.iter.next()
-                except StopIteration:
-                    print "finished request for all symbols"
-                    sys.exit(0)
-
-    def itersym(self):
-        sess = self.session
-        for sym, tid in sess.builder.symbols().items():
-            sess.requestHistData(tid, sym)
-            self.idsym.setdefault(tid, sym)
-            yield sym, tid
-
-    def start(self):
-        self.iter.next()
-
-    def save(self, reqId):
-        data = self.data[reqId]
-        symbol = self.idsym[reqId]
-        fpath = os.path.join(self.savedir, symbol[0])
-        try:
-            os.makedirs(fpath)
-        except:
-            pass
-        fname = os.path.join(fpath, symbol)
-        dump(data, open(fname, "wb"), protocol=-1)
-
-                
-class DownloadSession(Session):
-
-    def __init__(self):
-        Session.__init__(self, builder=DownloadSessionBuilder())
-        self.histDataCollection = hdc = HistDataCollection(self)
-
-    def connectTWS(self, hostName, portNo, clientId, enableLogging=False):
-        self.connection = con = ibConnection(hostName, portNo, clientId)
-        con.enableLogging(enableLogging)
-        con.connect()
-        con.registerAll(self.receiveMessage)
-        con.register(self.on_nextValidId, 'NextValidId')
-        con.register(self.on_error, 'Error')
-        self.emit(Signals.connectedTWS)
-
-    def on_error(self, message): 
-        print message
-
-    def requestHistData(self, id, symbol):
-        connection = self.connection
-        contract = self.builder.contract(symbol)
-        histparams = self.builder.histparams(symbol)
-        connection.reqHistoricalData(id, contract, **histparams)
-        print "requested for", symbol, id, histparams
-
-
-class CollectorThread(QThread):
-    def __init__(self, stop, options, parent=None):
-        QThread.__init__(self, parent)
-        self.options = options
-        self.stop = stop
-        self.successful = False
-
-    def run(self):
-        logging.debug('Collector thread started.')
-        last = time.time()
-        stop = self.stop
-        options = self.options
-        interval = options.interval * 60
-
-        self.session = session = DownloadSession()
-        session = self.session
-        self.connect(session, Signals.sessionStatus, logging.debug)
-        session.filename = options.output
-        session.connectTWS(
-            options.host, options.port, options.clientid)
-        if not session.isConnected:
-            logging.error('Could not connect to %s:%s.',
-                          options.host, options.port)
-            logging.error('Aborting.')
-            return
-        session.requestAccount()
-        session.histDataCollection.start()
-        while True:
-            now = time.time()
-            if stop is not None:
-                if stop < now:
-                    break
-            self.sleep(1)
-            if last + interval < now:
-                session.save()
-                self.successful = True
-                last = now
-            QCoreApplication.processEvents()
-        QCoreApplication.processEvents()
-        logging.debug('Collector thread completed.')
-
-
-
-class WaitingThread(QThread):
-    def __init__(self, when, parent=None):
-        QThread.__init__(self, parent)
-        self.when = when
-
-    def run(self):
-        logging.debug('Wait thread started.')
-        while True:
-            now = time.time()
-            if self.when < now:
-                logging.debug('Wait thread completed.')
-                return
-            self.sleep(1)
-            QCoreApplication.processEvents()
-
 
 def main(options):
     if options.verbose:
@@ -368,11 +136,46 @@ def main(options):
         wait.start()
         wait.wait()
 
-    proc = CollectorThread(stopat, options)
-    #proc.start()
-    #proc.wait()
-    proc.run()
-    return proc.successful
+    # Obtain historical data
+    now = time.localtime()
+    aweekago = (now[0], now[1], now[2]-6, 0, 0, 0, 0, 0, 0)
+    endDateTime = time.strftime("%Y%m%d %H:%M:%S PST", aweekago)
+    SessionBuilder.paramsHistoricalData(endDateTime=endDateTime)
+
+    sess = Session()
+    sess.histdata_queue.put(('AAPL', 100))
+
+    sess.connect(sess, Signals.sessionStatus, logging.debug)
+    sess.filename = options.output
+    sess.connectTWS(
+         options.host, options.port, options.clientid)
+
+    if not sess.isConnected:
+        logging.error('Could not connect to %s:%s.',
+                      options.host, options.port)
+        logging.error('Aborting.')
+        return
+    sess.requestAccount()
+
+    sess.histdata_queue.put(('RMBS', 101))
+    sess.histdata_queue.put(('LVLT', 102))
+
+    last = time.time()
+    stop = None
+    interval = options.interval * 60
+    while True:
+        now = time.time()
+        if stop is not None:
+            if stop < now:
+                break
+        time.sleep(1)
+        if stop is None and sess.histdata_queue.qsize() == 0:
+            QCoreApplication.connect(sess.historicalCollection, Signals.finishedHistoricalData, sys.exit)
+        QCoreApplication.processEvents()
+    QCoreApplication.processEvents()
+    logging.debug('Collector thread completed.')
+
+    return 0 
 
 
 if __name__ == '__main__':
