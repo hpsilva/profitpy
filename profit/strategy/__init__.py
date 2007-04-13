@@ -37,11 +37,12 @@ class StrategyInstance(object):
         return cls(m)
 
 
-
-
 class Strategy(QObject):
     def __init__(self, parent=None):
-        QObject.__init__(self, parent)
+        if parent:
+            QObject.__init__(self, parent)
+        else:
+            QObject.__init__(self)
         self.isActive = self.loadMessage = False
         self.threads = []
         self.tickers = []

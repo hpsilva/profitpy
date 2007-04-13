@@ -3,7 +3,7 @@
 
 # Copyright 2007 Troy Melhase, Yichun Wei
 # Distributed under the terms of the GNU General Public License v2
-# Author: Troy Melhase <troy@gci.net> 
+# Author: Troy Melhase <troy@gci.net>
 #         Yichun Wei <yichun.wei@gmail.com>
 
 import sys
@@ -116,12 +116,12 @@ class HistoricalDataCollection(QThread, DataCollection):
 
     # "date" has to be the 1st in the list so that data has the same length
     # this class check "date" to determine if data are finished.
-    fields = [(int, "date"), 
-            (float, "open"), 
-            (float, "high"), 
-            (float, "low"), 
-            (float, "close"), 
-            (int,   "volume"), 
+    fields = [(int, "date"),
+            (float, "open"),
+            (float, "high"),
+            (float, "low"),
+            (float, "close"),
+            (int,   "volume"),
             (int,   "count"),
             (float, "WAP"),
             (bool,  "hasGaps"),
@@ -193,11 +193,10 @@ class HistoricalDataCollection(QThread, DataCollection):
 
 
 class SessionBuilder(object):
-
     default_paramsHistoricalData = {
         "endDateTime"       :   strftime("%Y%m%d %H:%M:%S PST", (2007,1,1,0,0,0,0,0,0)),
         "durationStr"       :   "6 D",
-        "barSizeSetting"    :   "1 min",    
+        "barSizeSetting"    :   "1 min",
         "whatToShow"        :   "TRADES",   #"BID_ASK",  # "TRADES"
         "useRTH"            :   1,          # 0 for not
         "formatDate"        :   2,          # 2 for seconds since 1970/1/1
@@ -257,7 +256,7 @@ class SessionBuilder(object):
 
 
 class Session(QObject):
-    def __init__(self, builder=None):
+    def __init__(self, builder=None, strategy=True):
         QObject.__init__(self)
         self.setObjectName('session')
         self.builder = builder if builder else SessionBuilder()
@@ -270,7 +269,8 @@ class Session(QObject):
         self.tickerCollection = tc = TickerCollection(self)
         self.histdata_queue = Queue()
         self.historicalCollection = hc = HistoricalDataCollection(self, self.histdata_queue)
-        self.strategy = Strategy(self)
+        if strategy:
+            self.strategy = Strategy()
         connect = self.connect
         connect(
             ac, Signals.createdAccountData, self, Signals.createdAccountData)

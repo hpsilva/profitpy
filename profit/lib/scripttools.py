@@ -9,10 +9,7 @@
 import copy
 import logging
 import optparse
-import signal
-import sys
 import time
-import os
 
 from PyQt4.QtCore import QCoreApplication, QThread
 
@@ -58,12 +55,17 @@ def check_hms(option, opt, value):
     else:
         return value
 
-        
-from PyQt4.QtCore import QObject, SIGNAL
+
+class LocalOption(optparse.Option):
+    TYPES = optparse.Option.TYPES + ('duration', 'hms', )
+    TYPE_CHECKER = copy.copy(optparse.Option.TYPE_CHECKER)
+    TYPE_CHECKER['duration'] = check_duration
+    TYPE_CHECKER['hms'] = check_hms
+
 
 class CollectorThread(QThread):
     def __init__(self, stop, options, parent=None):
-        QThread.__init__(self, parent)
+        QThread.__init__(self) # , parent)
         self.options = options
         self.stop = stop
         self.successful = False
@@ -75,9 +77,10 @@ class CollectorThread(QThread):
         options = self.options
         interval = options.interval * 60
 
-        self.session = session = Session()
+        self.session = session = Session(strategy=False)
+        session.sessionFile = options.output
         self.connect(session, Signals.sessionStatus, logging.debug)
-        session.filename = options.output
+
         session.connectTWS(
             options.host, options.port, options.clientid)
         if not session.isConnected:
