@@ -18,6 +18,7 @@ from ib.ext.TickType import TickType
 from ib.opt import message
 
 from profit import series
+from profit.lib import defaults
 from profit.lib.core import Settings, Signals
 from profit.strategy.treeitems import (
     CallableItem, TickerItem, FieldItem, IndexItem, RunnerItem)
@@ -384,8 +385,9 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
         """
         self.settings = obj = Settings()
         obj.beginGroup(obj.keys.designer)
-        self.resize(obj.value(obj.keys.size, obj.defaultSize).toSize())
-        self.move(obj.value(obj.keys.position, obj.defaultPosition).toPoint())
+        self.resize(obj.value(obj.keys.size, defaults.windowSize).toSize())
+        self.move(obj.value(
+            obj.keys.position, defaults.windowPosition).toPoint())
         if obj.value(obj.keys.maximized, False).toBool():
             self.showMaximized()
         self.restoreState(
