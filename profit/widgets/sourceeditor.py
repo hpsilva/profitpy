@@ -17,6 +17,7 @@ except (ImportError, ):
     except (ImportError, ):
         pass
 try:
+    raise ImportError('')
     from profit.widgets.ui_advancededitor import Ui_AdvancedEditor as Editor
 except (ImportError, ):
     from profit.widgets.ui_basiceditor import Ui_BasicEditor as Editor
@@ -25,6 +26,8 @@ try:
 except (ImportError, ):
     QsciLexerPython = None
 
+## wha?
+QsciLexerPython = None
 
 from profit.lib.core import Signals
 

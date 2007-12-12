@@ -135,9 +135,10 @@ def main(options):
             result = False
         else:
             wid = wids[0]
-            logging.debug('found window ids "%s", using %s.', wids, wid)
-            if not guitest.SetInputFocus(wid):
-                logging.debug('could not set input focus.')
+            logging.debug('found window ids "%s", using first id %s.',
+                          wids, wid)
+            if not guitest.ClickWindow(wid):
+                logging.debug('could not click window.')
                 result = False
             else:
                 logging.debug('input focus set successfully.')

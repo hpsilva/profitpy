@@ -5,6 +5,8 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+import logging
+
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QFrame, QIcon, QMessageBox
 
@@ -31,6 +33,7 @@ class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
             revertSource=lambda :self.settings.value('source', '').toString(),
             saveSource=lambda src:self.settings.setValue('source', src),
             disableFactoryType=True)
+        logging.debug("strategyTree editor CONNECT")
         self.connect(edit, Signals.modified, self.on_callableSelect_modified)
 
     def setSession(self, session):

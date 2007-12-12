@@ -3,6 +3,7 @@
 
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
+import logging
 
 from os.path import abspath, exists
 from string import Template
@@ -48,13 +49,7 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
         for key, value in self.callTypeMap.items():
             setr(key, QVariant(value))
 
-    def basicSetup(self,  **kwds):
-        for key, value in self.callTypeMap.items():
-            if kwds.get('disable%sType' % value.title(), False):
-                self.callableType.removeItem(
-                    self.callableType.findData(QVariant(value)))
-                self.stackedWidget.removeWidget(
-                    self.stackedWidget.widget(key))
+    def basicAttrs(self, **kwds):
         items = [
             ('callType', self.unsetType),
             ('locationText', ''),
@@ -62,7 +57,22 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
             ('revertSource', None),
             ('saveSource', None), ]
         for name, default in items:
+            logging.debug("setting attr %s", name)
             setattr(self, name, kwds.get(name, default))
+
+    def basicSetup(self,  **kwds):
+        logging.debug("editor basicSetup")
+
+        #logging.debug("sourceEditorText", self.sourceEditorText)
+
+
+        for key, value in self.callTypeMap.items():
+            if kwds.get('disable%sType' % value.title(), False):
+                self.callableType.removeItem(
+                    self.callableType.findData(QVariant(value)))
+                self.stackedWidget.removeWidget(
+                    self.stackedWidget.widget(key))
+        self.basicAttrs(**kwds)
         self.saveButton.setEnabled(False)
         self.revertButton.setEnabled(False)
 
@@ -132,7 +142,10 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
         self.warn(msg)
 
     def callableCode(self):
-        src = self.sourceEditorText
+        try:
+            src = self.sourceEditorText
+        except (AttributeError, ):
+            src = ''
         return compile(src, 'strategyeditsrc', 'exec')
 
     def on_callableLocation_textChanged(self, text):

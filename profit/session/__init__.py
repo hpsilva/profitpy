@@ -386,7 +386,7 @@ class Session(QObject):
         connection = self.connection
         for sym, tid in self.builder.symbols().items():
             contract = self.builder.contract(sym)
-            connection.reqMktData(tid, contract, '')
+            connection.reqMktData(tid, contract, '', False)
             connection.reqMktDepth(tid, contract, 1)
 
     def requestAccount(self):
