@@ -3,9 +3,7 @@
 
 Requires the guitest_ module.
 
-.. _guitest:  https://svn.enthought.com/enthought/browser/trunk/src/lib/enthought/guitest
-
-
+.. _guitest:  http://code.enthought.com/enstaller/eggs/source/enthought.guitest-2.0.0.tar.gz
 """
 import logging
 import optparse
@@ -109,7 +107,7 @@ def options(args=None):
 
 def main(options):
     ## cannot import guitest in parent process
-    import guitest
+    import enthought.guitest as guitest
 
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG,
