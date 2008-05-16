@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import sys
+from PyQt4.QtGui import QApplication
+
+from profit.lib.core import Signals, Settings
+from profit.widgets.strategydesigner import StrategyDesigner
+
+
+settings = Settings()
+settings.beginGroup(settings.keys.strategy)
+
+
+filename = None
+message = ''
+
+
+if len(sys.argv) > 1:
+    filename = sys.argv[1]
+    message = 'Using strategy filename %s command line.' % (filename, )
+elif settings.value('type', '').toString()=='file':
+    filename = settings.value('location', '').toString()
+    message = 'Using strategy filename %s from config.' % (filename, )
+## else how do we load module and/or object types?
+
+
+app = QApplication(sys.argv)
+app.setApplicationName(Settings.keys.designer)
+window = StrategyDesigner(filename=filename, parent=None)
+window.showMessage(message, 10000)
+window.show()
+sys.exit(app.exec_())

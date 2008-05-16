@@ -17,7 +17,7 @@ class OutputWidget(QWidget, Ui_OutputWidget):
 
     def editor(self):
         return self.outputEdit
-    
+
     def write(self, text):
         self.editor().insertPlainText(text)
 
@@ -29,4 +29,4 @@ class OutputWidget(QWidget, Ui_OutputWidget):
 
     def flush(self):
         pass
-    
+
