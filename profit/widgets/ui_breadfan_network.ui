@@ -139,24 +139,6 @@
     </spacer>
    </item>
   </layout>
-  <action name="actionImport" >
-   <property name="icon" >
-    <iconset resource="profit.qrc" >
-     <normaloff>:/images/icons/fileopen.png</normaloff>:/images/icons/fileopen.png</iconset>
-   </property>
-   <property name="text" >
-    <string>Import</string>
-   </property>
-  </action>
-  <action name="actionExport" >
-   <property name="icon" >
-    <iconset resource="profit.qrc" >
-     <normaloff>:/images/icons/filter.png</normaloff>:/images/icons/filter.png</iconset>
-   </property>
-   <property name="text" >
-    <string>Export</string>
-   </property>
-  </action>
  </widget>
  <resources>
   <include location="profit.qrc" />
