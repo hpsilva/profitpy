@@ -31,6 +31,7 @@ from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
 from profit.widgets import profit_rc
+from profit.widgets.collectordisplay import CollectorDisplay
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
@@ -368,7 +369,11 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
         self.strategyDock = Dock('Strategy', self, StrategyTree)
+        self.collectorDock = Dock('Collector', self, CollectorDisplay)
+
         tabify(self.sessionDock, self.strategyDock)
+        tabify(self.sessionDock, self.collectorDock)
+
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
         makeShell = partial(

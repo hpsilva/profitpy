@@ -5,6 +5,8 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+import logging
+
 from os import getpid
 from os.path import abspath, dirname, join, pardir
 from subprocess import Popen, PIPE
@@ -95,6 +97,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
                 self.connectionTimeEdit.setText(
                     session.connection.TwsConnectionTime())
         else:
+            logging.warn('Exception during connect')
             QMessageBox.critical(
                 self, 'Connection Error', 'Unable to connect.')
             self.setControlsEnabled(True, False)

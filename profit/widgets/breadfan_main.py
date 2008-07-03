@@ -1,5 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2008 Troy Melhase
+# Distributed under the terms of the GNU General Public License v2
+# Author: Troy Melhase <troy@gci.net>
 
 from functools import partial
+
+from profit.lib.breadfan import make_network
+from profit.lib.core import Signals, Slots
 
 from profit.widgets.dock import Dock
 from profit.widgets.sessiontree import SessionTree
@@ -8,21 +17,21 @@ from profit.widgets.strategytree import StrategyTree
 from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
 from profit.widgets.output import OutputWidget
 
-from profit.widgets.breadfan_network import BreadFanNetworkTree
+from profit.widgets.breadfan_network import NetworkControlFrame
 from profit.widgets.breadfan_train import BreadFanTrainTree
 from profit.widgets.breadfan_test import BreadFanTestTree
 
 from PyQt4 import QtGui
-from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
+from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature, SIGNAL, SLOT
 from PyQt4.QtGui import QAction, QApplication, QColor, QMainWindow
 from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
 from PyQt4.QtGui import QSystemTrayIcon, QToolBar
 from PyQt4.QtGui import QIcon, QDesktopServices
 
 
-
 from ui_breadfan_main import Ui_BreadFanMain
-from ffnet import ffnet, loadnet, savenet
+
+
 
 
 class BreadFanMain(QMainWindow, Ui_BreadFanMain):
@@ -30,7 +39,18 @@ class BreadFanMain(QMainWindow, Ui_BreadFanMain):
         QMainWindow.__init__(self)
         self.setupUi(self)
         self.setupDockWidgets()
-        self.net = None
+        self.setupMenus()
+        self.net = make_network()
+
+    def setupMenus(self):
+        addr = self.menuView.addAction
+        for o in self.findChildren(Dock):
+            addr(o.toggleViewAction())
+        self.menuView.addSeparator()
+        addr(self.actionStatusBar)
+        self.menuView.addMenu(self.menuToolbars)
+        for toolbar in self.findChildren(QToolBar):
+            self.menuToolbars.addAction(toolbar.toggleViewAction())
 
     @pyqtSignature('')
     def on_actionNew_triggered(self):
@@ -57,7 +77,8 @@ class BreadFanMain(QMainWindow, Ui_BreadFanMain):
         filename = QFileDialog.getOpenFileName(
             self, 'Import Network', '')
         if filename:
-            self.net = loadnet(filename)
+            self.net.load(filename)
+            self.emit(Signals.neuralNetworkCreated, self.net)
 
     @pyqtSignature('')
     def on_actionExport_triggered(self):
@@ -68,27 +89,33 @@ class BreadFanMain(QMainWindow, Ui_BreadFanMain):
         filename = QFileDialog.getOpenFileName(
             self, 'Export Network', '')
         if filename:
-            savenet(self.net, filename)
+            self.net.save(filename)
+
 
     def setupDockWidgets(self):
         bottom = Qt.BottomDockWidgetArea
         tabify = self.tabifyDockWidget
-        self.networkDock = net = Dock('Network', self, BreadFanNetworkTree)
-        self.trainDock = Dock('Train', self, BreadFanTrainTree)
-        self.testDock = Dock('Test', self, BreadFanTestTree)
-        tabify(self.networkDock, self.trainDock)
-        tabify(self.trainDock, self.testDock)
-        tabify(self.testDock, self.networkDock)
 
-        self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
-        self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
-        makeShell = partial(
-            PythonShell,
-            stdout=self.stdoutDock.widget(),
-            stderr=self.stderrDock.widget())
-        self.shellDock = Dock('Python Shell', self, makeShell, bottom)
-        tabify(self.shellDock, self.stdoutDock)
-        tabify(self.stdoutDock, self.stderrDock)
+        self.networkDock = networkDock = Dock('Network Setup', self, NetworkControlFrame)
+        self.trainDock = trainDock = Dock('Train Network', self, BreadFanTrainTree)
+        self.testDock = testDock = Dock('Test Network', self, BreadFanTestTree)
+
+        trainDock.widget().setupBasic(self, Signals.neuralNetworkCreated)
+
+        tabify(networkDock, trainDock, )
+        tabify(trainDock, testDock)
+
+        self.stdoutDock = outDock = Dock('Standard Output', self, OutputWidget, bottom)
+        self.stderrDock = errDock = Dock('Standard Error', self, OutputWidget, bottom)
+
+        makeShell = partial(PythonShell, stdout=outDock.widget(),
+                            stderr=errDock.widget())
+        self.shellDock = shellDock = Dock('Python Shell', self, makeShell, bottom)
+        tabify(shellDock, outDock)
+        tabify(outDock, errDock)
+
+        shellDock.raise_()
+        networkDock.raise_()
 
 
 if __name__ == "__main__":
@@ -97,4 +124,3 @@ if __name__ == "__main__":
     win = BreadFanMain()
     win.show()
     sys.exit(app.exec_())
-

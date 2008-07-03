@@ -34,7 +34,7 @@ class StrategyInstance(object):
     @classmethod
     def fromFile(cls):
         ## read a pickled strategy schema from a file
-        return cls(m)
+        return cls()
 
 
 class Strategy(QObject):

@@ -6,8 +6,8 @@
 
 ##
 #
-# This module defines the Plot class for display of plots and plotting
-# controls.
+# This module defines the Plot class for display of plots and
+# associated controls.
 #
 ##
 

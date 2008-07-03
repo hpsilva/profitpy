@@ -7,13 +7,13 @@
 
 import sys
 
-from PyQt4.QtCore import Qt, QVariant
+from PyQt4.QtCore import Qt, QVariant, pyqtSignature
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel, QToolBar)
 
 from profit.lib.core import SessionHandler
 from profit.lib.core import Signals, tickerIdRole
-from profit.widgets.ui_breadfan_network import Ui_BreadFanNetworkTree
+from profit.widgets.ui_breadfan_network import Ui_NetworkControlFrame
 
 
 class NetworkTreeItem(QStandardItem):
@@ -58,7 +58,7 @@ class NetworkTreeItem(QStandardItem):
 
 
 class NetworkTreeModel(QStandardItemModel):
-    
+
     def __init__(self, parent=None):
         """ Constructor.
 
@@ -75,7 +75,7 @@ class NetworkTreeModel(QStandardItemModel):
                 item.appendRow(subitem)
 
 
-class BreadFanNetworkTree(QFrame, Ui_BreadFanNetworkTree):
+class NetworkControlFrame(QFrame, Ui_NetworkControlFrame):
     """ Tree view of a BreadFan network config.
 
     """
@@ -86,3 +86,14 @@ class BreadFanNetworkTree(QFrame, Ui_BreadFanNetworkTree):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.networkStatus.setText('No neural network')
+
+    @pyqtSignature('')
+    def on_createNetwork_clicked(self):
+        """ Signal handler for select icon button.
+
+        @return None
+        """
+        self.emit(Signals.neuralNetworkCreated )
+        self.networkStatus.setText('Created neural network')
+

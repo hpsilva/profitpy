@@ -112,29 +112,21 @@ class BreadFanTrainTree(QFrame, Ui_BreadFanTrainTree):
         QFrame.__init__(self, parent)
         self.setupUi(self)
         connect = self.connect
-        tree = self.treeView
-        tree.header().hide()
-        tree.setAnimated(True)
-        app = QApplication.instance()
-        connect(tree, Signals.modelClicked, app, Signals.sessionItemSelected)
-        connect(tree, Signals.modelDoubleClicked,
-                app, Signals.sessionItemActivated)
 
+    def setupBasic(self, sender, newSignal):
+        self.connect(sender, newSignal, self.on_newBreadNet)
 
-    def setSession(self, session):
-        """ Signal handler called when new Session object is created.
+    def on_newBreadNet(self, net):
+        print '### signaled network', net
+        ## fill and trainAlgorithm combo
+        algorNames = [name for name in net.train_meta]
+        algorCombo = self.trainAlgorithm
+        algorCombo.clear()
+        algorCombo.addItems(algorNames)
+        if net.trained in algorNames:
+            algorCombo.setCurrentIndex(algorNames.index(net.trained))
 
-        @param session new Session instance
-        @return None
-        """
-        self.session = session
-        self.dataModel = model = SessionTreeModel(session, self)
-        view = self.treeView
-        view.setModel(model)
-        if not sys.argv[1:]:
-            try:
-                item = model.findItems('connection')[0]
-            except (IndexError, ):
-                pass
-            else:
-                view.emit(Signals.modelClicked, item.index())
+        ## fill params
+        ## don't touch fill training data sources
+        ## set training progress bar value
+

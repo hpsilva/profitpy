@@ -68,6 +68,8 @@ class Signals:
     triggered = SIGNAL('triggered()')
     zoomed = SIGNAL('zoomed(const QwtDoubleRect &)')
 
+    neuralNetworkCreated = SIGNAL('neuralNetworkCreated')
+
 
 class Slots:
     """ Contains SLOT attributes for easy and consistent reference.
