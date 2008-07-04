@@ -69,6 +69,10 @@ class Signals:
     zoomed = SIGNAL('zoomed(const QwtDoubleRect &)')
 
     neuralNetworkCreated = SIGNAL('neuralNetworkCreated')
+    threadStarted = SIGNAL('started()')
+    threadRunning = SIGNAL('running')
+    threadFinished = SIGNAL('finished()')
+    collectorActivate = SIGNAL('collectorActivate(PyQt_PyObject)')
 
 
 class Slots:

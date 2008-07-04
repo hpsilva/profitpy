@@ -22,6 +22,7 @@ class SessionTreeItem(QStandardItem):
     """
     iconNameMap = {
         'account':'identity',
+        'collector':'misc',
         'connection':'server',
         'messages':'view_text',
         'orders':'klipper_dock',

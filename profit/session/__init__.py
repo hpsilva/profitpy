@@ -6,28 +6,27 @@
 # Author: Troy Melhase <troy@gci.net>
 #         Yichun Wei <yichun.wei@gmail.com>
 
-import sys
 import os
 import logging
 
 from cPickle import PicklingError, UnpicklingError, dump, load
 from itertools import ifilter
 from time import time, strftime
+from Queue import Queue
 
-from PyQt4.QtCore import QObject, QThread, SIGNAL
+from PyQt4.QtCore import QObject, QMutex, QThread, SIGNAL
 
 from ib.ext.Contract import Contract
 from ib.ext.ExecutionFilter import ExecutionFilter
 from ib.ext.Order import Order
 from ib.ext.TickType import TickType
-
 from ib.opt import ibConnection
 from ib.opt.message import registry
 
 from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram
+from profit.session.collectorthread import CollectorThread
 from profit.session.savethread import SaveThread
-
 try:
     from profit.series import EMA, KAMA
 except (ImportError, ):
@@ -112,7 +111,7 @@ class TickerCollection(DataCollection):
             self.emit(Signals.createdSeries, tickerId, field)
         seq.append(value)
 
-from Queue import Queue
+
 
 class HistoricalDataCollection(QThread, DataCollection):
 
@@ -261,6 +260,7 @@ class Session(QObject):
     def __init__(self, builder=None, strategy=True):
         QObject.__init__(self)
         self.setObjectName('session')
+        self.setupCollector()
         self.builder = builder if builder else SessionBuilder()
         self.connection = self.sessionFile = self.nextId = None
         self.messages = []
@@ -274,12 +274,21 @@ class Session(QObject):
         if strategy:
             self.strategy = Strategy()
         connect = self.connect
-        connect(
-            ac, Signals.createdAccountData, self, Signals.createdAccountData)
-        connect(
-            tc, Signals.createdSeries, self, Signals.createdSeries)
-        connect(
-            tc, Signals.createdTicker, self, Signals.createdTicker)
+        connect(ac, Signals.createdAccountData, self, Signals.createdAccountData)
+        connect(tc, Signals.createdSeries, self, Signals.createdSeries)
+        connect(tc, Signals.createdTicker, self, Signals.createdTicker)
+
+    def setupCollector(self):
+        self.collectorMutex = QMutex()
+        self.collectorMutex.lock()
+        self.collectorThread = CollectorThread(self.collectorMutex, self)
+        self.collectorThread.start()
+        self.connect(self, Signals.collectorActivate, self.on_activateCollector)
+    
+    def on_activateCollector(self, config):
+        print '## session signaled to activate collector'
+        self.collectorThread.updateConfig(config)
+        self.collectorMutex.unlock()
 
     def __str__(self):
         return '<Session 0x%x (messages=%s connected=%s)>' % \
@@ -288,13 +297,15 @@ class Session(QObject):
     def items(self):
         return [
             ('account', ()),
+            ('collector', ()),
             ('connection', ()),
             ('executions', ()),
             ('messages', ()),
             ('orders', ()),
             ('portfolio', ()),
+            ('strategy', ()),
             ('tickers', self.builder.symbols()),
-            ]
+        ]
 
     def disconnectTWS(self):
         if self.isConnected:

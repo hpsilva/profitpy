@@ -145,6 +145,7 @@ class CentralTabs(QTabWidget, SessionHandler):
     # handlers for the various named items in the session widget
 
     new_accountItem = tabWidgetMethod('accountdisplay.AccountDisplay')
+    new_collectorItem = tabWidgetMethod('collectordisplay.CollectorDisplay')
     new_connectionItem = tabWidgetMethod(
         'connectiondisplay.ConnectionDisplay')
     new_executionsItem = tabWidgetMethod(
@@ -152,6 +153,7 @@ class CentralTabs(QTabWidget, SessionHandler):
     new_messagesItem = tabWidgetMethod('messagedisplay.MessageDisplay')
     new_ordersItem = tabWidgetMethod('orderdisplay.OrderDisplay')
     new_portfolioItem = tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
+    new_strategyItem = tabWidgetMethod('strategytree.StrategyTree')
 
     new_tickersItemHelper = tabWidgetMethod('tickerdisplay.TickerDisplay')
     def new_tickersItem(self, text, itemindex):

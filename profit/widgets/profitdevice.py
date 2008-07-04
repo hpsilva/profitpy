@@ -36,7 +36,7 @@ from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
-from profit.widgets.strategytree import StrategyTree
+#from profit.widgets.strategytree import StrategyTree
 from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
 
 
@@ -368,11 +368,11 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         bottom = Qt.BottomDockWidgetArea
         tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
-        self.strategyDock = Dock('Strategy', self, StrategyTree)
-        self.collectorDock = Dock('Collector', self, CollectorDisplay)
+        #self.strategyDock = Dock('Strategy', self, StrategyTree)
+        #self.collectorDock = Dock('Collector', self, CollectorDisplay)
 
-        tabify(self.sessionDock, self.strategyDock)
-        tabify(self.sessionDock, self.collectorDock)
+        tabify(self.sessionDock, self.sessionDock) # self.strategyDock)
+        #tabify(self.sessionDock, self.collectorDock)
 
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)

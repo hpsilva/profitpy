@@ -10,6 +10,7 @@ import logging
 from os import getpid
 from os.path import abspath, dirname, join, pardir
 from subprocess import Popen, PIPE
+from sys import platform
 from time import time
 
 from PyQt4.QtCore import pyqtSignature
@@ -24,17 +25,19 @@ from profit.lib import defaults
 from profit.lib.core import SessionHandler, Settings, Signals
 from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
+
+
 try:
-    hasXterm = Popen(['which', 'xterm'], stdout=PIPE).communicate()[0].strip()
+    hasTerm = Popen(['which', 'xterm'], stdout=PIPE, stderr=PIPE).communicate()[0].strip()
 except (Exception, ):
-    hasXterm = False
+    hasTerm = False
 
 
 def commandStrings():
     binDir = abspath(join(dirname(abspath(__file__)), pardir, 'bin'))
     keyCmd =  join(binDir, 'login_helper') + ' -v'
     brokerCmd = join(binDir, 'ib_tws')
-    if hasXterm:
+    if hasTerm:
         commandFs = 'xterm -title %s -e %s'
         keyCmd = commandFs % ('helper', keyCmd, )
         brokerCmd = commandFs % ('ibtws', brokerCmd, )

@@ -77,9 +77,9 @@ schema[Settings.keys.main] = [
     ('externalEditor', getText, setText, ''),
 ]
 
-schema[Settings.keys.strategy] = [
-    ('strategySchema', getText, setText, ''),
-]
+#schema[Settings.keys.strategy] = [
+#    ('strategySchema', getText, setText, ''),
+#]
 
 schema[Settings.keys.appearance] = [
     ('shellFont', getFont, setFont, 'Monospace'),
