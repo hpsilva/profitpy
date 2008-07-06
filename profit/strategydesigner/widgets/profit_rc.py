@@ -1,1 +1,1 @@
-widgets/profit_rc.py
+../../widgets/profit_rc.py
