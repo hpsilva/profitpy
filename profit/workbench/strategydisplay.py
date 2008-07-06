@@ -11,10 +11,10 @@ from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QFrame, QIcon, QMessageBox
 
 from profit.lib.core import SessionHandler, Settings, Signals
-from profit.widgets.ui_strategytree import Ui_StrategyTree
+from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
 
-class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
+class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
@@ -33,7 +33,7 @@ class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
             revertSource=lambda :self.settings.value('source', '').toString(),
             saveSource=lambda src:self.settings.setValue('source', src),
             disableFactoryType=True)
-        logging.debug("strategyTree editor CONNECT")
+        logging.debug("strategyDisplay editor CONNECT")
         self.connect(edit, Signals.modified, self.on_callableSelect_modified)
 
     def setSession(self, session):

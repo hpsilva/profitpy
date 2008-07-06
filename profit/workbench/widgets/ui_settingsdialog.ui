@@ -13,7 +13,7 @@
    <string>Profit Device Settings</string>
   </property>
   <property name="windowIcon" >
-   <iconset resource="profit.qrc" >
+   <iconset>
     <normaloff>:/images/icons/blockdevice.png</normaloff>:/images/icons/blockdevice.png</iconset>
   </property>
   <layout class="QVBoxLayout" >
@@ -76,7 +76,7 @@
         <string>General</string>
        </property>
        <property name="icon" >
-        <iconset resource="profit.qrc" >
+        <iconset>
          <normaloff>:/images/icons/kcontrol.png</normaloff>:/images/icons/kcontrol.png</iconset>
        </property>
       </item>
@@ -85,7 +85,7 @@
         <string>Startup</string>
        </property>
        <property name="icon" >
-        <iconset resource="profit.qrc" >
+        <iconset>
          <normaloff>:/images/icons/source_py.png</normaloff>:/images/icons/source_py.png</iconset>
        </property>
       </item>
@@ -94,7 +94,7 @@
         <string>Appearance</string>
        </property>
        <property name="icon" >
-        <iconset resource="profit.qrc" >
+        <iconset>
          <normaloff>:/images/icons/looknfeel.png</normaloff>:/images/icons/looknfeel.png</iconset>
        </property>
       </item>
@@ -103,7 +103,7 @@
         <string>URLs</string>
        </property>
        <property name="icon" >
-        <iconset resource="profit.qrc" >
+        <iconset>
          <normaloff>:/images/icons/www.png</normaloff>:/images/icons/www.png</iconset>
        </property>
       </item>
@@ -225,7 +225,7 @@ p, li { white-space: pre-wrap; }
              <item row="0" column="0" >
               <widget class="QLabel" name="label" >
                <property name="text" >
-                <string>External Editor:</string>
+                <string>Editor:</string>
                </property>
               </widget>
              </item>
@@ -264,6 +264,14 @@ p, li { white-space: pre-wrap; }
        </layout>
       </widget>
       <widget class="QWidget" name="startupPage" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>100</width>
+         <height>30</height>
+        </rect>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout" >
         <item>
          <widget class="QLabel" name="label_2" >
@@ -321,9 +329,6 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
        </layout>
-       <zorder>label_2</zorder>
-       <zorder>starupGroup</zorder>
-       <zorder>confirmActivateStrategy_2</zorder>
       </widget>
       <widget class="QWidget" name="appearancePage" >
        <property name="geometry" >
@@ -605,7 +610,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset resource="profit.qrc" >
+                  <iconset>
                    <normaloff>:/images/icons/edit_add.png</normaloff>:/images/icons/edit_add.png</iconset>
                  </property>
                 </widget>
@@ -619,7 +624,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset resource="profit.qrc" >
+                  <iconset>
                    <normaloff>:/images/icons/edit_remove.png</normaloff>:/images/icons/edit_remove.png</iconset>
                  </property>
                 </widget>
@@ -633,7 +638,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset resource="profit.qrc" >
+                  <iconset>
                    <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
                  </property>
                 </widget>
@@ -647,7 +652,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset resource="profit.qrc" >
+                  <iconset>
                    <normaloff>:/images/icons/down.png</normaloff>:/images/icons/down.png</iconset>
                  </property>
                 </widget>
@@ -721,7 +726,7 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>CallableSelectWidget</class>
    <extends>QWidget</extends>
-   <header>callableselectwidget.h</header>
+   <header location="global" >profit.widgets.callableselectwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

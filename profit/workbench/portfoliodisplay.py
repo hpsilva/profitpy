@@ -11,7 +11,7 @@ from PyQt4.QtGui import QFrame, QIcon
 
 from profit.lib.core import SessionHandler, nameIn
 from profit.lib.gui import ValueTableItem
-from profit.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
+from profit.workbench.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
 
 
 def replayPortfolio(messages, callback):

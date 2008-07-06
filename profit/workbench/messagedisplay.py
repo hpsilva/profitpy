@@ -15,7 +15,7 @@ from ib.opt.message import registry
 
 from profit.lib.core import SessionHandler, Settings, Signals, Slots
 from profit.lib.gui import colorIcon
-from profit.widgets.ui_messagedisplay import Ui_MessageDisplay
+from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay
 
 
 def messageTypeNames():

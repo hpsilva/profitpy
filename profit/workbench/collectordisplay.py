@@ -7,7 +7,7 @@ from PyQt4.QtCore import QTime, QTimer, pyqtSignature
 from PyQt4.QtGui import QFrame
 
 from profit.lib.core import SessionHandler, Signals
-from profit.widgets.ui_collectordisplay import Ui_CollectorDisplay
+from profit.workbench.widgets.ui_collectordisplay import Ui_CollectorDisplay
 
 
 class CollectorDisplay(QFrame, Ui_CollectorDisplay, SessionHandler):

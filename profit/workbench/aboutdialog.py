@@ -9,9 +9,9 @@ from os.path import join, split
 from PyQt4.QtGui import QDialog
 
 import profit
-from profit.widgets.ui_aboutdialog import Ui_AboutDialog
+from profit.workbench.widgets.ui_aboutdialog import Ui_AboutDialog
 
-aboutText = """Profit Device, part of ProfitPy
+aboutText = """Profit Workbench, part of ProfitPy
 
 (c) 2003-2007, Troy Melhase
 """

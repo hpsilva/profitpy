@@ -13,7 +13,7 @@ from PyQt4.QtGui import (QApplication, QFrame, QIcon,
 
 from profit.lib.core import SessionHandler
 from profit.lib.core import Settings, Signals, tickerIdRole
-from profit.widgets.ui_sessiontree import Ui_SessionTree
+from profit.workbench.widgets.ui_sessiontree import Ui_SessionTree
 
 
 class SessionTreeItem(QStandardItem):
@@ -138,7 +138,7 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
 
         settings = Settings()
         settings.beginGroup(settings.keys.main)
-        tabstate = settings.valueLoad(settings.keys.ctabstate)
+        tabstate = settings.valueLoad(settings.keys.ctabstate, [])
         settings.endGroup()
 
         connection = 'connection'

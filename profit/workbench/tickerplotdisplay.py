@@ -9,7 +9,7 @@ from PyQt4.QtGui import QFrame
 
 from profit.lib.core import Settings, Signals
 from profit.widgets.plot import Plot
-from profit.widgets.ui_tickerplotdisplay import Ui_TickerPlotDisplay
+from profit.workbench.widgets.ui_tickerplotdisplay import Ui_TickerPlotDisplay
 
 
 class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):

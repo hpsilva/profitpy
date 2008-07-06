@@ -88,8 +88,6 @@ class Settings(QSettings):
     """ Convenient replacement for QSettings.
 
     """
-    dumps, loads = dumps, loads
-
     class keys:
         """ Attributes are setting keys.
 
@@ -136,7 +134,10 @@ class Settings(QSettings):
     def valueLoad(self, key, default=None):
         v = self.value(key, default=default)
         if v:
-            v = loads(str(v.toString()))
+            try:
+                v = loads(str(v.toString()))
+            except:
+                v = default
         return v
 
     def value(self, key, default=None):

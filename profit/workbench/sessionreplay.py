@@ -19,7 +19,7 @@ from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QDialog, QMessageBox
 
 from profit.lib.core import Signals
-from profit.widgets.ui_sessionreplay import Ui_SessionReplayWidget
+from profit.workbench.widgets.ui_sessionreplay import Ui_SessionReplayWidget
 
 
 class SessionReplay(QDialog, Ui_SessionReplayWidget):

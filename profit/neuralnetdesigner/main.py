@@ -11,10 +11,7 @@ from profit.lib.breadfan import make_network
 from profit.lib.core import Signals, Slots
 
 from profit.widgets.dock import Dock
-from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
-from profit.widgets.strategytree import StrategyTree
-from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
 from profit.widgets.output import OutputWidget
 
 from profit.widgets.breadfan_network import NetworkControlFrame

@@ -23,7 +23,7 @@ QtGui.QwtThermo = QwtThermo
 
 from profit.lib import defaults
 from profit.lib.core import SessionHandler, Settings, Signals
-from profit.widgets.ui_connectionwidget import Ui_ConnectionWidget
+from profit.workbench.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
 
 

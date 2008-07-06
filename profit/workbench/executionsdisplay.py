@@ -11,7 +11,7 @@ from PyQt4.QtGui import QFrame
 
 from profit.lib.core import SessionHandler, Signals, Slots, nameIn, valueAlign
 from profit.lib.gui import symbolIcon
-from profit.widgets.ui_executionsdisplay import Ui_ExecutionsDisplay
+from profit.workbench.widgets.ui_executionsdisplay import Ui_ExecutionsDisplay
 
 
 dayFormatOut = '%a %d %b %Y'

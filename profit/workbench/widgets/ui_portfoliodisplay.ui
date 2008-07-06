@@ -13,11 +13,11 @@
    <string>Portfolio Display</string>
   </property>
   <layout class="QVBoxLayout" >
-   <property name="margin" >
-    <number>9</number>
-   </property>
    <property name="spacing" >
     <number>6</number>
+   </property>
+   <property name="margin" >
+    <number>9</number>
    </property>
    <item>
     <widget class="SearchBar" native="1" name="searchBar" />
@@ -85,14 +85,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>LocalTable</class>
-   <extends>QTableWidget</extends>
-   <header>localtable.h</header>
-  </customwidget>
-  <customwidget>
    <class>SearchBar</class>
    <extends>QWidget</extends>
-   <header>searchbar.h</header>
+   <header location="global" >profit.widgets.searchbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LocalTable</class>
+   <extends>QTableWidget</extends>
+   <header location="global" >profit.widgets.localtable.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

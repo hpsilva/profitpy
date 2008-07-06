@@ -31,12 +31,15 @@ from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
 from profit.widgets import profit_rc
-from profit.widgets.collectordisplay import CollectorDisplay
+
 from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
-from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
+
+## mv main ..
 from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
+from profit.workbench.sessiontree import SessionTree
+from profit.workbench.collectordisplay import CollectorDisplay
 
 
 applicationName = QApplication.applicationName
@@ -124,7 +127,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionAboutProfitDevice_triggered(self):
-        from profit.widgets.aboutdialog import AboutDialog
+        from profit.workbench.aboutdialog import AboutDialog
         dlg = AboutDialog(self)
         dlg.exec_()
 
@@ -177,7 +180,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     @pyqtSignature('')
     def on_actionImportSession_triggered(self, filename=None):
         from profit.widgets.importexportdialog import ImportExportDialog
-        from profit.widgets.sessionreplay import SessionReplay
+        from profit.workbench.sessionreplay import SessionReplay
         if not filename:
             filename = QFileDialog.getOpenFileName(
                 self, 'Import Session From File')
@@ -290,7 +293,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionSettings_triggered(self):
-        from profit.widgets.settingsdialog import SettingsDialog
+        from profit.workbench.settingsdialog import SettingsDialog
         dlg = SettingsDialog()
         dlg.readSettings(Settings())
         if dlg.exec_() == dlg.Accepted:

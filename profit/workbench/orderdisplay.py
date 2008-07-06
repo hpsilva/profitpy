@@ -10,7 +10,7 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame
 
 from profit.lib.core import SessionHandler, nameIn
-from profit.widgets.ui_orderdisplay import Ui_OrderDisplay
+from profit.workbench.widgets.ui_orderdisplay import Ui_OrderDisplay
 
 
 def replayOrders(messages, obj):

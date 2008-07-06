@@ -19,9 +19,9 @@ from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
 disallowMultiples = []
 
 
-def tabWidgetMethod(name, reloaded=False):
+def tabWidgetMethod(base, name, reloaded=False):
     def method(self, title, itemindex=None):
-        cls = importItem('profit.widgets.' + name, reloaded=reloaded)
+        cls = importItem(base + name, reloaded=reloaded)
         index = None
         if name in disallowMultiples and itemindex:
             pages = self.pageMap()
@@ -115,7 +115,7 @@ class CentralTabs(QTabWidget, SessionHandler):
                 call = getattr(self, 'new_%sItem' % text)
                 tabIndex = call(name, index)
             except (Exception, ), exc:
-                logging.debug('Session item create exception: %s', exc)
+                logging.debug('Session item create exception: %s, %s', exc, name)
             else:
                 self.setCurrentIndex(tabIndex)
                 self.setTabIcon(tabIndex, icon)
@@ -126,7 +126,7 @@ class CentralTabs(QTabWidget, SessionHandler):
             symbol = str(item.text())
             tickerId = item.tickerId
             icon = item.icon()
-        cls = importItem('profit.widgets.tickerplotdisplay.TickerPlotDisplay')
+        cls = importItem('profit.workbench.tickerplotdisplay.TickerPlotDisplay')
         widget = cls(self)
         widget.setSessionPlot(
             self.session, self.session.tickerCollection, tickerId, *args)
@@ -144,18 +144,18 @@ class CentralTabs(QTabWidget, SessionHandler):
 
     # handlers for the various named items in the session widget
 
-    new_accountItem = tabWidgetMethod('accountdisplay.AccountDisplay')
-    new_collectorItem = tabWidgetMethod('collectordisplay.CollectorDisplay')
-    new_connectionItem = tabWidgetMethod(
+    new_accountItem = tabWidgetMethod('profit.workbench.', 'accountdisplay.AccountDisplay')
+    new_collectorItem = tabWidgetMethod('profit.workbench.', 'collectordisplay.CollectorDisplay')
+    new_connectionItem = tabWidgetMethod('profit.workbench.',
         'connectiondisplay.ConnectionDisplay')
-    new_executionsItem = tabWidgetMethod(
+    new_executionsItem = tabWidgetMethod('profit.workbench.',
         'executionsdisplay.ExecutionsDisplay')
-    new_messagesItem = tabWidgetMethod('messagedisplay.MessageDisplay')
-    new_ordersItem = tabWidgetMethod('orderdisplay.OrderDisplay')
-    new_portfolioItem = tabWidgetMethod('portfoliodisplay.PortfolioDisplay')
-    new_strategyItem = tabWidgetMethod('strategytree.StrategyTree')
+    new_messagesItem = tabWidgetMethod('profit.workbench.', 'messagedisplay.MessageDisplay')
+    new_ordersItem = tabWidgetMethod('profit.workbench.', 'orderdisplay.OrderDisplay')
+    new_portfolioItem = tabWidgetMethod('profit.workbench.', 'portfoliodisplay.PortfolioDisplay')
+    new_strategyItem = tabWidgetMethod('profit.workbench.', 'strategydisplay.StrategyDisplay')
+    new_tickersItemHelper = tabWidgetMethod('profit.workbench.', 'tickerdisplay.TickerDisplay')
 
-    new_tickersItemHelper = tabWidgetMethod('tickerdisplay.TickerDisplay')
     def new_tickersItem(self, text, itemindex):
         index = self.new_tickersItemHelper(text, itemindex)
         widg = self.widget(index)

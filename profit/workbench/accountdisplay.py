@@ -11,7 +11,7 @@ from profit.lib.core import SessionHandler, Signals, valueAlign
 from profit.lib.gui import colorIcon, complementColor
 from profit.series import Series
 from profit.widgets.plot import PlotCurve, ControlTreeValueItem
-from profit.widgets.ui_accountdisplay import Ui_AccountDisplay
+from profit.workbench.widgets.ui_accountdisplay import Ui_AccountDisplay
 
 
 class AccountTableModel(QStandardItemModel):

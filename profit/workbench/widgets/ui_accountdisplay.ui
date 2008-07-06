@@ -13,11 +13,11 @@
    <string>Account Display</string>
   </property>
   <layout class="QVBoxLayout" >
-   <property name="margin" >
-    <number>0</number>
-   </property>
    <property name="spacing" >
     <number>6</number>
+   </property>
+   <property name="margin" >
+    <number>0</number>
    </property>
    <item>
     <widget class="Plot" name="plot" >
@@ -27,6 +27,9 @@
      <property name="frameShadow" >
       <enum>QFrame::Plain</enum>
      </property>
+     <property name="lineWidth" >
+      <number>2</number>
+     </property>
     </widget>
    </item>
   </layout>
@@ -35,7 +38,8 @@
   <customwidget>
    <class>Plot</class>
    <extends>QFrame</extends>
-   <header>plot.h</header>
+   <header location="global" >profit.widgets.plot.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

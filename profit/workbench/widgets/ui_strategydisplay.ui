@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>StrategyTree</class>
- <widget class="QWidget" name="StrategyTree" >
+ <class>StrategyDisplay</class>
+ <widget class="QWidget" name="StrategyDisplay" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Strategy Tree</string>
+   <string>Strategy Display</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout" >
    <item>
@@ -81,7 +81,7 @@
             <string>Reload</string>
            </property>
            <property name="icon" >
-            <iconset resource="profit.qrc" >
+            <iconset>
              <normaloff>:/images/icons/noatunloopsong.png</normaloff>:/images/icons/noatunloopsong.png</iconset>
            </property>
           </widget>
@@ -92,7 +92,7 @@
             <string>Loaded</string>
            </property>
            <property name="icon" >
-            <iconset resource="profit.qrc" >
+            <iconset>
              <normaloff>:/images/icons/misc.png</normaloff>:/images/icons/misc.png</iconset>
            </property>
           </widget>
@@ -118,7 +118,7 @@
             <string>Active</string>
            </property>
            <property name="icon" >
-            <iconset resource="profit.qrc" >
+            <iconset>
              <normaloff>:/images/icons/connect_no.png</normaloff>:/images/icons/connect_no.png</iconset>
            </property>
           </widget>
@@ -198,7 +198,7 @@
   <customwidget>
    <class>CallableSelectWidget</class>
    <extends>QWidget</extends>
-   <header>callableselectwidget.h</header>
+   <header location="global" >profit.widgets.callableselectwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
