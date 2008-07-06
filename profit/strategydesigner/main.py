@@ -23,7 +23,7 @@ from profit.lib.core import Settings, Signals
 from profit.strategy.treeitems import (
     CallableItem, TickerItem, FieldItem, IndexItem, RunnerItem)
 
-from profit.widgets.settingsdialog import SysPathDialog
+from profit.widgets.syspathdialog import SysPathDialog
 from profit.strategydesigner.widgets.ui_strategydesigner import Ui_StrategyDesigner
 
 

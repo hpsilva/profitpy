@@ -36,7 +36,6 @@ from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.shell import PythonShell
 
-## mv main ..
 from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
 from profit.workbench.sessiontree import SessionTree
 from profit.workbench.collectordisplay import CollectorDisplay
@@ -301,7 +300,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionStrategyDesigner_triggered(self):
-        from profit.widgets.strategydesigner import StrategyDesigner
+        from profit.strategydesigner.main import StrategyDesigner
         settings = Settings()
         settings.beginGroup(settings.keys.strategy)
         if settings.value('type', '').toString()=='file':

@@ -8,7 +8,7 @@
 import sys
 from PyQt4.QtGui import QApplication
 from profit.lib.core import Settings
-from profit.workbench.widgets.main import ProfitWorkbenchWindow
+from profit.workbench.main import ProfitWorkbenchWindow
 
 app = QApplication(sys.argv)
 app.setApplicationName(Settings.keys.app)
