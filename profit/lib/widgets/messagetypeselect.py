@@ -10,7 +10,7 @@ from PyQt4.QtGui import QApplication, QFrame, QStandardItemModel, QStandardItem
 
 from profit.lib.core import SessionHandler, Signals, valueAlign
 from profit.lib.gui import colorIcon, complementColor
-from profit.series import Series
+from profit.lib.series import Series
 from profit.lib.widgets.plot import PlotCurve, ControlTreeValueItem
 
 

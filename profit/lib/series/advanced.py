@@ -8,7 +8,7 @@
 from numpy import arctan, array, log, mean, std, median
 from scipy.stats import linregress, mode
 
-from profit.series.basic import SeriesIndex, MovingAverageIndex
+from profit.lib.series.basic import SeriesIndex, MovingAverageIndex
 
 
 class FisherTransform(MovingAverageIndex):

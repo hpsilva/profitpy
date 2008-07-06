@@ -7,7 +7,7 @@
 #         Yichun Wei <yichun.wei@gmail.com>
 
 from time import time, strftime
-from profit.series import Series, MACDHistogram
+from profit.lib.series import Series, MACDHistogram
 
 from ib.ext.Contract import Contract
 from ib.ext.ExecutionFilter import ExecutionFilter
@@ -18,7 +18,7 @@ from ib.opt.message import registry
 
 from profit.strategy import Strategy as StrategyLoader
 try:
-    from profit.series import EMA, KAMA
+    from profit.lib.series import EMA, KAMA
 except (ImportError, ):
     EMA = KAMA = None
 

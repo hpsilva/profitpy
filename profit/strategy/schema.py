@@ -66,7 +66,7 @@ class TickerField(object):
 
 
 class TickerFieldIndex(object):
-    """ TickerFieldIndexs associate an index class (found in profit.series)
+    """ TickerFieldIndexs associate an index class (found in profit.lib.series)
     with parameters.
 
     """
