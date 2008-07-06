@@ -1,27 +1,20 @@
-.PHONY: all clean full
+targets = examples widgets neuralnetdesigner strategydesigner workbench
+
+
+.PHONY: all clean full $(targets)
 
 
 all:
-	cd examples && $(MAKE)
-	cd widgets && $(MAKE)
-	cd neuralnetdesigner && $(MAKE)
-	cd strategydesigner && $(MAKE)
-	cd workbench && $(MAKE)
+	@for dir in $(targets); do \
+	  cd $$dir && $(MAKE) && cd - ;	done
 
 
 clean:
-	rm -f -R *.pyc
-	rm -f -R *.pyo
-	cd examples && $(MAKE) clean
-	cd widgets && $(MAKE) clean
-	cd neuralnetdesigner && $(MAKE) clean
-	cd strategydesigner && $(MAKE) clean
-	cd workbench && $(MAKE) clean
+	@rm -f -R *.pyc *.pyo
+	@for dir in $(targets); do \
+	  cd $$dir && $(MAKE) clean && cd - ; done
+
 
 full:
-	cd examples && $(MAKE) full
-	cd widgets && $(MAKE) full
-	cd neuralnetdesigner && $(MAKE) full
-	cd strategydesigner && $(MAKE) full
-	cd workbench && $(MAKE) full
-
+	@for dir in $(targets); do \
+	  cd $$dir && $(MAKE) full && cd - ; done

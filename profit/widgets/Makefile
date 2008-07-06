@@ -15,10 +15,8 @@ objects := $(addsuffix .py, $(basename $(wildcard *.ui)))
 all: $(objects)
 
 
-clean: 
-	rm -f $(objects)
-	rm -f *.pyc
-	rm -f *.pyo
+clean:
+	@rm -f $(objects) *.pyc *.pyo
 
 
 full: all $(rcout)

@@ -10,9 +10,7 @@ all: $(objects)
 
 
 clean:
-	rm -f $(objects)
-	rm -f *.pyc
-	rm -f *.pyo
+	@rm -f $(objects) *.pyc *.pyo
 
 
 full: all
