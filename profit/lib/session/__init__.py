@@ -25,10 +25,10 @@ from ib.opt.message import registry
 
 from profit.lib.core import Signals
 from profit.lib.series import Series, MACDHistogram
-from profit.session.collection import (AccountCollection,
-                                       TickerCollection,
-                                       HistoricalDataCollection, )
-from profit.session.savethread import SaveThread
+from profit.lib.session.collection import (AccountCollection,
+                                           TickerCollection,
+                                           HistoricalDataCollection, )
+from profit.lib.session.savethread import SaveThread
 try:
     from profit.lib.series import EMA, KAMA
 except (ImportError, ):

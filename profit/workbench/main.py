@@ -24,7 +24,7 @@ from PyQt4.QtGui import QIcon, QDesktopServices
 from profit.lib import defaults
 from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
-from profit.session import Session
+from profit.lib.session import Session
 from profit.lib.widgets import profit_rc
 
 from profit.lib.widgets.dock import Dock
