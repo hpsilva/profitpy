@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>ProfitDeviceWindow</class>
- <widget class="QMainWindow" name="ProfitDeviceWindow" >
+ <class>ProfitWorkbenchWindow</class>
+ <widget class="QMainWindow" name="ProfitWorkbenchWindow" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -10,11 +10,19 @@
    </rect>
   </property>
   <widget class="QWidget" name="centralwidget" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>61</y>
+     <width>1024</width>
+     <height>685</height>
+    </rect>
+   </property>
    <layout class="QVBoxLayout" >
-    <property name="margin" >
+    <property name="spacing" >
      <number>0</number>
     </property>
-    <property name="spacing" >
+    <property name="margin" >
      <number>0</number>
     </property>
     <item>
@@ -28,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>28</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menEdit" >
@@ -88,8 +96,25 @@
    <addaction name="menuView" />
    <addaction name="menuHelp" />
   </widget>
-  <widget class="QStatusBar" name="statusbar" />
+  <widget class="QStatusBar" name="statusbar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>746</y>
+     <width>1024</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
   <widget class="QToolBar" name="fileToolbar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>29</y>
+     <width>565</width>
+     <height>32</height>
+    </rect>
+   </property>
    <property name="windowTitle" >
     <string>File</string>
    </property>
@@ -97,7 +122,10 @@
     <enum>Qt::Horizontal</enum>
    </property>
    <attribute name="toolBarArea" >
-    <number>4</number>
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak" >
+    <bool>false</bool>
    </attribute>
    <addaction name="actionNewSession" />
    <addaction name="actionOpenSession" />
@@ -109,6 +137,14 @@
    <addaction name="actionExportSession" />
   </widget>
   <widget class="QToolBar" name="editToolbar" >
+   <property name="geometry" >
+    <rect>
+     <x>565</x>
+     <y>29</y>
+     <width>459</width>
+     <height>32</height>
+    </rect>
+   </property>
    <property name="windowTitle" >
     <string>Edit</string>
    </property>
@@ -116,14 +152,18 @@
     <enum>Qt::Horizontal</enum>
    </property>
    <attribute name="toolBarArea" >
-    <number>4</number>
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak" >
+    <bool>false</bool>
    </attribute>
    <addaction name="actionSettings" />
    <addaction name="actionStrategyDesigner" />
   </widget>
   <action name="actionNewSession" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/filenew.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/filenew.png</normaloff>:/images/icons/filenew.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;New Session...</string>
@@ -134,7 +174,8 @@
   </action>
   <action name="actionOpenSession" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/fileopen.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/fileopen.png</normaloff>:/images/icons/fileopen.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Open Session...</string>
@@ -150,7 +191,8 @@
   </action>
   <action name="actionSaveSession" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/filesave.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/filesave.png</normaloff>:/images/icons/filesave.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Save Session</string>
@@ -161,7 +203,8 @@
   </action>
   <action name="actionSaveSessionAs" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/filesaveas.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/filesaveas.png</normaloff>:/images/icons/filesaveas.png</iconset>
    </property>
    <property name="text" >
     <string>Save Session &amp;As...</string>
@@ -169,7 +212,8 @@
   </action>
   <action name="actionCloseSession" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/fileclose.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/fileclose.png</normaloff>:/images/icons/fileclose.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Close Session</string>
@@ -183,7 +227,8 @@
   </action>
   <action name="actionQuit" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/exit.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/exit.png</normaloff>:/images/icons/exit.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Quit</string>
@@ -197,7 +242,8 @@
   </action>
   <action name="actionSettings" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/kcontrol.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/kcontrol.png</normaloff>:/images/icons/kcontrol.png</iconset>
    </property>
    <property name="text" >
     <string>Settings...</string>
@@ -230,7 +276,8 @@
   </action>
   <action name="actionStrategyDesigner" >
    <property name="icon" >
-    <iconset resource="profit.qrc" >:/images/icons/run.png</iconset>
+    <iconset>
+     <normaloff>:/images/icons/run.png</normaloff>:/images/icons/run.png</iconset>
    </property>
    <property name="text" >
     <string>Strategy Designer...</string>
@@ -256,11 +303,10 @@
    <class>CentralTabs</class>
    <extends>QTabWidget</extends>
    <header>centraltabs.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="profit.qrc" />
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>actionStatusBar</sender>

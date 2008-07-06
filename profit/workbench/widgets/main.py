@@ -36,7 +36,7 @@ from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
-from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
+from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
 
 
 applicationName = QApplication.applicationName
@@ -44,7 +44,7 @@ instance = QApplication.instance
 processEvents = QApplication.processEvents
 
 
-class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
+class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     documentationUrl = \
         'http://code.google.com/p/profitpy/w/list?q=label:Documentation'
     iconName = ':images/icons/blockdevice.png'
@@ -171,7 +171,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
                     return not self.session.exportInProgress
                 dlg = WaitMessageBox(lookup, self)
                 dlg.setText('Export in Progress...')
-                dlg.setWindowTitle('Profit Device Session Export')
+                dlg.setWindowTitle('Profit Workbench Session Export')
                 dlg.show()
 
     @pyqtSignature('')
@@ -278,7 +278,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
                     return not self.session.saveInProgress
                 dlg = WaitMessageBox(lookup, self)
                 dlg.setText('Save in Progress...')
-                dlg.setWindowTitle('Profit Device Session Save')
+                dlg.setWindowTitle('Profit Workbench Session Save')
                 dlg.show()
 
     @pyqtSignature('')
