@@ -20,7 +20,7 @@ from ib.opt import message
 from profit import series
 from profit.lib import defaults
 from profit.lib.core import Settings, Signals
-from profit.strategy.treeitems import (
+from profit.lib.strategy.treeitems import (
     CallableItem, TickerItem, FieldItem, IndexItem, RunnerItem)
 
 from profit.lib.widgets.syspathdialog import SysPathDialog

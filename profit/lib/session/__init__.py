@@ -34,7 +34,7 @@ try:
 except (ImportError, ):
     EMA = KAMA = None
 
-from profit.strategy.builder import SessionStrategyBuilder
+from profit.lib.strategy.builder import SessionStrategyBuilder
 
 
 

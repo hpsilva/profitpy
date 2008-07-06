@@ -16,7 +16,7 @@ from ib.ext.TickType import TickType
 from ib.opt import ibConnection
 from ib.opt.message import registry
 
-from profit.strategy import Strategy as StrategyLoader
+from profit.lib.strategy import Strategy as StrategyLoader
 try:
     from profit.lib.series import EMA, KAMA
 except (ImportError, ):

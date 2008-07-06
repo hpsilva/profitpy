@@ -8,7 +8,7 @@ from PyQt4.QtCore import QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import (
     QApplication, QBrush, QColor, QIcon, QPixmap, QStandardItem)
 
-from profit.strategy import schema
+from profit.lib.strategy import schema
 
 
 defaultName = 'Unknown'
