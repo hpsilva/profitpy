@@ -1,6 +1,7 @@
 1.  refactor account and ticker plot usage
 
-2.  enable all plot options on account display
+2.  enable all plot options on account display; fix account display
+    value update
 
 3.  Add single, inheritable SessionDataModel class using the message
     data model as the starting point.  Refactor session message
@@ -15,3 +16,5 @@
 7.  finish neural network design tool
 
 8.  finish strategy design tool
+
+9.  fix zoom bugs

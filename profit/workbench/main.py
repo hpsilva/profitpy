@@ -5,11 +5,6 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-# TODO: complete strategy display; integrate strategy designer
-# TODO: fix zoom bugs
-# TODO: fix account display value update
-# TODO: remove strategy bits from config dialog
-
 from functools import partial
 try:
     from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
