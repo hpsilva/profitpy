@@ -17,7 +17,7 @@ from PyQt4.QtGui import QStandardItemModel, QToolBar
 from ib.ext.TickType import TickType
 from ib.opt import message
 
-from profit import series
+from profit.lib import series
 from profit.lib import defaults
 from profit.lib.core import Settings, Signals
 from profit.lib.strategy.treeitems import (
