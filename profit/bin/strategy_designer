@@ -4,7 +4,7 @@ import sys
 from PyQt4.QtGui import QApplication
 
 from profit.lib.core import Signals, Settings
-from profit.widgets.strategydesigner import StrategyDesigner
+from profit.strategydesigner import StrategyDesigner
 
 
 settings = Settings()
