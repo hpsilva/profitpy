@@ -116,12 +116,12 @@
   <customwidget>
    <class>SearchBar</class>
    <extends>QWidget</extends>
-   <header location="global" >profit.widgets.searchbar.h</header>
+   <header location="global" >profit.lib.widgets.searchbar.h</header>
   </customwidget>
   <customwidget>
    <class>LocalTable</class>
    <extends>QTableWidget</extends>
-   <header location="global" >profit.widgets.localtable.h</header>
+   <header location="global" >profit.lib.widgets.localtable.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

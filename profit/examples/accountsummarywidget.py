@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from profit.examples.accountsummary import AccountSummary
-from profit.widgets.dock import Dock
+from profit.lib.widgets.dock import Dock
 
 
 main.accountDock = Dock('Account Summary', main, AccountSummary)

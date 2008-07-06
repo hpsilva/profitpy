@@ -11,10 +11,10 @@ from PyQt4.QtGui import QApplication, QFrame, QStandardItemModel, QStandardItem
 from profit.lib.core import SessionHandler, Signals, valueAlign
 from profit.lib.gui import colorIcon, complementColor
 from profit.series import Series
-from profit.widgets.plot import PlotCurve, ControlTreeValueItem
+from profit.lib.widgets.plot import PlotCurve, ControlTreeValueItem
 
 
-from profit.widgets.ui_messagetypeselect import Ui_MessageTypeSelect
+from profit.lib.widgets.ui_messagetypeselect import Ui_MessageTypeSelect
 from ib.opt import message
 
 

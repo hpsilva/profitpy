@@ -18,9 +18,9 @@ except (ImportError, ):
         pass
 try:
     raise ImportError('')
-    from profit.widgets.ui_advancededitor import Ui_AdvancedEditor as Editor
+    from profit.lib.widgets.ui_advancededitor import Ui_AdvancedEditor as Editor
 except (ImportError, ):
-    from profit.widgets.ui_basiceditor import Ui_BasicEditor as Editor
+    from profit.lib.widgets.ui_basiceditor import Ui_BasicEditor as Editor
 try:
     from PyQt4.Qsci import QsciLexerPython
 except (ImportError, ):

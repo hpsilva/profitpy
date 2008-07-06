@@ -24,9 +24,9 @@ from ib.ext.TickType import TickType
 from profit.lib import defaults
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import ValueColorItem, colorIcon, complementColor
-from profit.widgets.plotdatadialog import PlotDataDialog
-from profit.widgets.plotitemdialog import PlotItemDialog
-from profit.widgets.ui_plot import Ui_Plot
+from profit.lib.widgets.plotdatadialog import PlotDataDialog
+from profit.lib.widgets.plotitemdialog import PlotItemDialog
+from profit.lib.widgets.ui_plot import Ui_Plot
 
 
 allAxes = \

@@ -12,8 +12,8 @@ from PyQt4.QtGui import QAction, QApplication, QIcon, QPushButton, QTabWidget
 
 from profit.lib import importItem, logging
 from profit.lib.core import SessionHandler, Signals, tickerIdRole
-from profit.widgets.ui_closetabbutton import Ui_CloseTabButton
-from profit.widgets.ui_detachtabbutton import Ui_DetachTabButton
+from profit.lib.widgets.ui_closetabbutton import Ui_CloseTabButton
+from profit.lib.widgets.ui_detachtabbutton import Ui_DetachTabButton
 
 
 disallowMultiples = []

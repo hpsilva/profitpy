@@ -13,7 +13,7 @@ from PyQt4.QtGui import (QApplication, QFrame, QIcon,
 
 from profit.lib.core import SessionHandler
 from profit.lib.core import Signals, tickerIdRole
-from profit.widgets.ui_breadfan_network import Ui_NetworkControlFrame
+from profit.lib.widgets.ui_breadfan_network import Ui_NetworkControlFrame
 
 
 class NetworkTreeItem(QStandardItem):

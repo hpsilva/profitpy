@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from PyQt4.QtGui import QDialog
-from profit.widgets.ui_importexportdialog import Ui_ImportExportDialog
+from profit.lib.widgets.ui_importexportdialog import Ui_ImportExportDialog
 
 
 class ImportExportDialog(QDialog, Ui_ImportExportDialog):

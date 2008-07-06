@@ -112,7 +112,7 @@
   <customwidget>
    <class>SearchBar</class>
    <extends>QWidget</extends>
-   <header location="global" >profit.widgets.searchbar.h</header>
+   <header location="global" >profit.lib.widgets.searchbar.h</header>
   </customwidget>
  </customwidgets>
  <resources>

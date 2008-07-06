@@ -18,7 +18,7 @@ from PyQt4.Qwt5 import QwtPlot, QwtPlotCurve, QwtPlotMarker, QwtSymbol
 
 from profit.lib.core import Settings
 from profit.lib.gui import colorIcon, complementColor
-from profit.widgets.ui_plotitemdialog import Ui_PlotItemDialog
+from profit.lib.widgets.ui_plotitemdialog import Ui_PlotItemDialog
 
 
 penStyles = [

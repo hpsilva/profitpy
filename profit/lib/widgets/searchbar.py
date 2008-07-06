@@ -7,7 +7,7 @@
 from PyQt4.QtCore import pyqtSignature
 from PyQt4.QtGui import QWidget
 
-from profit.widgets.ui_searchbar import Ui_SearchBar
+from profit.lib.widgets.ui_searchbar import Ui_SearchBar
 
 
 class SearchBar(QWidget, Ui_SearchBar):

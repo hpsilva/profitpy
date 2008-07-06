@@ -726,7 +726,7 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>CallableSelectWidget</class>
    <extends>QWidget</extends>
-   <header location="global" >profit.widgets.callableselectwidget.h</header>
+   <header location="global" >profit.lib.widgets.callableselectwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

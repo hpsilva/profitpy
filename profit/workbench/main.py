@@ -25,11 +25,11 @@ from profit.lib import defaults
 from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.session import Session
-from profit.widgets import profit_rc
+from profit.lib.widgets import profit_rc
 
-from profit.widgets.dock import Dock
-from profit.widgets.output import OutputWidget
-from profit.widgets.shell import PythonShell
+from profit.lib.widgets.dock import Dock
+from profit.lib.widgets.output import OutputWidget
+from profit.lib.widgets.shell import PythonShell
 
 from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
 from profit.workbench.sessiontree import SessionTree
@@ -148,7 +148,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionExportSession_triggered(self, filename=None):
-        from profit.widgets.importexportdialog import ImportExportDialog
+        from profit.lib.widgets.importexportdialog import ImportExportDialog
         if not filename:
             filename = QFileDialog.getSaveFileName(
                 self, 'Export Session To File')
@@ -173,7 +173,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionImportSession_triggered(self, filename=None):
-        from profit.widgets.importexportdialog import ImportExportDialog
+        from profit.lib.widgets.importexportdialog import ImportExportDialog
         from profit.workbench.sessionreplay import SessionReplay
         if not filename:
             filename = QFileDialog.getOpenFileName(

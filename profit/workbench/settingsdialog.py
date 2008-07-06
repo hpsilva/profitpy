@@ -12,7 +12,7 @@ from PyQt4.QtGui import QFileDialog, QFont, QFontDialog, QListWidgetItem
 from profit.lib import defaults
 from profit.lib.core import Settings
 from profit.lib.gui import colorIcon
-from profit.widgets.syspathdialog import SysPathDialog
+from profit.lib.widgets.syspathdialog import SysPathDialog
 from profit.workbench.widgets.ui_settingsdialog import Ui_SettingsDialog
 
 

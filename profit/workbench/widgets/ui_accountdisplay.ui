@@ -38,7 +38,7 @@
   <customwidget>
    <class>Plot</class>
    <extends>QFrame</extends>
-   <header location="global" >profit.widgets.plot.h</header>
+   <header location="global" >profit.lib.widgets.plot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -13,7 +13,7 @@ from PyQt4.QtGui import (QApplication, QFrame, QIcon,
 
 from profit.lib.core import SessionHandler
 from profit.lib.core import Signals, tickerIdRole
-from profit.widgets.ui_breadfan_train import Ui_BreadFanTrainTree
+from profit.lib.widgets.ui_breadfan_train import Ui_BreadFanTrainTree
 
 
 class SessionTreeItem(QStandardItem):

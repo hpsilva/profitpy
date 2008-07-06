@@ -16,8 +16,8 @@ from PyQt4.QtCore import QVariant, Qt
 from PyQt4.QtGui import QApplication, QDialog, QIcon
 from PyQt4.QtGui import QStandardItem, QStandardItemModel
 
-from profit.widgets import profit_rc
-from profit.widgets.ui_syspathdialog import Ui_SysPathDialog
+from profit.lib.widgets import profit_rc
+from profit.lib.widgets.ui_syspathdialog import Ui_SysPathDialog
 
 
 pyexts = set(['.py', '.pyc', '.pyo'])

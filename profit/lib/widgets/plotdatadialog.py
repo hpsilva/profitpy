@@ -12,7 +12,7 @@ from PyQt4.QtGui import QFileDialog, QFont, QFontDialog, QListWidgetItem
 from profit.lib import defaults
 from profit.lib.core import Settings, Signals
 from profit.lib.gui import colorIcon
-from profit.widgets.ui_plotdatadialog import Ui_PlotDataDialog
+from profit.lib.widgets.ui_plotdatadialog import Ui_PlotDataDialog
 
 
 class CurveDataTableModel(QAbstractTableModel):
