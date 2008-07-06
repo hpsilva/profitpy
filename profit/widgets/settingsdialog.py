@@ -73,7 +73,7 @@ schema[Settings.keys.main] = [
     ('confirmCloseWhenModified', getCheckState, setCheckState, Qt.Checked),
     ('confirmCloseWhenConnected', getCheckState, setCheckState, Qt.Checked),
     ('useSystemTrayIcon', getCheckState, setCheckState, Qt.Checked),
-    ('startupScript', getText, setText, ''),
+#    ('startupScript', getText, setText, ''),
     ('externalEditor', getText, setText, ''),
 ]
 
@@ -148,12 +148,12 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         if okay:
             setFont(self.shellFont, font)
 
-    @pyqtSignature('')
-    def on_selectStartupScript_clicked(self):
-        filename = QFileDialog.getOpenFileName(
-            self, 'Select Startup Script', '', 'Python Script (*.py)')
-        if filename:
-            self.startupScript.setText(filename)
+#    @pyqtSignature('')
+#    def on_selectStartupScript_clicked(self):
+#        filename = QFileDialog.getOpenFileName(
+#            self, 'Select Startup Script', '', 'Python Script (*.py)')
+#        if filename:
+#            self.startupScript.setText(filename)
 
     @pyqtSignature('')
     def on_selectExternalEditor_clicked(self):
@@ -162,12 +162,12 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         if filename:
             self.externalEditor.setText(filename)
 
-    @pyqtSignature('')
-    def on_selectStrategySchema_clicked(self):
-        filename = QFileDialog.getOpenFileName(
-            self, 'Select Strategy Schema', '', 'Strategy Files (*.strategy)')
-        if filename:
-            self.strategySchema.setText(filename)
+#    @pyqtSignature('')
+#    def on_selectStrategySchema_clicked(self):
+#        filename = QFileDialog.getOpenFileName(
+#            self, 'Select Strategy Schema', '', 'Strategy Files (*.strategy)')
+#        if filename:
+#            self.strategySchema.setText(filename)
 
     @pyqtSignature('')
     def on_tickerUrls_itemSelectionChanged(self):

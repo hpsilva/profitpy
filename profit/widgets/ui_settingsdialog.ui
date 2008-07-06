@@ -5,7 +5,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>543</width>
+    <width>563</width>
     <height>451</height>
    </rect>
   </property>
@@ -82,6 +82,15 @@
       </item>
       <item>
        <property name="text" >
+        <string>Startup</string>
+       </property>
+       <property name="icon" >
+        <iconset resource="profit.qrc" >
+         <normaloff>:/images/icons/source_py.png</normaloff>:/images/icons/source_py.png</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text" >
         <string>Appearance</string>
        </property>
        <property name="icon" >
@@ -101,15 +110,15 @@
      </widget>
      <widget class="QStackedWidget" name="sectionStack" >
       <property name="currentIndex" >
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="generalPage" >
        <property name="geometry" >
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>393</width>
-         <height>401</height>
+         <width>411</width>
+         <height>400</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" >
@@ -210,41 +219,24 @@ p, li { white-space: pre-wrap; }
              <property name="spacing" >
               <number>6</number>
              </property>
-             <item row="0" column="0" >
-              <widget class="QLabel" name="label" >
-               <property name="text" >
-                <string>Startup Script:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1" >
+             <item row="0" column="1" >
               <widget class="QLineEdit" name="externalEditor" />
              </item>
-             <item row="1" column="0" >
+             <item row="0" column="0" >
               <widget class="QLabel" name="label" >
                <property name="text" >
                 <string>External Editor:</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="2" >
+             <item row="0" column="2" >
               <widget class="QPushButton" name="selectExternalEditor" >
                <property name="text" >
                 <string>Select...</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1" >
-              <widget class="QLineEdit" name="startupScript" />
-             </item>
-             <item row="0" column="2" >
-              <widget class="QPushButton" name="selectStartupScript" >
-               <property name="text" >
-                <string>Select...</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1" >
+             <item row="1" column="1" >
               <widget class="QLabel" name="label" >
                <property name="text" >
                 <string>Use &lt;b>$f&lt;/b> as filename argument.</string>
@@ -271,13 +263,75 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="startupPage" >
+       <layout class="QVBoxLayout" name="verticalLayout" >
+        <item>
+         <widget class="QLabel" name="label_2" >
+          <property name="text" >
+           <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Sans Serif'; font-size:9pt;">&lt;span style=" font-weight:600;">You can insert code to run after the Profit Device starts.&lt;/span>&lt;/p>&lt;/body>&lt;/html></string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="starupGroup" >
+          <property name="title" >
+           <string>Startup Code</string>
+          </property>
+          <property name="flat" >
+           <bool>true</bool>
+          </property>
+          <layout class="QVBoxLayout" name="_2" >
+           <property name="spacing" >
+            <number>6</number>
+           </property>
+           <property name="margin" >
+            <number>9</number>
+           </property>
+           <item>
+            <widget class="QCheckBox" name="enableStartupCode" >
+             <property name="text" >
+              <string>Enable</string>
+             </property>
+             <property name="checked" >
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="CallableSelectWidget" native="1" name="startupCallableSelect" />
+           </item>
+           <item>
+            <spacer name="verticalSpacer" >
+             <property name="orientation" >
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0" >
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+       <zorder>label_2</zorder>
+       <zorder>starupGroup</zorder>
+       <zorder>confirmActivateStrategy_2</zorder>
+      </widget>
       <widget class="QWidget" name="appearancePage" >
        <property name="geometry" >
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>393</width>
-         <height>401</height>
+         <width>411</width>
+         <height>400</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" >
@@ -477,8 +531,8 @@ p, li { white-space: pre-wrap; }
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>100</width>
-         <height>30</height>
+         <width>411</width>
+         <height>400</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" >
@@ -660,13 +714,21 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
   </layout>
+  <zorder>buttonBox</zorder>
+  <zorder>splitter</zorder>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CallableSelectWidget</class>
+   <extends>QWidget</extends>
+   <header>callableselectwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>confirmCloseWhenModified</tabstop>
   <tabstop>confirmCloseWhenConnected</tabstop>
   <tabstop>confirmActivateStrategy</tabstop>
-  <tabstop>startupScript</tabstop>
-  <tabstop>selectStartupScript</tabstop>
   <tabstop>externalEditor</tabstop>
   <tabstop>selectExternalEditor</tabstop>
   <tabstop>useSystemTrayIcon</tabstop>
@@ -730,6 +792,22 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel" >
      <x>255</x>
      <y>135</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enableStartupCode</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>startupCallableSelect</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>348</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>348</x>
+     <y>99</y>
     </hint>
    </hints>
   </connection>

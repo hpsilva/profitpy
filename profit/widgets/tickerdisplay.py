@@ -63,7 +63,7 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
     def setSession(self, session):
         self.session = session
         symbols = self.symbols
-        symbols.update(session.builder.symbols())
+        symbols.update(session.strategy.symbols())
         replayTick(session.messages, symbols,
                    self.on_session_TickPrice_TickSize)
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)

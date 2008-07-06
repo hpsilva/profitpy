@@ -103,6 +103,9 @@ class CollectorThread(QThread):
         QCoreApplication.processEvents()
         logging.debug('Collector thread completed.')
 
+    def __repr__(self):
+        s = QThread.__repr__(self)
+        return s[0:-1] + (' (running? %s)>' % self.isRunning())
 
 class WaitingThread(QThread):
     def __init__(self, when, parent=None):

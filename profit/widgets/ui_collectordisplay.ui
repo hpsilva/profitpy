@@ -23,17 +23,6 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2" >
       <item>
-       <widget class="QCheckBox" name="activeButton" >
-        <property name="text" >
-         <string>Active</string>
-        </property>
-        <property name="icon" >
-         <iconset resource="profit.qrc" >
-          <normaloff>:/images/icons/connect_no.png</normaloff>:/images/icons/connect_no.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QWidget" native="1" name="progressContainer" >
         <property name="enabled" >
          <bool>false</bool>
@@ -58,10 +47,10 @@
             <number>0</number>
            </property>
            <property name="maximum" >
-            <number>0</number>
+            <number>10</number>
            </property>
            <property name="value" >
-            <number>0</number>
+            <number>3</number>
            </property>
            <property name="textVisible" >
             <bool>true</bool>
@@ -74,113 +63,6 @@
         </layout>
         <zorder>timeProgress</zorder>
         <zorder>statusLabel</zorder>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="configGroup" >
-     <property name="title" >
-      <string>Configuration</string>
-     </property>
-     <property name="flat" >
-      <bool>true</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3" >
-      <item row="0" column="0" >
-       <widget class="QLabel" name="label" >
-        <property name="text" >
-         <string>Start Time</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" >
-       <widget class="QTimeEdit" name="startTime" />
-      </item>
-      <item row="1" column="0" >
-       <widget class="QLabel" name="label_2" >
-        <property name="text" >
-         <string>Stop Time</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" >
-       <widget class="QTimeEdit" name="stopTime" />
-      </item>
-      <item row="2" column="1" >
-       <widget class="QCheckBox" name="autoConnect" >
-        <property name="text" >
-         <string>Connect if necessary</string>
-        </property>
-        <property name="checked" >
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="messageGroup" >
-     <property name="title" >
-      <string>Messages</string>
-     </property>
-     <property name="flat" >
-      <bool>true</bool>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout" >
-      <item>
-       <widget class="MessageTypeSelect" native="1" name="messageTypeDisplay" />
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="fileGroup" >
-     <property name="title" >
-      <string>File</string>
-     </property>
-     <property name="flat" >
-      <bool>true</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2" >
-      <item row="0" column="0" >
-       <widget class="QLabel" name="label_4" >
-        <property name="text" >
-         <string>Output Filename:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" >
-       <widget class="QLineEdit" name="outputFilename" />
-      </item>
-      <item row="0" column="2" >
-       <widget class="QPushButton" name="selectOutputFilename" >
-        <property name="text" >
-         <string>Select...</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" >
-       <widget class="QCheckBox" name="fileAppend" >
-        <property name="text" >
-         <string>Append</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2" >
-       <widget class="QLabel" name="label_5" >
-        <property name="text" >
-         <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
-p, li { white-space: pre-wrap; }
-&lt;/style>&lt;/head>&lt;body>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Format per time module.  Try &lt;span style=" font-weight:600;">%Y-%m-%d&lt;/span> for year-month-day.&lt;/p>&lt;/body>&lt;/html></string>
-        </property>
-        <property name="wordWrap" >
-         <bool>true</bool>
-        </property>
        </widget>
       </item>
      </layout>
@@ -201,81 +83,8 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>MessageTypeSelect</class>
-   <extends>QWidget</extends>
-   <header location="global" >messagetypeselect.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="profit.qrc" />
  </resources>
- <connections>
-  <connection>
-   <sender>activeButton</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>configGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>178</x>
-     <y>51</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>178</x>
-     <y>181</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>activeButton</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>messageGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>178</x>
-     <y>51</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>178</x>
-     <y>298</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>activeButton</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>fileGroup</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>178</x>
-     <y>51</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>178</x>
-     <y>415</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>activeButton</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>progressContainer</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>54</x>
-     <y>89</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>313</x>
-     <y>89</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

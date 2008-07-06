@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+from cPickle import dumps, loads
 from PyQt4.QtCore import (QCoreApplication, QPoint, QSettings, QSize,
                           QVariant, Qt, SIGNAL, SLOT)
 
@@ -87,6 +88,8 @@ class Settings(QSettings):
     """ Convenient replacement for QSettings.
 
     """
+    dumps, loads = dumps, loads
+
     class keys:
         """ Attributes are setting keys.
 
@@ -110,6 +113,7 @@ class Settings(QSettings):
         urls = 'Urls'
         strategy = 'Strategy'
         winstate = 'State'
+        ctabstate = 'CentralTabState'
 
     def __init__(self):
         """ Constructor.
@@ -125,6 +129,15 @@ class Settings(QSettings):
         @return None
         """
         QSettings.setValue(self, key, QVariant(value))
+
+    def setValueDump(self, key, value):
+        self.setValue(key, dumps(value))
+
+    def valueLoad(self, key, default=None):
+        v = self.value(key, default=default)
+        if v:
+            v = loads(str(v.toString()))
+        return v
 
     def value(self, key, default=None):
         """ Returns value for key, or default if key doesn't exist.

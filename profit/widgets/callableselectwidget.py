@@ -13,7 +13,7 @@ from PyQt4.QtCore import QProcess, QVariant, pyqtSignature
 from PyQt4.QtGui import QFileDialog, QFrame, QInputDialog, QMessageBox
 
 from profit.lib.core import Settings, Signals
-from profit.widgets.settingsdialog import SysPathDialog
+from profit.widgets.syspathdialog import SysPathDialog
 from profit.widgets.ui_callableselect import Ui_CallableSelectWidget
 
 

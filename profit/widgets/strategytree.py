@@ -39,12 +39,12 @@ class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
     def setSession(self, session):
         self.session = session
         self.strategy = strat = session.strategy
-        self.on_strategy_activated(strat.active)
-        self.on_strategy_loaded(strat.loadMessage)
+        self.on_strategy_activated(strat.loader.active)
+        self.on_strategy_loaded(strat.loader.loadMessage)
         connect = self.connect
-        connect(strat, Signals.strategyActivated, self.on_strategy_activated)
-        connect(strat, Signals.strategyLoaded, self.on_strategy_loaded)
-        connect(strat, Signals.strategyLoadFailed, self.on_strategy_loadfail)
+        connect(strat.loader, Signals.strategyActivated, self.on_strategy_activated)
+        connect(strat.loader, Signals.strategyLoaded, self.on_strategy_loaded)
+        connect(strat.loader, Signals.strategyLoadFailed, self.on_strategy_loadfail)
 
     def on_strategy_activated(self, status):
         if status:
@@ -81,13 +81,13 @@ class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
 
     @pyqtSignature('bool')
     def on_activeButton_clicked(self, checked):
-        if not checked and self.strategy.active:
-            self.strategy.active = False
-        elif not checked and not self.strategy.active:
+        if not checked and self.strategy.loader.active:
+            self.strategy.loader.active = False
+        elif not checked and not self.strategy.loader.active:
             pass
-        elif checked and self.strategy.active:
+        elif checked and self.strategy.loader.active:
             pass
-        elif checked and not self.strategy.active:
+        elif checked and not self.strategy.loader.active:
             settings = Settings()
             settings.beginGroup(Settings.keys.main)
             activate = True
@@ -98,7 +98,7 @@ class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
                     QMessageBox.Yes|QMessageBox.No)
             if not activate:
                 self.activeButton.setCheckState(Qt.Unchecked)
-            self.strategy.active = activate
+            self.strategy.loader.active = activate
 
     @pyqtSignature('')
     def on_loadButton_clicked(self, reload=False):
@@ -109,9 +109,9 @@ class StrategyTree(QFrame, Ui_StrategyTree, SessionHandler):
                 type=str(settings.value('type').toString()),
                 location=str(settings.value('location').toString()),
                 source=str(settings.value('source').toString()))
-            self.strategy.load(params)
+            self.strategy.loader.load(params)
         else:
-            self.strategy.unload()
+            self.strategy.loader.unload()
 
     @pyqtSignature('')
     def on_reloadButton_clicked(self):

@@ -114,7 +114,8 @@ class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):
             settings = Settings()
             settings.beginGroup('Plots')
             settings.beginGroup('%s' % tickerId)
-            count = settings.value('displaycount', QVariant(1)).toInt()[0]
+            #count = settings.value('displaycount', QVariant(1)).toInt()[0]
+            count = 1
             for i in range(count):
                 self.addPlot()
         else:

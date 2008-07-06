@@ -458,15 +458,6 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
         self.runnerSingleShot.setChecked(
             Qt.Checked if item.execType=='single' else Qt.Unchecked)
         self.runnerPeriodInterval.setValue(item.periodInterval)
-        widget = self.runnerMessageTypes
-        widget.clear()
-        typeNames = [c.typeName for c in message.registry.values()]
-        itemTypes = item.messageTypes
-        for row, typeName in enumerate(sorted(typeNames)):
-            widget.addItem(typeName)
-            item = widget.item(row)
-            item.setCheckState(
-                Qt.Checked if typeName in itemTypes else Qt.Unchecked)
 
     def setupCallableItem(self, item):
         self.callableName.setText(item.text())

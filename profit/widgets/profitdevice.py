@@ -36,7 +36,6 @@ from profit.widgets.dock import Dock
 from profit.widgets.output import OutputWidget
 from profit.widgets.sessiontree import SessionTree
 from profit.widgets.shell import PythonShell
-#from profit.widgets.strategytree import StrategyTree
 from profit.widgets.ui_profitdevice import Ui_ProfitDeviceWindow
 
 
@@ -369,10 +368,10 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
         #self.strategyDock = Dock('Strategy', self, StrategyTree)
-        #self.collectorDock = Dock('Collector', self, CollectorDisplay)
+        self.collectorDock = Dock('Collector', self, CollectorDisplay)
 
-        tabify(self.sessionDock, self.sessionDock) # self.strategyDock)
-        #tabify(self.sessionDock, self.collectorDock)
+        tabify(self.sessionDock, self.collectorDock) # self.strategyDock)
+        #tabify(self.sessionDock, self.)
 
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
@@ -466,6 +465,20 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
             return button == QMessageBox.Ignore
         return True
 
+    def centralTabState(self):
+        return [str(s) for s in self.centralTabs.pageMap()]
+
+## MARKER
+    def __setCentralTabState(self, state):
+        print '## state', state, type(state)
+        for name in state:
+            try:
+                item = model.findItems(name)[0]
+            except (IndexError, ):
+                pass
+            else:
+                view.emit(Signals.modelClicked, item.index())
+
     def writeSettings(self):
         settings = Settings()
         settings.beginGroup(settings.keys.main)
@@ -473,6 +486,7 @@ class ProfitDeviceWindow(QMainWindow, Ui_ProfitDeviceWindow):
         settings.setValue(settings.keys.position, self.pos())
         settings.setValue(settings.keys.maximized, self.isMaximized())
         settings.setValue(settings.keys.winstate, self.saveState())
+        settings.setValueDump(settings.keys.ctabstate, self.centralTabState())
         settings.endGroup()
 
 

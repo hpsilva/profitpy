@@ -6,6 +6,7 @@
 # Author: Yichun Wei <yichun.wei@gmail.com>
 
 import copy
+import datetime
 import logging
 import optparse
 import signal
@@ -23,7 +24,7 @@ from profit.lib.core import Signals
 from profit.lib.scripttools import defaults, check_duration, check_hms
 from profit.lib.scripttools import CollectorThread, WaitingThread
 
-from profit.session import Session, SessionBuilder, Ticker, Order, Contract, Series, DataCollection
+from profit.session import Session, SessionBuilder, Ticker, Order, Contract, Series
 
 
 class LocalOption(optparse.Option):
@@ -137,13 +138,16 @@ def main(options):
         wait.wait()
 
     # Obtain historical data
-    now = time.localtime()
-    aweekago = (now[0], now[1], now[2]-6, 0, 0, 0, 0, 0, 0)
-    endDateTime = time.strftime("%Y%m%d %H:%M:%S PST", aweekago)
+    #now = time.localtime()
+    #aweekago = (now[0], now[1], now[2]-6, 0, 0, 0, 0, 0, 0)
+    #endDateTime = time.strftime("%Y%m%d %H:%M:%S PST", aweekago)
+    now = datetime.datetime.now()
+    aweekago = (now - datetime.timedelta(14))
+    endDateTime = aweekago.strftime("%Y%m%d %H:%M:%S PST")
     SessionBuilder.paramsHistoricalData(endDateTime=endDateTime)
 
     sess = Session()
-    sess.histdata_queue.put(('AAPL', 100))
+    sess.histdataQueue.put(('AAPL', 100))
 
     sess.connect(sess, Signals.sessionStatus, logging.debug)
     sess.sessionFile = options.output
@@ -157,8 +161,8 @@ def main(options):
         return
     sess.requestAccount()
 
-    sess.histdata_queue.put(('RMBS', 101))
-    sess.histdata_queue.put(('LVLT', 102))
+    sess.histdataQueue.put(('RMBS', 101))
+    sess.histdataQueue.put(('LVLT', 102))
 
     last = time.time()
     stop = None
@@ -169,7 +173,7 @@ def main(options):
             if stop < now:
                 break
         time.sleep(1)
-        if stop is None and sess.histdata_queue.qsize() == 0:
+        if stop is None and sess.histdataQueue.qsize() == 0:
             QCoreApplication.connect(sess.historicalCollection, Signals.finishedHistoricalData, sys.exit)
         QCoreApplication.processEvents()
     QCoreApplication.processEvents()

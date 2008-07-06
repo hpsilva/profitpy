@@ -1,0 +1,17 @@
+1.  refactor account and ticker plot usage
+
+2.  enable all plot options on account display
+
+3.  Add single, inheritable SessionDataModel class using the message
+    data model as the starting point.  Refactor session message
+    viewers to use common class directly or as baseclass.
+
+4.  add csv tick data import/export
+
+5.  add viewable historical data requests and plots
+
+6.  add commands and dialogs for all tws request functions
+
+7.  finish neural network design tool
+
+8.  finish strategy design tool

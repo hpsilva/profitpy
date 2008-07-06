@@ -659,11 +659,24 @@ class Plot(QFrame, Ui_Plot):
         @return None
         """
         key = '%s/checkeditems' % self.plotName()
-        names = [str(n) for n in self.settings.value(key).toStringList()]
+        names = self.settings.valueLoad(key, '')
         for item in self.controlsTreeItems:
             if self.itemName(item) in names:
                 item.setCheckState(Qt.Checked)
                 item.setColor(self.loadItemPen(item).color())
+
+    def saveSelections(self):
+        """ Saves the selected control item names.
+
+        @return None
+        """
+        key = '%s/checkeditems' % self.plotName()
+        names = self.checkedNames()
+        if names:
+            # don't save an empty list because the user might be
+            # closing an empty plot that really does have selections
+            # saved in the settings.
+            self.settings.setValueDump(key, names)
 
     def plotName(self):
         """ The name of this plot.
@@ -786,14 +799,6 @@ class Plot(QFrame, Ui_Plot):
         setv('%s/minor/y/enabled' % name,
              self.actionDrawMinorY.isChecked())
         setv('%s/minor/pen' % name, self.grid.minPen())
-
-    def saveSelections(self):
-        """ Saves the selected control item names.
-
-        @return None
-        """
-        key = '%s/checkeditems' % self.plotName()
-        self.settings.setValue(key, self.checkedNames())
 
     def setAxisColor(self, color):
         """ Sets the axis widgets foreground and text color.

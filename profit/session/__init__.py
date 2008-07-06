@@ -25,243 +25,27 @@ from ib.opt.message import registry
 
 from profit.lib.core import Signals
 from profit.series import Series, MACDHistogram
-from profit.session.collectorthread import CollectorThread
+from profit.session.collection import (AccountCollection,
+                                       TickerCollection,
+                                       HistoricalDataCollection, )
 from profit.session.savethread import SaveThread
 try:
     from profit.series import EMA, KAMA
 except (ImportError, ):
     EMA = KAMA = None
-from profit.strategy import Strategy
 
+from profit.strategy.builder import SessionStrategyBuilder
 
-class Ticker(object):
-    def __init__(self):
-        self.series = {}
-
-
-class DataCollection(QObject):
-    def __init__(self, session):
-        QObject.__init__(self)
-        self.session = session
-        self.data = {}
-
-    def __contains__(self, item):
-        return item in self.data
-
-    def __getitem__(self, name):
-        return self.data[name]
-
-    def __setitem__(self, name, value):
-        self.data[name] = value
-
-
-class AccountCollection(DataCollection):
-    def __init__(self, session):
-        DataCollection.__init__(self, session)
-        self.last = {}
-        session.registerMeta(self)
-
-    def on_session_UpdateAccountValue(self, message):
-        key = (message.key, message.currency, message.accountName)
-        try:
-            acctdata = self[key]
-        except (KeyError, ):
-            try:
-                iv = float(message.value)
-            except (ValueError, ):
-                pass
-            else:
-                acctdata = self[key] = \
-                           self.session.builder.accountData(key)
-                self.emit(Signals.createdAccountData, key, acctdata, iv)
-        try:
-            v = float(message.value)
-        except (ValueError, ):
-            v = message.value
-        else:
-            acctdata.append(v)
-        self.last[key] = v
-
-
-class TickerCollection(DataCollection):
-    def __init__(self, session):
-        DataCollection.__init__(self, session)
-        for tid in session.builder.symbols().values():
-            self[tid] = session.builder.ticker(tid)
-        session.registerMeta(self)
-
-    def on_session_TickPrice_TickSize(self, message):
-        tickerId = message.tickerId
-        try:
-            tickerdata = self[tickerId]
-        except (KeyError, ):
-            tickerdata = self[tickerId] = \
-                         self.session.builder.ticker(tickerId)
-            self.emit(Signals.createdTicker, tickerId, tickerdata)
-        try:
-            value = message.price
-        except (AttributeError, ):
-            value = message.size
-        field = message.field
-        try:
-            seq = tickerdata.series[field]
-        except (KeyError, ):
-            seq = tickerdata.series[field] = \
-                  self.session.builder.series(tickerId, field)
-            self.emit(Signals.createdSeries, tickerId, field)
-        seq.append(value)
-
-
-
-class HistoricalDataCollection(QThread, DataCollection):
-
-    # "date" has to be the 1st in the list so that data has the same length
-    # this class check "date" to determine if data are finished.
-    fields = [(int, "date"),
-            (float, "open"),
-            (float, "high"),
-            (float, "low"),
-            (float, "close"),
-            (int,   "volume"),
-            (int,   "count"),
-            (float, "WAP"),
-            (bool,  "hasGaps"),
-            ]
-
-    def __init__(self, session, request_queue, savedir='./histdata/'):
-        QThread.__init__(self, session)
-        DataCollection.__init__(self, session)
-        self.idsym = {}
-        self.request_queue = request_queue 
-        self.savedir = savedir
-        session.registerMeta(self)
-        self.session = session
-
-    def run(self):
-        self.requestNext()
-
-    def on_session_HistoricalData(self, message):
-        reqId = message.reqId
-        try:
-            tickerdata = self.data[reqId]
-        except (KeyError, ):
-            tickerdata = self.data[reqId] = \
-                         self.session.builder.ticker(reqId)
-            self.emit(Signals.createdTicker, reqId, tickerdata)
-
-        for format, name in self.fields:
-            try:
-                value = format(getattr(message, name))
-            except (ValueError,):
-                #if name=="date" and value.startswith("finished"):
-                self.save(reqId)
-                self.emit(Signals.finishedHistoricalData, reqId)
-                self.requestNext()
-                return
-            try:
-                seq = tickerdata.series[name]
-            except (KeyError, ):
-                seq = tickerdata.series[name] = \
-                      self.session.builder.historal_series(reqId, name)
-                self.emit(Signals.createdSeries, reqId, name)
-            seq.append(value)
-
-    def requestNext(self):
-        sym, reqId = self.request_queue.get()
-        self.requestHistoricalData(reqId, sym.upper())
-
-    def requestHistoricalData(self, id, symbol):
-        #sess = self.parent()  # not working?
-        sess = self.session
-        connection = sess.connection
-        contract = sess.builder.contract(symbol)
-        histparams = sess.builder.paramsHistoricalData()
-        sess.connection.reqHistoricalData(id, contract, **histparams)
-        self.idsym[id] = symbol
-        self.emit(Signals.requestedHistoricalData, id, symbol)
-        logging.debug("requested for (%s, %d, %r)" % (symbol, id, histparams))
-
-    def save(self, reqId):
-        data = self.data[reqId]
-        symbol = self.idsym[reqId]
-        fpath = os.path.join(self.savedir, symbol[0])
-        try:
-            os.makedirs(fpath)
-        except:
-            pass
-        fname = os.path.join(fpath, symbol)
-        dump(data, open(fname, "wb"), protocol=-1)
-
-
-class SessionBuilder(object):
-    default_paramsHistoricalData = {
-        "endDateTime"       :   strftime("%Y%m%d %H:%M:%S PST", (2007,1,1,0,0,0,0,0,0)),
-        "durationStr"       :   "6 D",
-        "barSizeSetting"    :   "1 min",
-        "whatToShow"        :   "TRADES",   #"BID_ASK",  # "TRADES"
-        "useRTH"            :   1,          # 0 for not
-        "formatDate"        :   2,          # 2 for seconds since 1970/1/1
-        }
-
-    @classmethod
-    def paramsHistoricalData(cls, **kwds):
-        cls.default_paramsHistoricalData.update(kwds)
-        return cls.default_paramsHistoricalData 
-
-    def accountData(self, *k):
-        s = Series()
-        if EMA:
-            s.addIndex('EMA-25', EMA, s, 25)
-        return s
-
-    def strategy(self):
-        return None
-
-    def symbols(self):
-        return {'AAPL':100, 'EBAY':101, 'NVDA':102}
-
-    def contract(self, symbol, secType='STK', exchange='SMART',
-                 currency='USD'):
-        contract = Contract()
-        contract.m_symbol = symbol
-        contract.m_secType = secType
-        contract.m_exchange = exchange
-        contract.m_currency = currency
-        return contract
-
-    def order(self):
-        return Order()
-
-    def ticker(self, tickerId):
-        return Ticker()
-
-    def series(self, tickerId, field):
-        s = Series()
-        if EMA and KAMA:
-            s.addIndex('EMA-20', EMA, s, 20)
-            s.addIndex('EMA-40', EMA, s, 40)
-            v = s.addIndex('KAMA-10', KAMA, s, 10)
-            v.addIndex('EMA-5', EMA, v, 5)
-        return s
-
-    def historal_series(self, tickerId, field):
-        s = Series()
-        if field in ["date", "hasGaps"]:
-            return s
-        elif EMA and KAMA:
-            s.addIndex('EMA-20', EMA, s, 20)
-            s.addIndex('EMA-40', EMA, s, 40)
-            v = s.addIndex('KAMA-10', KAMA, s, 10)
-            v.addIndex('EMA-5', EMA, v, 5)
-            return s
 
 
 class Session(QObject):
-    def __init__(self, builder=None, strategy=True):
+    """ This is the big-honkin Session class.
+
+    """
+    def __init__(self, strategy=None):
         QObject.__init__(self)
         self.setObjectName('session')
-        self.setupCollector()
-        self.builder = builder if builder else SessionBuilder()
+        self.strategy = strategy if strategy else SessionStrategyBuilder()
         self.connection = self.sessionFile = self.nextId = None
         self.messages = []
         self.savedLength = 0
@@ -269,26 +53,13 @@ class Session(QObject):
         self.bareMessages = []
         self.accountCollection = ac = AccountCollection(self)
         self.tickerCollection = tc = TickerCollection(self)
-        self.histdata_queue = Queue()
-        self.historicalCollection = hc = HistoricalDataCollection(self, self.histdata_queue)
-        if strategy:
-            self.strategy = Strategy()
+        self.histdataQueue = Queue()
+        self.historicalCollection = hc = HistoricalDataCollection(self, self.histdataQueue)
+
         connect = self.connect
         connect(ac, Signals.createdAccountData, self, Signals.createdAccountData)
         connect(tc, Signals.createdSeries, self, Signals.createdSeries)
         connect(tc, Signals.createdTicker, self, Signals.createdTicker)
-
-    def setupCollector(self):
-        self.collectorMutex = QMutex()
-        self.collectorMutex.lock()
-        self.collectorThread = CollectorThread(self.collectorMutex, self)
-        self.collectorThread.start()
-        self.connect(self, Signals.collectorActivate, self.on_activateCollector)
-    
-    def on_activateCollector(self, config):
-        print '## session signaled to activate collector'
-        self.collectorThread.updateConfig(config)
-        self.collectorMutex.unlock()
 
     def __str__(self):
         return '<Session 0x%x (messages=%s connected=%s)>' % \
@@ -297,14 +68,13 @@ class Session(QObject):
     def items(self):
         return [
             ('account', ()),
-            ('collector', ()),
             ('connection', ()),
             ('executions', ()),
             ('messages', ()),
             ('orders', ()),
             ('portfolio', ()),
             ('strategy', ()),
-            ('tickers', self.builder.symbols()),
+            ('tickers', self.strategy.symbols()),
         ]
 
     def disconnectTWS(self):
@@ -397,8 +167,8 @@ class Session(QObject):
 
     def requestTickers(self):
         connection = self.connection
-        for sym, tid in self.builder.symbols().items():
-            contract = self.builder.contract(sym)
+        for sym, tid in self.strategy.symbols().items():
+            contract = self.strategy.contract(sym)
             connection.reqMktData(tid, contract, '', False)
             connection.reqMktDepth(tid, contract, 1)
 
@@ -419,8 +189,8 @@ class Session(QObject):
         orderid = self.nextId
         if orderid is None:
             return False
-        contract = self.builder.contract(symbol)
-        order = self.builder.order()
+        contract = self.strategy.contract(symbol)
+        order = self.strategy.order()
         order.m_action = 'SELL'
         order.m_orderType = 'MKT'
         order.m_totalQuantity = '300'

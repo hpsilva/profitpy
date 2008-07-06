@@ -12,7 +12,7 @@ from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel)
 
 from profit.lib.core import SessionHandler
-from profit.lib.core import Signals, tickerIdRole
+from profit.lib.core import Settings, Signals, tickerIdRole
 from profit.widgets.ui_sessiontree import Ui_SessionTree
 
 
@@ -22,7 +22,7 @@ class SessionTreeItem(QStandardItem):
     """
     iconNameMap = {
         'account':'identity',
-        'collector':'misc',
+#        'collector':'misc',
         'connection':'server',
         'messages':'view_text',
         'orders':'klipper_dock',
@@ -132,9 +132,22 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
         self.dataModel = model = SessionTreeModel(session, self)
         view = self.treeView
         view.setModel(model)
-        if not sys.argv[1:]:
+
+        if sys.argv[1:]:
+            return
+
+        settings = Settings()
+        settings.beginGroup(settings.keys.main)
+        tabstate = settings.valueLoad(settings.keys.ctabstate)
+        settings.endGroup()
+
+        connection = 'connection'
+        if connection not in tabstate:
+            tabstate.append(connection)
+
+        for tabname in tabstate:
             try:
-                item = model.findItems('connection')[0]
+                item = model.findItems(tabname)[0]
             except (IndexError, ):
                 pass
             else:
