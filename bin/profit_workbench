@@ -6,13 +6,16 @@
 # Author: Troy Melhase <troy@gci.net>
 
 import sys
+
 from PyQt4.QtGui import QApplication
+
 from profit.lib.core import Settings
 from profit.workbench.main import ProfitWorkbenchWindow
 
-app = QApplication(sys.argv)
-app.setApplicationName(Settings.keys.app)
-window = ProfitWorkbenchWindow()
-window.show()
-sys.exit(app.exec_())
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    app.setApplicationName(Settings.keys.app)
+    window = ProfitWorkbenchWindow()
+    window.show()
+    sys.exit(app.exec_())
 
