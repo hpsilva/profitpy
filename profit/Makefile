@@ -1,4 +1,4 @@
-targets = examples lib neuralnetdesigner strategydesigner workbench
+targets = ../examples lib neuralnetdesigner strategydesigner workbench
 
 
 .PHONY: all clean full $(targets)

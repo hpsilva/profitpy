@@ -25,7 +25,8 @@ from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextE
 from profit.lib.core import Settings, Signals
 
 
-# disable the help function because it reads directly from stdin.
+# disable the help function because it reads directly from stdin and
+# we don't want to mess with stdin/out/err.
 import __builtin__
 __builtin__.__dict__['_help'] = __builtin__.__dict__['help']
 del(__builtin__.__dict__['help'])

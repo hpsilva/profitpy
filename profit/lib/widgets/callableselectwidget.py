@@ -4,6 +4,7 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 import logging
+import sys
 
 from os.path import abspath, exists
 from string import Template
@@ -241,3 +242,11 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
             self.saveSource(self.sourceEditorText)
         self.saveButton.setEnabled(False)
         self.revertButton.setEnabled(False)
+
+
+if __name__ == '__main__':
+    from PyQt4.QtGui import QApplication
+    app = QApplication(sys.argv)
+    window = CallableSelectWidget(parent=None)
+    window.show()
+    sys.exit(app.exec_())

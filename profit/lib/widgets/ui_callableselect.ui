@@ -5,18 +5,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>294</width>
-    <height>210</height>
+    <width>423</width>
+    <height>279</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" >
-   <property name="margin" >
+   <property name="spacing" >
     <number>0</number>
    </property>
-   <property name="spacing" >
+   <property name="margin" >
     <number>0</number>
    </property>
    <item>
@@ -30,9 +30,7 @@
      <item row="0" column="0" >
       <widget class="QLabel" name="label" >
        <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>1</hsizetype>
-         <vsizetype>5</vsizetype>
+        <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -57,7 +55,7 @@
        <property name="sizeType" >
         <enum>QSizePolicy::Minimum</enum>
        </property>
-       <property name="sizeHint" >
+       <property name="sizeHint" stdset="0" >
         <size>
          <width>81</width>
          <height>21</height>
@@ -68,9 +66,7 @@
      <item row="0" column="1" >
       <widget class="QComboBox" name="callableType" >
        <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>1</hsizetype>
-         <vsizetype>0</vsizetype>
+        <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -85,7 +81,8 @@
          <string>External Program</string>
         </property>
         <property name="icon" >
-         <iconset resource="profit.qrc" >:/images/icons/terminal.png</iconset>
+         <iconset resource="profit.qrc" >
+          <normaloff>:/images/icons/terminal.png</normaloff>:/images/icons/terminal.png</iconset>
         </property>
        </item>
        <item>
@@ -93,7 +90,8 @@
          <string>Object</string>
         </property>
         <property name="icon" >
-         <iconset resource="profit.qrc" >:/images/icons/profitdevice_logo.png</iconset>
+         <iconset resource="profit.qrc" >
+          <normaloff>:/images/icons/profitdevice_logo.png</normaloff>:/images/icons/profitdevice_logo.png</iconset>
         </property>
        </item>
        <item>
@@ -101,7 +99,8 @@
          <string>Object Factory</string>
         </property>
         <property name="icon" >
-         <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
+         <iconset resource="profit.qrc" >
+          <normaloff>:/images/icons/blockdevice.png</normaloff>:/images/icons/blockdevice.png</iconset>
         </property>
        </item>
        <item>
@@ -109,7 +108,8 @@
          <string>Source Code</string>
         </property>
         <property name="icon" >
-         <iconset resource="profit.qrc" >:/images/icons/source_py.png</iconset>
+         <iconset resource="profit.qrc" >
+          <normaloff>:/images/icons/source_py.png</normaloff>:/images/icons/source_py.png</iconset>
         </property>
        </item>
        <item>
@@ -117,7 +117,8 @@
          <string>File</string>
         </property>
         <property name="icon" >
-         <iconset resource="profit.qrc" >:/images/icons/empty.png</iconset>
+         <iconset resource="profit.qrc" >
+          <normaloff>:/images/icons/empty.png</normaloff>:/images/icons/empty.png</iconset>
         </property>
        </item>
       </widget>
@@ -125,9 +126,7 @@
      <item row="1" column="1" >
       <widget class="QLineEdit" name="callableLocation" >
        <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>7</hsizetype>
-         <vsizetype>0</vsizetype>
+        <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -137,9 +136,7 @@
      <item row="1" column="0" >
       <widget class="QLabel" name="label" >
        <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>1</hsizetype>
-         <vsizetype>5</vsizetype>
+        <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -169,37 +166,85 @@
      <property name="currentIndex" >
       <number>0</number>
      </property>
-     <widget class="QWidget" name="page0" />
-     <widget class="QWidget" name="page1" />
-     <widget class="QWidget" name="page2" />
-     <widget class="QWidget" name="page3" />
+     <widget class="QWidget" name="page0" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>423</width>
+        <height>200</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QWidget" name="page1" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>423</width>
+        <height>200</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QWidget" name="page2" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>423</width>
+        <height>200</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QWidget" name="page3" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>423</width>
+        <height>200</height>
+       </rect>
+      </property>
+     </widget>
      <widget class="QWidget" name="page4" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>423</width>
+        <height>200</height>
+       </rect>
+      </property>
       <layout class="QVBoxLayout" >
-       <property name="margin" >
-        <number>0</number>
-       </property>
        <property name="spacing" >
+        <number>6</number>
+       </property>
+       <property name="margin" >
         <number>6</number>
        </property>
        <item>
         <widget class="SourceEditor" name="callableSourceEditor" >
          <property name="sizePolicy" >
-          <sizepolicy>
-           <hsizetype>7</hsizetype>
-           <vsizetype>7</vsizetype>
+          <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="frameShape" >
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="frameShadow" >
+          <enum>QFrame::Plain</enum>
          </property>
         </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" >
-         <property name="margin" >
-          <number>0</number>
-         </property>
          <property name="spacing" >
           <number>6</number>
+         </property>
+         <property name="margin" >
+          <number>0</number>
          </property>
          <item>
           <widget class="QLabel" name="sourceWarning" >
@@ -213,7 +258,7 @@
            <property name="orientation" >
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeHint" >
+           <property name="sizeHint" stdset="0" >
             <size>
              <width>40</width>
              <height>20</height>
@@ -227,7 +272,8 @@
             <string>Editor...</string>
            </property>
            <property name="icon" >
-            <iconset resource="profit.qrc" >:/images/icons/kedit.png</iconset>
+            <iconset resource="profit.qrc" >
+             <normaloff>:/images/icons/kedit.png</normaloff>:/images/icons/kedit.png</iconset>
            </property>
           </widget>
          </item>
@@ -237,7 +283,8 @@
             <string>Save</string>
            </property>
            <property name="icon" >
-            <iconset resource="profit.qrc" >:/images/icons/filesave.png</iconset>
+            <iconset resource="profit.qrc" >
+             <normaloff>:/images/icons/filesave.png</normaloff>:/images/icons/filesave.png</iconset>
            </property>
           </widget>
          </item>
@@ -247,7 +294,8 @@
             <string>Revert</string>
            </property>
            <property name="icon" >
-            <iconset resource="profit.qrc" >:/images/icons/undo.png</iconset>
+            <iconset resource="profit.qrc" >
+             <normaloff>:/images/icons/undo.png</normaloff>:/images/icons/undo.png</iconset>
            </property>
           </widget>
          </item>
@@ -255,7 +303,16 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="page5" />
+     <widget class="QWidget" name="page5" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>423</width>
+        <height>200</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>
@@ -265,6 +322,7 @@
    <class>SourceEditor</class>
    <extends>QFrame</extends>
    <header>sourceeditor.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>
