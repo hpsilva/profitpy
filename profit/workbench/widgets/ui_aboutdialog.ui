@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>About Profit Device</string>
+   <string>About Profit Workbench</string>
   </property>
   <property name="windowIcon" >
    <iconset resource="profit.qrc" >:/images/icons/blockdevice.png</iconset>
@@ -62,7 +62,7 @@
         </sizepolicy>
        </property>
        <property name="text" >
-        <string>&lt;b>Profit Device 0.2&lt;/b></string>
+        <string>&lt;b>Profit Workbench 0.2&lt;/b></string>
        </property>
       </widget>
      </item>
@@ -89,7 +89,7 @@
          <property name="text" >
           <string>About ProfitPy
 
-About the Profit Device.</string>
+About the Profit Workbench.</string>
          </property>
         </widget>
        </item>

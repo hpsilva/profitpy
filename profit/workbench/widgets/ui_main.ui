@@ -55,7 +55,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionDocumentation" />
-    <addaction name="actionAboutProfitDevice" />
+    <addaction name="actionAboutProfitWorkbench" />
     <addaction name="actionAboutQt" />
    </widget>
    <widget class="QMenu" name="menuFile" >
@@ -253,9 +253,9 @@
     <string>Settings...</string>
    </property>
   </action>
-  <action name="actionAboutProfitDevice" >
+  <action name="actionAboutProfitWorkbench" >
    <property name="text" >
-    <string>About Profit Device</string>
+    <string>About Profit Workbench</string>
    </property>
   </action>
   <action name="actionDocumentation" >

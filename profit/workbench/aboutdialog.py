@@ -37,6 +37,6 @@ class AboutDialog(QDialog, Ui_AboutDialog):
         QDialog.__init__(self, parent)
         self.setupUi(self)
         self.licenseText.setText(
-            open(join(split(profit.__file__)[0], 'LICENSE')).read())
+            open(join(split(profit.__file__)[0], '..', 'LICENSE')).read())
         self.aboutText.setText(aboutText)
         self.authorsText.setText(authorsText)

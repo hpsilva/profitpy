@@ -120,7 +120,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         self.connect(session, Signals.sessionStatus, bar.showMessage)
 
     @pyqtSignature('')
-    def on_actionAboutProfitDevice_triggered(self):
+    def on_actionAboutProfitWorkbench_triggered(self):
         from profit.workbench.aboutdialog import AboutDialog
         dlg = AboutDialog(self)
         dlg.exec_()

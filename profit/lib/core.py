@@ -11,6 +11,7 @@ from PyQt4.QtCore import (QCoreApplication, QPoint, QSettings, QSize,
 
 from profit.lib import logging
 
+
 class Signals:
     """ Contains SIGNAL attributes for easy and consistent reference.
 
@@ -93,7 +94,7 @@ class Settings(QSettings):
 
         """
         account = 'Account'
-        app = 'Profit Device'
+        app = 'Profit Workbench'
         appearance = 'Appearance'
         connection = 'Connection'
         designer = 'StrategyDesigner'
