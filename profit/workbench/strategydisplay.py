@@ -29,22 +29,24 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
         edit.basicSetup(
             callType=getv('type', '').toString(),
             locationText=getv('location', '').toString(),
-            sourceEditorText=getv('source', '').toString(),
+            sourceText=getv('source', '').toString(),
             revertSource=lambda :self.settings.value('source', '').toString(),
             saveSource=lambda src:self.settings.setValue('source', src),
-            disableFactoryType=True)
-        logging.debug("strategyDisplay editor CONNECT")
+            disableFactoryType=True,
+            requireExpression=True)
+        edit.renameCallableTypeItem('File', 'Strategy File')
         self.connect(edit, Signals.modified, self.on_callableSelect_modified)
+        #self.connect(edit, Signals.currentIndexChanged, self.on_callableSelect_currentIndexChanged)
 
     def setSession(self, session):
         self.session = session
-        self.strategy = strat = session.strategy
-        self.on_strategy_activated(strat.loader.active)
-        self.on_strategy_loaded(strat.loader.loadMessage)
+        self.strategy = strategy = session.strategy
+        self.on_strategy_activated(strategy.loader.active)
+        self.on_strategy_loaded(strategy.loader.loadMessage)
         connect = self.connect
-        connect(strat.loader, Signals.strategyActivated, self.on_strategy_activated)
-        connect(strat.loader, Signals.strategyLoaded, self.on_strategy_loaded)
-        connect(strat.loader, Signals.strategyLoadFailed, self.on_strategy_loadfail)
+        connect(strategy.loader, Signals.strategyActivated, self.on_strategy_activated)
+        connect(strategy.loader, Signals.strategyLoaded, self.on_strategy_loaded)
+        connect(strategy.loader, Signals.strategyLoadFailed, self.on_strategy_loadfail)
 
     def on_strategy_activated(self, status):
         if status:
@@ -117,8 +119,15 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
     def on_reloadButton_clicked(self):
         self.on_loadButton_clicked(reload=True)
 
-    def on_callableSelect_modified(self):
+    def on_callableSelect_modified(self, typeIndex, callType, callLoc, callText, isValid):
+        print '####', typeIndex, callType, callLoc, callText, isValid
+        logging.debug('CallableSelect modified: %s %s %s', callType, callLoc, callText[0:12])
         if self.loadButton.checkState() == Qt.Checked:
             self.loadLabel.setText(
                 'Strategy origin modified.'
                 'Click Reload to re-read it into memory.')
+
+    @pyqtSignature('int')
+    def on_callableSelect_currentIndexChanged(self, index):
+        logging.debug('callableSelect changed')
+

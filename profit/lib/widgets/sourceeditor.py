@@ -12,7 +12,7 @@ except (ImportError, ):
     from profit.lib.widgets.ui_basiceditor import Ui_BasicEditor as Editor
 
 try:
-    from PyQt4.Qsci import QsciLexerPython
+    from PyQt4.Qsci import QsciLexerPython, QsciScintilla
 except (ImportError, ):
     QsciLexerPython = None
 
@@ -23,11 +23,16 @@ class SourceEditor(QFrame, Editor):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupEditor()
+
+    def setupEditor(self):
+        editor = self.textEdit
         if QsciLexerPython:
-            self.textEdit.setLexer(QsciLexerPython(self.textEdit))
-        self.connect(
-            self.textEdit, Signals.textChangedEditor,
-            self, Signals.textChangedEditor)
+            editor.setLexer(QsciLexerPython(editor))
+            editor.setMarginLineNumbers(0, True)
+            editor.setFolding(QsciScintilla.BoxedTreeFoldStyle)
+            editor.setMarginWidth(0, '000')
+        self.connect(editor, Signals.textChangedEditor, self, Signals.textChangedEditor)
 
     def text(self):
         return self.textEdit.text()

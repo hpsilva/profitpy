@@ -3,6 +3,12 @@
 
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
+
+## TODO:  match warning to location label
+## TODO:  fix enable/disable on change
+## TODO:  streamline
+## TODO:  provide valid marker on source edit emit
+
 import logging
 import sys
 
@@ -19,11 +25,16 @@ from profit.lib.widgets.ui_callableselect import Ui_CallableSelectWidget
 
 
 class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
-    revertSource = None
-    saveSource = None
+    """ CallableSelectWidget -> compound widget type for specifying a callable item
 
-    (unsetType, externalType, objectType, factoryType,
-     sourceType, fileType) = range(6)
+    """
+    ## Six types are supported in the class.  These can be selectively
+    ## disabled by the client.  NB: this list must match the items
+    ## defined in the ui file.
+    unsetType, externalType, objectType, factoryType, sourceType, fileType = range(6)
+
+    ## The types are mapped to names so we can search for them by
+    ## value.
     callTypeMap = {
         unsetType:'',
         externalType:'external',
@@ -32,56 +43,103 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
         sourceType:'source',
         fileType:'file',
     }
+
+    ## Each callable type suggests a suitable location label.  Notice
+    ## we're mapping from the name, not the index.
+    typeLocationLabels = {
+        '':'',
+        'external':'Command:',
+        'object':'Value:',
+        'factory':'Value:',
+        'source':'Expression:',
+        'file':'File:',
+    }
+
+    ## This is a list of names for convenience.
     pythonTypes = [
         callTypeMap[objectType],
         callTypeMap[factoryType],
         callTypeMap[sourceType],
     ]
+
+    ## Another list of names for convenience.
     fsTypes = [
         callTypeMap[externalType],
         callTypeMap[fileType],
     ]
 
+    revertSource = saveSource = None
+    requireExpression = True
+
     def __init__(self, parent=None):
+        """ Initializer.
+
+        """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.externalEditProcess = None
-        setr = self.callableType.setItemData
-        for key, value in self.callTypeMap.items():
-            setr(key, QVariant(value))
+        self.setupCallableTypes()
 
-    def basicAttrs(self, **kwds):
+    def setupCallableTypes(self):
+        """ Routine for configuration of the callableTypes combo.
+
+        """
+        for key, value in self.callTypeMap.items():
+            self.callableType.setItemData(key, QVariant(value))
+        self.connect(self.callableType, Signals.currentIndexChanged, 
+                     self, Signals.currentIndexChanged)
+
+    def setAttributes(self, **kwds):
+        """
+
+        """
         items = [
             ('callType', self.unsetType),
             ('locationText', ''),
-            ('sourceEditorText', ''),
+            ('sourceText', ''),
             ('revertSource', None),
-            ('saveSource', None), ]
+            ('saveSource', None), 
+            ('requireExpression', True),
+        ]
         for name, default in items:
-            logging.debug("setting attr %s", name)
             setattr(self, name, kwds.get(name, default))
 
     def basicSetup(self,  **kwds):
-        logging.debug("editor basicSetup")
+        """ Client configuration method.  Call this to configure an
+            instance after initalization.
 
-        #logging.debug("sourceEditorText", self.sourceEditorText)
-
-
+        """
         for key, value in self.callTypeMap.items():
             if kwds.get('disable%sType' % value.title(), False):
                 self.callableType.removeItem(
                     self.callableType.findData(QVariant(value)))
                 self.stackedWidget.removeWidget(
                     self.stackedWidget.widget(key))
-        self.basicAttrs(**kwds)
+        self.setAttributes(**kwds)
         self.saveButton.setEnabled(False)
         self.revertButton.setEnabled(False)
 
+    def renameCallableTypeItem(self, old, new):
+        """ Rename an callable type item without losing its value.
 
-    def callTypeText(self):
-        return self.callableType.currentText()
+        """
+        index = self.callableType.findText(old)
+        if index > -1:
+            self.callableType.setItemText(index, new)
 
-    callTypeText = property(callTypeText)
+    ## property for getting and setting the call type by index.  note
+    ## that there isn't any conversion happening or necessary.
+
+    def getCallTypeIndex(self):
+        return self.callableType.currentIndex()
+
+    def setCallTypeIndex(self, index):
+        self.callableType.setCurretIndex(index)
+
+    callTypeIndex = property(getCallTypeIndex, setCallTypeIndex)
+
+    ## property for getting the call type name as a string.  note that
+    ## there isn't a setter here, and note that the getter returns a
+    ## python string, not a QString.
 
     def getCallType(self):
         wid = self.callableType
@@ -93,6 +151,9 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
 
     callType = property(getCallType, setCallType)
 
+    ## property for getting and setting the location text.  again note
+    ## the getter returns a python string.
+
     def getLocationText(self):
         return str(self.callableLocation.text())
 
@@ -101,13 +162,21 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
 
     locationText = property(getLocationText, setLocationText)
 
+    ## property for getting and setting the source code text.  note
+    ## that the getter fixes up the string per python "compile"
+    ## function requirements.
+
     def getSourceEditorText(self):
-        return str(self.callableSourceEditor.text())
+        source = self.callableSourceEditor.text()
+        source = str(source).replace('\r\n', '\n')
+        if not source.endswith('\n'):
+            source += '\n'
+        return source
 
     def setSourceEditorText(self, text):
         self.callableSourceEditor.setText(text)
 
-    sourceEditorText = property(getSourceEditorText, setSourceEditorText)
+    sourceText = property(getSourceEditorText, setSourceEditorText)
 
     def warn(self, text, widget=None):
         format = '<b>Warning:</b> %s.' if text else '%s'
@@ -125,17 +194,41 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
         self.warn(msg, self.sourceWarning)
         self.saveButton.setEnabled(True)
         self.revertButton.setEnabled(True)
-        self.emit(Signals.modified)
+
+    def emitChanged(self):
+        idx, typ, loc, txt = (
+            self.callTypeIndex,
+            self.callType,
+            self.locationText,
+            self.sourceText,
+        )
+        if idx != self.callTypeMap[self.sourceType]:
+            txt = ''
+        val = 'unknown'
+        self.emit(Signals.modified, idx, typ, loc, txt, val)
 
     @pyqtSignature('int')
     def on_callableType_currentIndexChanged(self, index):
-        if index == self.externalType:
-            self.checkLocationExists()
-        self.callableLocationSelect.setDisabled(
-            self.callType == self.callTypeMap[self.sourceType])
-        self.emit(Signals.modified)
+        ## enable or disable the location-related widgets; there isn't
+        ## a group because of the grid layout.
+        for widget in self.locationWidgets():
+            widget.setDisabled(index == self.unsetType)
 
-    def checkLocationExists(self):
+        ## set the location label to something relevant to the
+        ## selected type.
+        v = str(self.callableType.itemData(index).toString())
+        self.locationLabel.setText(self.typeLocationLabels[v])
+
+        if index == self.externalType:
+            self.checkPathExists()
+        else:
+            isSource = (self.callType == self.callTypeMap[self.sourceType])
+            self.callableLocationSelect.setDisabled(isSource)
+            if isSource:
+                self.callableLocation.setDisabled(not self.requireExpression)
+        self.emitChanged()
+
+    def checkPathExists(self):
         if not exists(abspath(self.locationText)):
             msg = 'location does not exist'
         else:
@@ -144,10 +237,10 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
 
     def callableCode(self):
         try:
-            src = self.sourceEditorText
+            src = self.sourceText
         except (AttributeError, ):
             src = ''
-        return compile(src, 'strategyeditsrc', 'exec')
+        return compile(src, '<string>', 'exec')
 
     def on_callableLocation_textChanged(self, text):
         self.warn('')
@@ -158,14 +251,13 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
                 msg = 'invalid syntax'
             else:
                 text = str(text)
-                if text and text in code.co_names:
-                    msg = ''
-                else:
+                msg = ''
+                if  (text and (text not in code.co_names)) and self.requireExpression:
                     msg = 'expression not found in source'
             self.warn(msg)
         elif self.callType in self.fsTypes:
-            self.checkLocationExists()
-        self.emit(Signals.modified)
+            self.checkPathExists()
+        self.emitChanged()
 
     @pyqtSignature('')
     def on_callableLocationSelect_clicked(self):
@@ -188,60 +280,25 @@ class CallableSelectWidget(QFrame, Ui_CallableSelectWidget):
             pass # unknownType item (0) selected
         if name is not None:
             self.locationText = name
-            self.emit(Signals.modified)
-
-    @pyqtSignature('')
-    def on_externalEditButton_clicked(self):
-        settings = Settings()
-        settings.beginGroup(settings.keys.main)
-        editor = str(settings.value('externalEditor', '').toString())
-        if not editor:
-            editor, okay = QInputDialog.getText(
-                self, 'Configure Source Editor',
-                'Enter editor command name.  '
-                'Use $f as filename argument placeholder.')
-            if okay:
-                settings.setValue('externalEditor', editor)
-                editor = str(editor)
-            else:
-                editor = None
-        if not editor:
-            return
-        self.externalEditProcess = editproc = QProcess(self)
-        editproc.tmp = tmp = NamedTemporaryFile(
-            'w+', prefix='strategy', suffix='.py')
-        tmp.write(self.sourceEditorText)
-        tmp.flush()
-        self.connect(
-            editproc, Signals.processFinished, self.on_externalEdit_finished)
-        try:
-            cmd = Template(editor).substitute(f=tmp.name)
-        except (KeyError, ValueError, ), exc:
-            print '## error', exc
-        else:
-            editproc.start(cmd)
-
-    def on_externalEdit_finished(self, code, status):
-        tmp = self.externalEditProcess.tmp
-        if not code and not status:
-            tmp.seek(0)
-            self.sourceEditorText = tmp.read()
-        tmp.close()
-        self.externalEditProcess = None
+            self.emitChanged()
 
     @pyqtSignature('')
     def on_revertButton_clicked(self):
         if self.revertSource:
-            self.sourceEditorText = self.revertSource()
+            self.sourceText = self.revertSource()
         self.saveButton.setEnabled(False)
         self.revertButton.setEnabled(False)
 
     @pyqtSignature('')
     def on_saveButton_clicked(self):
         if self.saveSource:
-            self.saveSource(self.sourceEditorText)
+            self.saveSource(self.sourceText)
         self.saveButton.setEnabled(False)
         self.revertButton.setEnabled(False)
+
+    def locationWidgets(self):
+        return [self.locationLabel, self.locationWarning, 
+                self.callableLocationSelect, self.callableLocation, ]
 
 
 if __name__ == '__main__':

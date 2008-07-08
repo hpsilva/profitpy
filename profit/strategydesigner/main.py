@@ -467,11 +467,11 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
         def revert():
             return item.moduleSource
         def save(src):
-            item.moduleSource = editor.sourceEditorText
+            item.moduleSource = editor.sourceText
         editor.basicSetup(
             callType=item.callType,
             locationText=item.callLocation,
-            sourceEditorText=item.moduleSource,
+            sourceText=item.moduleSource,
             revertSource=revert,
             saveSource=save,
             disableFileType=True)
@@ -1107,7 +1107,7 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
     def __on_textEdit_textChanged(self):
         item = self.editItem
         if item:
-            item.moduleSource = self.callableEditor.sourceEditorText
+            item.moduleSource = self.callableEditor.sourceText
 
     def on_callableLocation_textChanged(self, text):
         item = self.editItem
