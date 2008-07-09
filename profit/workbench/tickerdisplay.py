@@ -121,7 +121,10 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
         settings.beginGroup(self.settings.keys.urls)
         urls = settings.value(settings.keys.tickerurls, defaults.tickerUrls())
         settings.endGroup()
-        for url in urls.toStringList():
+        print [str(s) for s in urls.toStringList()]
+        urls = [str(s) for s in defaults.tickerUrls()]
+
+        for url in urls: #urls.toStringList():
             try:
                 name, url = str(url).split(':', 1)
                 url = Template(url).substitute(symbol=symbol)

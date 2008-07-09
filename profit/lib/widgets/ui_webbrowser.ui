@@ -22,7 +22,7 @@
        </property>
        <property name="icon" >
         <iconset resource="profit.qrc" >
-         <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
+         <normaloff>:/images/icons/back.png</normaloff>:/images/icons/back.png</iconset>
        </property>
        <property name="toolButtonStyle" >
         <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -42,7 +42,7 @@
        </property>
        <property name="icon" >
         <iconset resource="profit.qrc" >
-         <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
+         <normaloff>:/images/icons/forward.png</normaloff>:/images/icons/forward.png</iconset>
        </property>
        <property name="toolButtonStyle" >
         <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -62,7 +62,7 @@
        </property>
        <property name="icon" >
         <iconset resource="profit.qrc" >
-         <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
+         <normaloff>:/images/icons/reload.png</normaloff>:/images/icons/reload.png</iconset>
        </property>
        <property name="toolButtonStyle" >
         <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -82,7 +82,7 @@
        </property>
        <property name="icon" >
         <iconset resource="profit.qrc" >
-         <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
+         <normaloff>:/images/icons/stop.png</normaloff>:/images/icons/stop.png</iconset>
        </property>
        <property name="toolButtonStyle" >
         <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -112,7 +112,7 @@
        </property>
        <property name="icon" >
         <iconset resource="profit.qrc" >
-         <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
+         <normaloff>:/images/icons/ok.png</normaloff>:/images/icons/ok.png</iconset>
        </property>
        <property name="toolButtonStyle" >
         <enum>Qt::ToolButtonTextBesideIcon</enum>

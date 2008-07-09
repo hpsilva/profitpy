@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>images/buttons/locationbar_erase.png</file>
+<file>images/icons/back.png</file>
 <file>images/icons/blockdevice.png</file>
 <file>images/icons/bookcase.png</file>
 <file>images/icons/colorize.png</file>
@@ -24,6 +25,7 @@
 <file>images/icons/filesave.png</file>
 <file>images/icons/filter.png</file>
 <file>images/icons/fonts.png</file>
+<file>images/icons/forward.png</file>
 <file>images/icons/identity.png</file>
 <file>images/icons/kchart.png</file>
 <file>images/icons/kcmdrkonqi.png</file>
@@ -38,15 +40,18 @@
 <file>images/icons/mime_empty.png</file>
 <file>images/icons/misc.png</file>
 <file>images/icons/noatunloopsong.png</file>
+<file>images/icons/ok.png</file>
 <file>images/icons/package_system.png</file>
 <file>images/icons/player_pause.png</file>
 <file>images/icons/player_play.png</file>
 <file>images/icons/player_stop.png</file>
 <file>images/icons/profitdevice_logo.png</file>
+<file>images/icons/reload.png</file>
 <file>images/icons/run.png</file>
 <file>images/icons/server.png</file>
 <file>images/icons/services.png</file>
 <file>images/icons/source_py.png</file>
+<file>images/icons/stop.png</file>
 <file>images/icons/tab_duplicate.png</file>
 <file>images/icons/tab_remove.png</file>
 <file>images/icons/terminal.png</file>
