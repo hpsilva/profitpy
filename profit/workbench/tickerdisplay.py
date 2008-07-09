@@ -59,6 +59,8 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
             separator(), self.actionChart, self.actionOrder, separator(),
         ]
         self.requestSession()
+        if parent:
+            self.connect(self, Signals.openUrl, parent.newBrowserTab)
 
     def setSession(self, session):
         self.session = session
@@ -89,7 +91,15 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
     def on_actionUrl(self):
         data = self.sender().data()
         if data and data.isValid():
-            QDesktopServices.openUrl(QUrl(data.toString()))
+            url, symbol, icon = data.toPyObject()
+            settings = self.settings
+            settings.beginGroup(settings.keys.main)
+            useExternal = settings.value(settings.keys.externalbrowser, False).toBool()
+            settings.endGroup()
+            if useExternal:
+                QDesktopServices.openUrl(QUrl(url))
+            else:
+                self.emit(Signals.openUrl, data)
 
     @pyqtSignature('')
     def on_closePosition(self):
@@ -117,8 +127,9 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
                 url = Template(url).substitute(symbol=symbol)
             except (KeyError, ValueError, ):
                 continue
+            icon = QIcon(':/images/tickers/%s.png' % str(symbol).lower())
             act = QAction(name+'...', None)
-            act.setData(QVariant(url))
+            act.setData(QVariant([url, '%s %s' % (symbol, name), icon]))
             self.connect(act, Signals.triggered, self.on_actionUrl)
             actions.append(act)
         return actions

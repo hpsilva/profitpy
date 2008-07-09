@@ -5,6 +5,17 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+## this module is generally the first to get imported by one of the gui apps,
+## so we execute our ugly hack here.
+
+import sys
+if 'profit_rc' not in sys.modules:
+    import profit.lib.widgets.profit_rc
+    sys.modules['profit_rc'] = profit.lib.widgets.profit_rc
+
+
+## now back to our regularly scheduled programming.
+
 from cPickle import dumps, loads
 from PyQt4.QtCore import (QCoreApplication, QPoint, QSettings, QSize,
                           QVariant, Qt, SIGNAL, SLOT)
@@ -35,15 +46,18 @@ class Signals:
     finished = SIGNAL('finished()')
     finishedHistoricalData = SIGNAL('finishedHistoricalData')
     highlightSelections = SIGNAL('highlightSelections')
+    iconChanged = SIGNAL('iconChanged()')
     intValueChanged = SIGNAL('valueChanged(int)')
     itemChanged = SIGNAL('itemChanged(QStandardItem *)')
     itemDoubleClicked = SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)')
     lastWindowClosed = SIGNAL('lastWindowClosed()')
     layoutChanged = SIGNAL('layoutChanged()')
+    loadFinished = SIGNAL('loadFinished(bool)')
     modelClicked = SIGNAL('clicked (const QModelIndex &)')
     modelDoubleClicked = SIGNAL('doubleClicked (const QModelIndex &)')
     modelReset = SIGNAL('modelReset()')
     modified = SIGNAL('modified')
+    openUrl = SIGNAL('openUrl(PyQt_PyObject)')
     processFinished = SIGNAL('finished(int, QProcess::ExitStatus)')
     requestedHistoricalData = SIGNAL('requestedHistoricalData')
     rowsInserted = SIGNAL('rowsInserted(const QModelIndex &, int, int)')
@@ -113,6 +127,7 @@ class Settings(QSettings):
         strategy = 'Strategy'
         winstate = 'State'
         ctabstate = 'CentralTabState'
+        externalbrowser = 'ExternalBrowser'
 
     def __init__(self):
         """ Constructor.
@@ -186,10 +201,10 @@ class SessionHandler(object):
     """
     sessionref = None
 
-    def session_getter(self):
+    def sessionGetter(self):
         return self.sessionref
 
-    def session_setter(self, value):
+    def sessionSetter(self, value):
         session = self.sessionref
         if session:
             for child in self.children() + [self, ]:
@@ -201,7 +216,7 @@ class SessionHandler(object):
         logging.debug('session set for %s to %s' % (self.objectName(), value))
         self.sessionref = value
 
-    session = property(session_getter, session_setter)
+    session = property(sessionGetter, sessionSetter)
 
     def existingSession(self, session):
         """ Connects this object to an existing session instance.

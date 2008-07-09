@@ -5,9 +5,10 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+from functools import partial
 from sys import platform
 
-from PyQt4.QtCore import QTimer, Qt, pyqtSignature
+from PyQt4.QtCore import QTimer, QUrl, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QApplication, QIcon, QPushButton, QTabWidget
 
 from profit.lib import importItem, logging
@@ -161,4 +162,29 @@ class CentralTabs(QTabWidget, SessionHandler):
         widg = self.widget(index)
         self.connect(widg, Signals.tickerClicked, self.newSymbolItemTab)
         return index
+
+    def newBrowserTab(self, itemData):
+        from profit.lib.widgets.webbrowser import WebBrowserDisplay
+        url, title, icon = itemData.toPyObject()
+        widget = WebBrowserDisplay(self)
+        index = self.addTab(widget, title)
+        widget.basicConfig(url)
+        self.setCurrentIndex(index)
+        self.connect(widget, Signals.loadFinished, 
+                     partial(self.setWebTab, browser=widget))
+        self.setTabText(index, title)
+        self.setTabIcon(index, icon)
+        ## hook location text to url
+        ## enable/disable browser nav buttons
+
+    def setWebTab(self, okay, browser):
+        if not okay:
+            return
+        index = self.indexOf(browser)
+        title = str(browser.title())
+        tooltip = title
+        if len(title) > 13:
+            title = title[0:13] + '...'
+        self.setTabText(index, title)
+        self.setTabToolTip(index, tooltip)
 
