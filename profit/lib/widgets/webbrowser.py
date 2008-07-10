@@ -27,7 +27,7 @@ class WebBrowserDisplay(QWidget, Ui_WebBrowserDisplay):
         QWidget.__init__(self, parent)
         self.setupUi(self)
         self.urlEdit.keyReleaseEvent = self.urlEdit__keyReleaseEvent
-        self.timerId = self.startTimer(0) # process events when no more window events ready
+        self.timerId = self.startTimer(1000)
 
     def basicConfig(self, url):
         self.urlEdit.setText(url)

@@ -30,11 +30,11 @@ fieldColumns = {
 
 
 def replayTick(messages, symbols, callback):
-    ismsg = nameIn('TickSize', 'TickPrice')
+    isMsg = nameIn('TickSize', 'TickPrice')
     for symbol, tickerId in symbols.items():
         for field in fieldColumns.keys():
             def pred((t, m)):
-                return ismsg(m) and m.field==field and m.tickerId==tickerId
+                return isMsg(m) and m.field==field and m.tickerId==tickerId
             for time, message in ifilter(pred, reversed(messages)):
                 callback(message)
                 break
@@ -44,7 +44,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.selectedItem = None
         self.symbols = {}
         self.tickerItems = {}
         self.settings = Settings()

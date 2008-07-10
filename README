@@ -22,3 +22,5 @@
 10.  fix ticker display to use tickers from strategy (w/o connection)
 
 11.  add "use external browser" setting to settings dialog; ref tickerdisplay.py for use
+
+12.  fix titles on detached tabs by setting the widget titles
