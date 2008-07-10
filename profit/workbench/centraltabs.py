@@ -17,21 +17,23 @@ from profit.lib.widgets.ui_closetabbutton import Ui_CloseTabButton
 from profit.lib.widgets.ui_detachtabbutton import Ui_DetachTabButton
 
 
-disallowMultiples = []
-
-
-def tabWidgetMethod(base, name, reloaded=False):
-    def method(self, title, itemindex=None):
-        cls = importItem(base + name, reloaded=reloaded)
+def tabMethod(name, prefix='profit.workbench', pre=None, post=None, reloaded=False):
+    def innerMethod(self, title, itemIndex=None):
+        logging.debug('%s %s', name, title)
+        if pre:
+            pre(self)
+        cls = importItem('%s.%s' % (prefix, name), reloaded=reloaded)
         index = None
-        if name in disallowMultiples and itemindex:
+        if itemIndex:
             pages = self.pageMap()
-            index = pages.get(itemindex.data().toString(), None)
+            index = pages.get(itemIndex.data().toString(), None)
         if index is None:
             widget = cls(self)
             index = self.addTab(widget, title)
+            if post:
+                post(self, widget)
         return index
-    return method
+    return innerMethod
 
 
 class CloseTabButton(QPushButton, Ui_CloseTabButton):
@@ -51,23 +53,22 @@ class DetachTabButton(QPushButton, Ui_DetachTabButton):
 class CentralTabs(QTabWidget, SessionHandler):
     def __init__(self, parent=None):
         QTabWidget.__init__(self, parent)
-        self.closeTab = closeTab = CloseTabButton(self)
-        self.detachTab = detachTab = DetachTabButton(self)
-        self.setCornerWidget(closeTab, Qt.TopRightCorner)
-        self.setCornerWidget(detachTab, Qt.TopLeftCorner)
+        self.closeTabButton = CloseTabButton(self)
+        self.detachTabButton = DetachTabButton(self)
+        self.setCornerWidget(self.closeTabButton, Qt.TopRightCorner)
+        self.setCornerWidget(self.detachTabButton, Qt.TopLeftCorner)
+        app, connect = QApplication.instance(), self.connect
+        connect(app, Signals.sessionItemSelected, self.showTab)
+        connect(app, Signals.sessionItemActivated, self.newTab)
+        connect(self.closeTabButton, Signals.clicked, self.closeTab)
+        connect(self.detachTabButton, Signals.clicked, self.detachTab)
         self.requestSession()
-        app = QApplication.instance()
-        connect = self.connect
-        connect(app, Signals.sessionItemSelected, self.showItemTab)
-        connect(app, Signals.sessionItemActivated, self.newItemTab)
-        connect(closeTab, Signals.clicked, self.closeItemTab)
-        connect(detachTab, Signals.clicked, self.detachItemTab)
 
     def pageMap(self):
         return dict([(self.tabText(i), i) for i in range(self.count())])
 
     @pyqtSignature('')
-    def closeItemTab(self):
+    def closeTab(self):
         index = self.currentIndex()
         widget = self.widget(index)
         if widget:
@@ -76,10 +77,9 @@ class CentralTabs(QTabWidget, SessionHandler):
             widget.close()
 
     @pyqtSignature('')
-    def detachItemTab(self):
+    def detachTab(self):
         index = self.currentIndex()
-        widget = self.widget(index)
-        icon = self.tabIcon(index)
+        widget, icon = self.widget(index), self.tabIcon(index)
         text = str(self.tabText(index))
         widget.setWindowIcon(icon)
         try:
@@ -103,69 +103,39 @@ class CentralTabs(QTabWidget, SessionHandler):
         show.circleref = show
         QTimer.singleShot(100, show)
 
-    def newItemTab(self, index):
-        text = name = str(index.data().toString())
-        text = text.replace(' ', '_').lower()
-        icon = QIcon(index.data(Qt.DecorationRole))
-        tickerId, tickerIdValid = index.data(tickerIdRole).toInt()
-        if tickerIdValid:
-            self.newSymbolItemTab(
-                item=None, symbol=name, tickerId=tickerId, icon=icon)
-        else:
-            try:
-                call = getattr(self, 'new_%sItem' % text)
-                tabIndex = call(name, index)
-            except (Exception, ), exc:
-                logging.debug('Session item create exception: %s, %s', exc, name)
-            else:
-                self.setCurrentIndex(tabIndex)
-                self.setTabIcon(tabIndex, icon)
-
-    def newSymbolItemTab(self, item, index=None, symbol=None,
-                         tickerId=None, icon=None, *args):
-        if item is not None:
-            symbol = str(item.text())
-            tickerId = item.tickerId
-            icon = item.icon()
-        cls = importItem('profit.workbench.tickerplotdisplay.TickerPlotDisplay')
-        widget = cls(self)
-        widget.setSessionPlot(
-            self.session, self.session.tickerCollection, tickerId, *args)
-        index = self.addTab(widget, symbol)
-        self.setTabIcon(index, icon)
-        self.setCurrentIndex(index)
-
-    def showItemTab(self, index):
+    def showTab(self, index):
         name = index.data().toString()
         pages = self.pageMap()
         if name in pages:
             self.setCurrentIndex(pages[name])
         else:
-            self.newItemTab(index)
+            self.newTab(index)
 
-    # handlers for the various named items in the session widget
-
-    new_accountItem = tabWidgetMethod('profit.workbench.', 'accountdisplay.AccountDisplay')
-    new_collectorItem = tabWidgetMethod('profit.workbench.', 'collectordisplay.CollectorDisplay')
-    new_connectionItem = tabWidgetMethod('profit.workbench.',
-        'connectiondisplay.ConnectionDisplay')
-    new_executionsItem = tabWidgetMethod('profit.workbench.',
-        'executionsdisplay.ExecutionsDisplay')
-    new_messagesItem = tabWidgetMethod('profit.workbench.', 'messagedisplay.MessageDisplay')
-    new_ordersItem = tabWidgetMethod('profit.workbench.', 'orderdisplay.OrderDisplay')
-    new_portfolioItem = tabWidgetMethod('profit.workbench.', 'portfoliodisplay.PortfolioDisplay')
-    new_strategyItem = tabWidgetMethod('profit.workbench.', 'strategydisplay.StrategyDisplay')
-    new_tickersItemHelper = tabWidgetMethod('profit.workbench.', 'tickerdisplay.TickerDisplay')
-
-    def new_tickersItem(self, text, itemindex):
-        index = self.new_tickersItemHelper(text, itemindex)
-        widg = self.widget(index)
-        self.connect(widg, Signals.tickerClicked, self.newSymbolItemTab)
-        return index
+    def newTab(self, index):
+        text = name = str(index.data().toString())
+        text = text.replace(' ', '_').lower()
+        icon = QIcon(index.data(Qt.DecorationRole))
+        tickerId, tickerIdValid = index.data(tickerIdRole).toInt()
+        if tickerIdValid:
+            self.newSymbolTab(None, symbol=name, tickerId=tickerId, icon=icon)
+        else:
+            try:
+                call = getattr(self, 'new%sItem' % text.title())
+                tabWidget = call(name, index)
+            except (Exception, ), exc:
+                message = 'Session item create exception: "%s" name: "%s"'
+                logging.debug(message, exc, name)
+            else:
+                logging.debug('tabWidget %s type %s', tabWidget, type(tabWidget))
+                self.setCurrentIndex(tabWidget)
+                self.setTabIcon(tabWidget, icon)
 
     def newBrowserTab(self, itemData):
         from profit.lib.widgets.webbrowser import WebBrowserDisplay
-        url, title, icon = itemData.toPyObject()
+        try:
+            url, title, icon = itemData.toPyObject()
+        except (AttributeError, ):
+            url, title, icon = itemData
         widget = WebBrowserDisplay(self)
         index = self.addTab(widget, title)
         widget.basicConfig(url)
@@ -174,8 +144,33 @@ class CentralTabs(QTabWidget, SessionHandler):
                      partial(self.setWebTab, browser=widget))
         self.setTabText(index, title)
         self.setTabIcon(index, icon)
-        ## hook location text to url
-        ## enable/disable browser nav buttons
+
+    def newSymbolTab(self, item, index=None, symbol=None, tickerId=None, icon=None, *args):
+        from profit.workbench.tickerplotdisplay import TickerPlotDisplay
+        if item is not None:
+            symbol = str(item.text())
+            tickerId = item.tickerId
+            icon = item.icon()
+        widget = TickerPlotDisplay(self)
+        session = self.session
+        widget.setSessionPlot(session, session.tickerCollection, tickerId, *args)
+        index = self.addTab(widget, symbol)
+        self.setTabIcon(index, icon)
+        self.setCurrentIndex(index)
+
+    newAccountItem = tabMethod('accountdisplay.AccountDisplay')
+    newCollectorItem = tabMethod('collectordisplay.CollectorDisplay')
+    newConnectionItem = tabMethod('connectiondisplay.ConnectionDisplay')
+    newExecutionsItem = tabMethod('executionsdisplay.ExecutionsDisplay')
+    newMessagesItem = tabMethod('messagedisplay.MessageDisplay')
+    newOrdersItem = tabMethod('orderdisplay.OrderDisplay')
+    newPortfolioItem = tabMethod('portfoliodisplay.PortfolioDisplay')
+    newStrategyItem = tabMethod('strategydisplay.StrategyDisplay')
+
+    def afterNewTickers(self, widget):
+        self.connect(widget, Signals.openUrl, self.newBrowserTab)
+        self.connect(widget, Signals.tickerClicked, self.newSymbolTab)
+    newTickersItem = tabMethod('tickerdisplay.TickerDisplay', post=afterNewTickers)
 
     def setWebTab(self, okay, browser):
         if not okay:
@@ -187,4 +182,3 @@ class CentralTabs(QTabWidget, SessionHandler):
             title = title[0:13] + '...'
         self.setTabText(index, title)
         self.setTabToolTip(index, tooltip)
-

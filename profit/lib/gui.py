@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QBrush, QColor, QIcon, QPixmap, QTableWidgetItem
+from PyQt4.QtGui import QAction, QBrush, QColor, QIcon, QPixmap, QTableWidgetItem
 from PyQt4.QtGui import QMessageBox
 
 from profit.lib.core import Signals, valueAlign
@@ -119,3 +119,9 @@ def complementColor(c):
     hx = str(c.name())[1:]
     comp = ['%.2X' % (255 - int(a, 16)) for a in (hx[0:2], hx[2:4], hx[4:6])]
     return QColor('#' + str.join('', comp))
+
+
+def separator():
+    sep = QAction(None)
+    sep.setSeparator(True)
+    return sep

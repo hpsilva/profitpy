@@ -53,7 +53,7 @@ class Signals:
     lastWindowClosed = SIGNAL('lastWindowClosed()')
     layoutChanged = SIGNAL('layoutChanged()')
     loadFinished = SIGNAL('loadFinished(bool)')
-    modelClicked = SIGNAL('clicked (const QModelIndex &)')
+    modelClicked = SIGNAL('activated (const QModelIndex &)')
     modelDoubleClicked = SIGNAL('doubleClicked (const QModelIndex &)')
     modelReset = SIGNAL('modelReset()')
     modified = SIGNAL('modified')

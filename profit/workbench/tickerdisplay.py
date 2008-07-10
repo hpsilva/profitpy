@@ -14,7 +14,7 @@ from ib.ext.TickType import TickType
 
 from profit.lib import defaults
 from profit.lib.core import SessionHandler, Settings, Signals, nameIn
-from profit.lib.gui import ValueTableItem
+from profit.lib.gui import ValueTableItem, separator as sep
 from profit.workbench.portfoliodisplay import replayPortfolio
 from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
@@ -40,12 +40,6 @@ def replayTick(messages, symbols, callback):
                 break
 
 
-def separator():
-    sep = QAction(None)
-    sep.setSeparator(True)
-    return sep
-
-
 class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
@@ -55,12 +49,8 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
         self.tickerItems = {}
         self.settings = Settings()
         self.tickerTable.verticalHeader().hide()
-        self.contextActions = [
-            separator(), self.actionChart, self.actionOrder, separator(),
-        ]
+        self.contextActions = [sep(), self.actionChart, self.actionOrder, sep(), ]
         self.requestSession()
-        if parent:
-            self.connect(self, Signals.openUrl, parent.newBrowserTab)
 
     def setSession(self, session):
         self.session = session

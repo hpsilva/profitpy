@@ -29,6 +29,7 @@ class connection:
     port = 7496
     client = 0
 
+
 def canvasColor():
     """ Reasonable default for canvas color.
 
@@ -39,6 +40,7 @@ def canvasColor():
 
 def itemPen(name):
     return QPen()
+
 
 def majorGridPen():
     """ Reasonable default for major grid pen.
@@ -66,5 +68,3 @@ def plotSplitterState():
     @return QByteArray suitable for use with QSplitter.restoreState
     """
     return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAAAiQAAAm8BAAAABgEAAAAB')
-
-

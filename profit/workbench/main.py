@@ -25,7 +25,6 @@ from profit.lib import defaults
 from profit.lib.core import Signals, Settings
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.lib.session import Session
-from profit.lib.widgets import profit_rc
 
 from profit.lib.widgets.dock import Dock
 from profit.lib.widgets.output import OutputWidget
@@ -66,6 +65,8 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         connect(self, Signals.sessionCreated, app, Signals.sessionCreated)
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
+        ## todo:  make the top window emit the signals
+        connect(self.sessionDock.widget(), Signals.openUrl, self.centralTabs.newBrowserTab)
         self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
@@ -464,17 +465,6 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     def centralTabState(self):
         return [str(s) for s in self.centralTabs.pageMap()]
-
-## MARKER
-    def __setCentralTabState(self, state):
-        print '## state', state, type(state)
-        for name in state:
-            try:
-                item = model.findItems(name)[0]
-            except (IndexError, ):
-                pass
-            else:
-                view.emit(Signals.modelClicked, item.index())
 
     def writeSettings(self):
         settings = Settings()
