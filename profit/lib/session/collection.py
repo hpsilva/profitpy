@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 #         Yichun Wei <yichun.wei@gmail.com>
+
 import os
 import logging
 from cPickle import PicklingError, UnpicklingError, dump, load
@@ -107,7 +108,7 @@ class HistoricalDataCollection(QThread, DataCollection):
         self.idsym = {}
         self.requestQueue = requestQueue
         self.savedir = savedir
-        session.registerMeta(self)
+        ##session.registerMeta(self)
         self.session = session
 
     def run(self):
@@ -155,8 +156,11 @@ class HistoricalDataCollection(QThread, DataCollection):
         logging.debug("requested for (%s, %d, %r)" % (symbol, id, histparams))
 
     def save(self, reqId):
-        data = self.data[reqId]
-        symbol = self.idsym[reqId]
+        try:
+            data = self.data[reqId]
+            symbol = self.idsym[reqId]
+        except (IndexError, KeyError, ):
+            return
         fpath = os.path.join(self.savedir, symbol[0])
         try:
             os.makedirs(fpath)

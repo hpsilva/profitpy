@@ -13,9 +13,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>61</y>
+     <y>43</y>
      <width>1024</width>
-     <height>685</height>
+     <height>706</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" >
@@ -40,7 +40,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>29</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menEdit" >
@@ -49,6 +49,8 @@
     </property>
     <addaction name="actionStrategyDesigner" />
     <addaction name="actionSettings" />
+    <addaction name="separator" />
+    <addaction name="actionHistoricalData" />
    </widget>
    <widget class="QMenu" name="menuHelp" >
     <property name="title" >
@@ -104,9 +106,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>746</y>
+     <y>749</y>
      <width>1024</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>
@@ -114,9 +116,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>29</y>
-     <width>565</width>
-     <height>32</height>
+     <y>19</y>
+     <width>434</width>
+     <height>24</height>
     </rect>
    </property>
    <property name="windowTitle" >
@@ -143,10 +145,10 @@
   <widget class="QToolBar" name="editToolbar" >
    <property name="geometry" >
     <rect>
-     <x>565</x>
-     <y>29</y>
-     <width>459</width>
-     <height>32</height>
+     <x>434</x>
+     <y>19</y>
+     <width>590</width>
+     <height>24</height>
     </rect>
    </property>
    <property name="windowTitle" >
@@ -299,6 +301,11 @@
    </property>
    <property name="text" >
     <string>Status Bar</string>
+   </property>
+  </action>
+  <action name="actionHistoricalData" >
+   <property name="text" >
+    <string>Historical Data...</string>
    </property>
   </action>
  </widget>

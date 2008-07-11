@@ -4,17 +4,19 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
+from functools import partial
 from itertools import ifilter
 from string import Template
 
 from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
-from PyQt4.QtGui import QAction, QDesktopServices, QFrame, QIcon, QMenu
+from PyQt4.QtGui import QAction, QApplication, QFrame, QIcon, QMenu
 
 from ib.ext.TickType import TickType
+from ib.opt.message import TickPrice
 
 from profit.lib import defaults
 from profit.lib.core import SessionHandler, Settings, Signals, nameIn
-from profit.lib.gui import ValueTableItem, separator as sep
+from profit.lib.gui import UrlAction, UrlRequestor, ValueTableItem, separator as sep
 from profit.workbench.portfoliodisplay import replayPortfolio
 from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
@@ -40,7 +42,12 @@ def replayTick(messages, symbols, callback):
                 break
 
 
-class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
+def fakeTickerMessages(symbol, tickerId):
+    for field in fieldColumns:
+        yield TickPrice(tickerId=tickerId, field=field, price=0, canAutoExecute=False)
+
+
+class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler, UrlRequestor):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
@@ -49,6 +56,8 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
         self.settings = Settings()
         self.tickerTable.verticalHeader().hide()
         self.contextActions = [sep(), self.actionChart, self.actionOrder, sep(), ]
+        app = QApplication.instance()
+        self.connect(self, Signals.openUrl, app, Signals.openUrl)
         self.requestSession()
 
     def setSession(self, session):
@@ -59,6 +68,10 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
                    self.on_session_TickPrice_TickSize)
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
         session.registerMeta(self)
+        if not session.messages:
+            for symbol, tickerId in symbols.items():
+                for msg in fakeTickerMessages(symbol, tickerId):
+                    self.on_session_TickPrice_TickSize(msg)
 
     @pyqtSignature('')
     def on_actionChart_triggered(self):
@@ -75,20 +88,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
     @pyqtSignature('')
     def on_actionOrder_triggered(self):
         print '## order for ', self.actionOrder.data().toString()
-
-    @pyqtSignature('')
-    def on_actionUrl(self):
-        data = self.sender().data()
-        if data and data.isValid():
-            url, symbol, icon = data.toPyObject()
-            settings = self.settings
-            settings.beginGroup(settings.keys.main)
-            useExternal = settings.value(settings.keys.externalbrowser, False).toBool()
-            settings.endGroup()
-            if useExternal:
-                QDesktopServices.openUrl(QUrl(url))
-            else:
-                self.emit(Signals.openUrl, data)
 
     @pyqtSignature('')
     def on_closePosition(self):
@@ -110,19 +109,16 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler):
         settings.beginGroup(self.settings.keys.urls)
         urls = settings.value(settings.keys.tickerurls, defaults.tickerUrls())
         settings.endGroup()
-        print [str(s) for s in urls.toStringList()]
+        ## print [str(s) for s in urls.toStringList()] # wtf
         urls = [str(s) for s in defaults.tickerUrls()]
-
-        for url in urls: #urls.toStringList():
+        for url in urls: #urls.toStringList(): # wtf
             try:
                 name, url = str(url).split(':', 1)
                 url = Template(url).substitute(symbol=symbol)
             except (KeyError, ValueError, ):
                 continue
-            icon = QIcon(':/images/tickers/%s.png' % str(symbol).lower())
-            act = QAction(name+'...', None)
-            act.setData(QVariant([url, '%s %s' % (symbol, name), icon]))
-            self.connect(act, Signals.triggered, self.on_actionUrl)
+            act = UrlAction(name+'...', url, '%s %s' % (symbol, name))
+            self.connect(act, Signals.triggered, partial(self.on_urlAction, action=act))
             actions.append(act)
         return actions
 

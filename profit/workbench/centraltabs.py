@@ -8,23 +8,27 @@
 from functools import partial
 from sys import platform
 
-from PyQt4.QtCore import QTimer, QUrl, Qt, pyqtSignature
-from PyQt4.QtGui import QAction, QApplication, QIcon, QPushButton, QTabWidget
+from PyQt4.QtCore import QTimer, Qt, pyqtSignature
+from PyQt4.QtGui import QAction, QApplication, QIcon, QTabWidget
 
 from profit.lib import importItem, logging
 from profit.lib.core import SessionHandler, Signals, tickerIdRole
-from profit.lib.widgets.ui_closetabbutton import Ui_CloseTabButton
-from profit.lib.widgets.ui_detachtabbutton import Ui_DetachTabButton
+from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
 
 
-def basicTabMethod(name, prefix='profit.workbench', pre=None, post=None,
-              reloaded=False):
+def basicTabMethod(name, prefix='profit.workbench', pre=None, post=None, reloaded=False):
+    """ creates and returns an object method for handling new tab requests
+
+    The closures created by this function are used in the CentralTabs
+    class below.
+    """
     def innerMethod(self, title, itemIndex=None):
         logging.debug('%s %s', name, title)
         index = None
         if pre:pre(self)
         if itemIndex:
-            index = self.pageMap().get(itemIndex.data().toString(), None)
+            pages = self.pageMap()
+            index = pages.get(itemIndex.data().toString(), None)
         if index is None:
             cls = importItem('%s.%s' % (prefix, name), reloaded=reloaded)
             widget = cls(self)
@@ -34,21 +38,10 @@ def basicTabMethod(name, prefix='profit.workbench', pre=None, post=None,
     return innerMethod
 
 
-class CloseTabButton(QPushButton, Ui_CloseTabButton):
-    def __init__(self, parent):
-        QPushButton.__init__(self, parent)
-        self.setupUi(self)
-        self.addAction(self.actionCloseTab)
-
-
-class DetachTabButton(QPushButton, Ui_DetachTabButton):
-    def __init__(self, parent):
-        QPushButton.__init__(self, parent)
-        self.setupUi(self)
-        self.addAction(self.actionDetachTab)
-
-
 class CentralTabs(QTabWidget, SessionHandler):
+    """ CentralTabs -> tab widget with special powers
+
+    """
     def __init__(self, parent=None):
         QTabWidget.__init__(self, parent)
         self.closeTabButton = CloseTabButton(self)
@@ -58,6 +51,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         app, connect = QApplication.instance(), self.connect
         connect(app, Signals.sessionItemSelected, self.showTab)
         connect(app, Signals.sessionItemActivated, self.newTab)
+        connect(app, Signals.openUrl, self.newBrowserTab)
         connect(self.closeTabButton, Signals.clicked, self.closeTab)
         connect(self.detachTabButton, Signals.clicked, self.detachTab)
         self.requestSession()
@@ -103,22 +97,25 @@ class CentralTabs(QTabWidget, SessionHandler):
                 logging.debug(message, exc, name)
 
     def newBrowserTab(self, itemData):
-        from profit.lib.widgets.webbrowser import WebBrowserDisplay
-        try:
-            url, title, icon = itemData.toPyObject()
-        except (AttributeError, ):
-            url, title, icon = itemData
-        widget = WebBrowserDisplay(self)
-        index = self.addTab(widget, title)
-        widget.basicConfig(url)
-        self.setCurrentIndex(index)
-        self.connect(widget, Signals.loadFinished,
-                     partial(self.setWebTab, browser=widget))
-        self.setTabText(index, title)
-        self.setTabIcon(index, icon)
+        """ slot for creating a new web browser tab
 
-    def newSymbolTab(self, item, index=None, symbol=None, tickerId=None,
-                     icon=None, *args):
+        """
+        from profit.lib.widgets.webbrowser import WebBrowserDisplay
+        url, title = itemData.data().toString(), itemData.toolTip()
+        widget = WebBrowserDisplay(self)
+        widget.basicConfig(url)
+        index = self.addTab(widget, title)
+        self.setCurrentIndex(index)
+        self.setTabText(index, title)
+        self.setTabIcon(index, QIcon(":/images/icons/www.png"))
+        def handle(status):
+            self.setBrowserTab(status, widget)
+        self.connect(widget, Signals.loadFinished, handle)
+
+    def newSymbolTab(self, item, index=None, symbol=None, tickerId=None, icon=None, *args):
+        """ slot for creating a new symbol display tab
+
+        """
         from profit.workbench.tickerplotdisplay import TickerPlotDisplay
         if item is not None:
             symbol = str(item.text())
@@ -131,6 +128,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.setTabIcon(index, icon)
         self.setCurrentIndex(index)
 
+    ## slots for various session displays
     newAccountTab = basicTabMethod('accountdisplay.AccountDisplay')
     newCollectorTab = basicTabMethod('collectordisplay.CollectorDisplay')
     newConnectionTab = basicTabMethod('connectiondisplay.ConnectionDisplay')
@@ -140,18 +138,23 @@ class CentralTabs(QTabWidget, SessionHandler):
     newPortfolioTab = basicTabMethod('portfoliodisplay.PortfolioDisplay')
     newStrategyTab = basicTabMethod('strategydisplay.StrategyDisplay')
 
-    def afterNewTickers(self, widget):
-        self.connect(widget, Signals.openUrl, self.newBrowserTab)
-        self.connect(widget, Signals.tickerClicked, self.newSymbolTab)
-    newTickersTab = basicTabMethod('tickerdisplay.TickerDisplay',
-                                   post=afterNewTickers)
+    ## slightly-specialized ticker display handling
+    def postTickerDisplay(self, widget):
+        """ callback for additional setup of a ticker display tab 
 
-    def setWebTab(self, okay, browser):
-        if not okay:
+        """
+        #self.connect(widget, Signals.openUrl, self.newBrowserTab)
+        self.connect(widget, Signals.tickerClicked, self.newSymbolTab)
+    newTickersTab = basicTabMethod('tickerdisplay.TickerDisplay', post=postTickerDisplay)
+
+    def setBrowserTab(self, okay, browser=None):
+        """ slot to reconfigure a tab based on a web browser widget state
+
+        """
+        if not okay or not browser:
             return
         index = self.indexOf(browser)
-        title = str(browser.title())
-        tooltip = title
+        title = tooltip = str(browser.title())
         if len(title) > 13:
             title = title[0:13] + '...'
         self.setTabText(index, title)
@@ -159,6 +162,9 @@ class CentralTabs(QTabWidget, SessionHandler):
 
     @pyqtSignature('')
     def closeTab(self):
+        """ slot that closes the current tab tab
+
+        """
         index = self.currentIndex()
         widget = self.widget(index)
         if widget:
@@ -168,6 +174,9 @@ class CentralTabs(QTabWidget, SessionHandler):
 
     @pyqtSignature('')
     def detachTab(self):
+        """ slot that deatches the current tab and makes it a top-level window
+
+        """
         index = self.currentIndex()
         widget, icon = self.widget(index), self.tabIcon(index)
         text = str(self.tabText(index))

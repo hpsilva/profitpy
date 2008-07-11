@@ -65,8 +65,6 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         connect(self, Signals.sessionCreated, app, Signals.sessionCreated)
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
-        ## todo:  make the top window emit the signals
-        connect(self.sessionDock.widget(), Signals.openUrl, self.centralTabs.newBrowserTab)
         self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
@@ -145,7 +143,20 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionDocumentation_triggered(self):
+        ## TODO: honor external browser setting and use internal
+        ## browser if necessary
         QDesktopServices.openUrl(QUrl(self.documentationUrl))
+
+    @pyqtSignature('')
+    def on_actionHistoricalData_triggered(self):
+        from profit.lib.widgets.historicaldatadialog import HistoricalDataDialog
+        dlg = HistoricalDataDialog(self)
+        if dlg.exec_() != dlg.Accepted:
+            return
+        if self.session.isConnected:
+            params = dlg.keywordParams()
+            self.session.connection.reqHistoricalData(**params)
+
 
     @pyqtSignature('')
     def on_actionExportSession_triggered(self, filename=None):

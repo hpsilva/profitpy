@@ -5,9 +5,9 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QAction, QBrush, QColor, QIcon, QPixmap, QTableWidgetItem
-from PyQt4.QtGui import QMessageBox
+from PyQt4.QtCore import Qt, QUrl, QVariant
+from PyQt4.QtGui import QAction, QBrush, QColor, QDesktopServices, QIcon, QMessageBox
+from PyQt4.QtGui import QPixmap, QTableWidgetItem
 
 from profit.lib.core import Signals, valueAlign
 
@@ -125,3 +125,27 @@ def separator():
     sep = QAction(None)
     sep.setSeparator(True)
     return sep
+
+
+class UrlAction(QAction):
+    def __init__(self, text, url, tooltip=None, parent=None):
+        QAction.__init__(self, text, parent)
+        self.setData(QVariant(url))
+        self.setToolTip(tooltip or text)
+
+
+class UrlRequestor(object):
+    """ Mixin that provides method for initial handling of requests to open a URL.
+
+    Object instances must have a settings member.
+    """
+    def on_urlAction(self, action):
+        url = action.data().toString()
+        settings = self.settings
+        settings.beginGroup(settings.keys.main)
+        useExternal = settings.value(settings.keys.externalbrowser, False).toBool()
+        settings.endGroup()
+        if useExternal:
+            QDesktopServices.openUrl(QUrl(url))
+        else:
+            self.emit(Signals.openUrl, action)

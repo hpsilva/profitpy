@@ -5,8 +5,6 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-import logging
-import sys
 from functools import partial
 from string import Template
 
@@ -14,7 +12,8 @@ from PyQt4.QtCore import Qt, QVariant, pyqtSignature
 from PyQt4.QtGui import (QAction, QApplication, QDesktopServices, QFrame, QIcon, QMenu,
                          QStandardItem, QStandardItemModel)
 
-from profit.lib import defaults
+from profit.lib import defaults, logging
+from profit.lib.gui import UrlAction, UrlRequestor
 from profit.lib.core import SessionHandler
 from profit.lib.core import Settings, Signals, tickerIdRole
 from profit.workbench.widgets.ui_sessiontree import Ui_SessionTree
@@ -91,7 +90,8 @@ class SessionTreeTickerItem(SessionTreeItem):
         actions = [QAction(icon, symbol, None), ]
         actions.extend(self.urlActions(symbol))
         for act in actions:
-            act.setData(data)
+            if not str(act.data().toString()):
+                act.setData(data)
         return actions
         
     def urlActions(self, symbol):
@@ -107,10 +107,7 @@ class SessionTreeTickerItem(SessionTreeItem):
                 url = Template(url).substitute(symbol=symbol)
             except (KeyError, ValueError, ):
                 continue
-            icon = QIcon(':/images/tickers/%s.png' % str(symbol).lower())
-            act = QAction(name+'...', None)
-            act.payload = [url, '%s %s' % (symbol, name), icon]
-            actions.append(act)
+            actions.append(UrlAction(name+'...', url, '%s %s' % (symbol, name)))
         return actions
 
 
@@ -139,7 +136,7 @@ class SessionTreeModel(QStandardItemModel):
                 item.appendRow(subitem)
 
 
-class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
+class SessionTree(QFrame, Ui_SessionTree, SessionHandler, UrlRequestor):
     """ Tree view of a Session object.
 
     """
@@ -150,11 +147,13 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.settings = Settings()
         connect = self.connect
         tree = self.treeView
         tree.header().hide()
         tree.setAnimated(True)
         app = QApplication.instance()
+        connect(self, Signals.openUrl, app, Signals.openUrl)
         connect(tree, Signals.modelClicked, app, Signals.sessionItemSelected)
         connect(tree, Signals.modelDoubleClicked,
                 app, Signals.sessionItemActivated)
@@ -170,22 +169,21 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
         self.dataModel = model = SessionTreeModel(session, self)
         view = self.treeView
         view.setModel(model)
-        if sys.argv[1:]:
-            return
-        settings = Settings()
-        settings.beginGroup(settings.keys.main)
-        tabstate = settings.valueLoad(settings.keys.ctabstate, [])
-        settings.endGroup()
-        connection = 'connection'
-        if connection not in tabstate:
-            tabstate.append(connection)
-        for tabname in tabstate:
-            try:
-                item = model.findItems(tabname)[0]
-            except (IndexError, ):
-                pass
-            else:
-                view.emit(Signals.modelClicked, item.index())
+        if not session.messages:
+            settings = self.settings
+            settings.beginGroup(settings.keys.main)
+            tabstate = settings.valueLoad(settings.keys.ctabstate, [])
+            settings.endGroup()
+            connection = 'connection'
+            if connection not in tabstate:
+                tabstate.append(connection)
+            for tabname in tabstate:
+                try:
+                    item = model.findItems(tabname)[0]
+                except (IndexError, ):
+                    pass
+                else:
+                    view.emit(Signals.modelClicked, item.index())
 
     def contextMenuEvent(self, event):
         pos = event.pos()
@@ -195,19 +193,7 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler):
             actions = item.contextActions(index)
             if actions:
                 for act in actions:
-                    if hasattr(act, 'payload'):
-                        self.connect(act, Signals.triggered, partial(self.on_actionUrl, action=act))
+                    if isinstance(act, UrlAction):
+                        self.connect(act, Signals.triggered, partial(self.on_urlAction, action=act))
                 QMenu.exec_(actions, self.treeView.viewport().mapToGlobal(pos))
             event.accept()
-
-    @pyqtSignature('')
-    def on_actionUrl(self, action):
-        url, symbol, icon = action.payload
-        settings = Settings()
-        settings.beginGroup(settings.keys.main)
-        useExternal = settings.value(settings.keys.externalbrowser, False).toBool()
-        settings.endGroup()
-        if useExternal:
-            QDesktopServices.openUrl(QUrl(url))
-        else:
-            self.emit(Signals.openUrl, action.payload)

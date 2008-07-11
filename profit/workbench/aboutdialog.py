@@ -13,7 +13,7 @@ from profit.workbench.widgets.ui_aboutdialog import Ui_AboutDialog
 
 aboutText = """Profit Workbench, part of ProfitPy
 
-(c) 2003-2007, Troy Melhase
+(c) 2003-2008, Troy Melhase
 """
 
 

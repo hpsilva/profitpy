@@ -315,5 +315,21 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>webView</sender>
+   <signal>titleChanged(QString)</signal>
+   <receiver>WebBrowserDisplay</receiver>
+   <slot>setWindowTitle(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>417</x>
+     <y>383</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>417</x>
+     <y>368</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>
