@@ -143,7 +143,7 @@ class UrlRequestor(object):
         url = action.data().toString()
         settings = self.settings
         settings.beginGroup(settings.keys.main)
-        useExternal = settings.value(settings.keys.externalbrowser, False).toBool()
+        useExternal = settings.value('useSystemBrowser', False).toBool()
         settings.endGroup()
         if useExternal:
             QDesktopServices.openUrl(QUrl(url))

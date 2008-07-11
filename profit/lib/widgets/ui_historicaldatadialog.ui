@@ -22,6 +22,72 @@
       <bool>true</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout" >
+      <item row="2" column="1" >
+       <widget class="QComboBox" name="secType" >
+        <item>
+         <property name="text" >
+          <string>STK</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>OPT</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>FUT</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="label_2" >
+        <property name="text" >
+         <string>Security Type:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="label_3" >
+        <property name="text" >
+         <string>Symbol:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" >
+       <widget class="QLineEdit" name="symbolName" >
+        <property name="alignment" >
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" >
+       <widget class="QComboBox" name="exchangeName" >
+        <item>
+         <property name="text" >
+          <string>SMART</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>NASDAQ</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>NYSE</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="0" >
+       <widget class="QLabel" name="label_4" >
+        <property name="text" >
+         <string>Exchange:</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0" >
        <widget class="QLabel" name="label" >
         <property name="text" >
@@ -48,72 +114,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0" >
-       <widget class="QLabel" name="label_3" >
-        <property name="text" >
-         <string>Symbol:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" >
-       <widget class="QLineEdit" name="symbolName" >
-        <property name="alignment" >
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" >
-       <widget class="QLabel" name="label_2" >
-        <property name="text" >
-         <string>Security Type:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" >
-       <widget class="QComboBox" name="secType" >
-        <item>
-         <property name="text" >
-          <string>STK</string>
-         </property>
-        </item>
-        <item>
-         <property name="text" >
-          <string>OPT</string>
-         </property>
-        </item>
-        <item>
-         <property name="text" >
-          <string>FUT</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="3" column="0" >
-       <widget class="QLabel" name="label_4" >
-        <property name="text" >
-         <string>Exchange:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" >
-       <widget class="QComboBox" name="exchangeName" >
-        <item>
-         <property name="text" >
-          <string>SMART</string>
-         </property>
-        </item>
-        <item>
-         <property name="text" >
-          <string>NASDAQ</string>
-         </property>
-        </item>
-        <item>
-         <property name="text" >
-          <string>NYSE</string>
-         </property>
-        </item>
-       </widget>
-      </item>
      </layout>
      <zorder>secType</zorder>
      <zorder>label_2</zorder>
@@ -121,10 +121,8 @@
      <zorder>symbolName</zorder>
      <zorder>exchangeName</zorder>
      <zorder>label_4</zorder>
-     <zorder></zorder>
      <zorder>label</zorder>
      <zorder>tickId</zorder>
-     <zorder>verticalSpacer</zorder>
     </widget>
    </item>
    <item>
@@ -400,7 +398,7 @@
         </item>
         <item>
          <property name="text" >
-          <string>Bid/Ask</string>
+          <string>Bid_Ask</string>
          </property>
         </item>
        </widget>

@@ -82,8 +82,8 @@ class CentralTabs(QTabWidget, SessionHandler):
         icon = QIcon(index.data(Qt.DecorationRole))
         tickerId, tickerIdValid = index.data(tickerIdRole).toInt()
         ## why do we have to switch on the type of session tree item?
-        ## can't we direct let the session item determine what method
-        ## we call and how??
+        ## can't we let the session item determine what method we call
+        ## and how??
         if tickerIdValid:
             self.newSymbolTab(None, symbol=name, tickerId=tickerId, icon=icon)
         else:
@@ -101,7 +101,10 @@ class CentralTabs(QTabWidget, SessionHandler):
 
         """
         from profit.lib.widgets.webbrowser import WebBrowserDisplay
-        url, title = itemData.data().toString(), itemData.toolTip()
+        if hasattr(itemData, 'toolTip'):
+            url, title = itemData.data().toString(), itemData.toolTip()
+        else:
+            url, title = itemData, ''
         widget = WebBrowserDisplay(self)
         widget.basicConfig(url)
         index = self.addTab(widget, title)
@@ -133,6 +136,7 @@ class CentralTabs(QTabWidget, SessionHandler):
     newCollectorTab = basicTabMethod('collectordisplay.CollectorDisplay')
     newConnectionTab = basicTabMethod('connectiondisplay.ConnectionDisplay')
     newExecutionsTab = basicTabMethod('executionsdisplay.ExecutionsDisplay')
+    newHistorical_DataTab = basicTabMethod('historicaldatadisplay.HistoricalDataDisplay')
     newMessagesTab = basicTabMethod('messagedisplay.MessageDisplay')
     newOrdersTab = basicTabMethod('orderdisplay.OrderDisplay')
     newPortfolioTab = basicTabMethod('portfoliodisplay.PortfolioDisplay')

@@ -43,6 +43,7 @@ processEvents = QApplication.processEvents
 class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     documentationUrl = \
         'http://code.google.com/p/profitpy/w/list?q=label:Documentation'
+    homeUrl = 'http://code.google.com/p/profitpy/'
     iconName = ':images/icons/blockdevice.png'
     maxRecentSessions = 5
 
@@ -62,13 +63,13 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         connect = self.connect
         connect(app, Signals.sessionRequest, sessreq)
         connect(app, Signals.lastWindowClosed, self.writeSettings)
+        connect(self, Signals.openUrl, app, Signals.openUrl)
         connect(self, Signals.sessionCreated, app, Signals.sessionCreated)
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
         self.createSession()
         if len(argv) > 1:
             self.on_actionOpenSession_triggered(filename=argv[1])
-
 
     def checkClose(self):
         check = True
@@ -143,9 +144,11 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionDocumentation_triggered(self):
-        ## TODO: honor external browser setting and use internal
-        ## browser if necessary
-        QDesktopServices.openUrl(QUrl(self.documentationUrl))
+        self.emit(Signals.openUrl, self.documentationUrl)
+
+    @pyqtSignature('')
+    def on_actionProfitPyHome_triggered(self):
+        self.emit(Signals.openUrl, self.homeUrl)
 
     @pyqtSignature('')
     def on_actionHistoricalData_triggered(self):
@@ -154,9 +157,8 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         if dlg.exec_() != dlg.Accepted:
             return
         if self.session.isConnected:
-            params = dlg.keywordParams()
-            self.session.connection.reqHistoricalData(**params)
-
+            params = dlg.historicalRequestParameters()
+            self.session.requestHistoricalData(params)
 
     @pyqtSignature('')
     def on_actionExportSession_triggered(self, filename=None):
@@ -376,12 +378,8 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         bottom = Qt.BottomDockWidgetArea
         tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
-        #self.strategyDock = Dock('Strategy', self, StrategyTree)
         self.collectorDock = Dock('Collector', self, CollectorDisplay)
-
         tabify(self.sessionDock, self.collectorDock) # self.strategyDock)
-        #tabify(self.sessionDock, self.)
-
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
         makeShell = partial(

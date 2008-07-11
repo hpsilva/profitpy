@@ -44,8 +44,11 @@ class Signals:
     doubleValueChanged = SIGNAL('valueChanged(double)')
     enableCurve = SIGNAL('enableCurve')
     finished = SIGNAL('finished()')
-    finishedHistoricalData = SIGNAL('finishedHistoricalData')
+
     highlightSelections = SIGNAL('highlightSelections')
+    historicalDataStart = SIGNAL('historicalDataStart')
+    historicalDataFinish = SIGNAL('historicalDataFinish')
+
     iconChanged = SIGNAL('iconChanged()')
     intValueChanged = SIGNAL('valueChanged(int)')
     itemChanged = SIGNAL('itemChanged(QStandardItem *)')

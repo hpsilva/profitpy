@@ -5,6 +5,8 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
+from time import localtime, strftime
+
 from PyQt4.QtGui import QDialog
 
 from ib.ext.Contract import Contract
@@ -18,16 +20,8 @@ def nextTickerId():
 
 
 class HistoricalDataDialog(QDialog, Ui_HistoricalDataDialog):
-    dateTypeMap = {
-        'Strings':1,
-        'Integers':2,
-    }
-
-    rthMap = {
-        True:1,
-        False:0,
-    }
-
+    dateTypeMap = {'Strings':1, 'Integers':2, }
+    rthMap = {True:1, False:0, }
     keywords = [
         'tickerId',
         'contract',
@@ -42,22 +36,25 @@ class HistoricalDataDialog(QDialog, Ui_HistoricalDataDialog):
     def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.setupUi(self)
-        assert hasattr(self, 'useRTH')
 
-    def keywordParams(self):
+    def historicalRequestParameters(self):
+        """ Returns a map suitable for a TWS historical data request.
+
+        The map keys are the same as arguments to reqHistoricalData,
+        and the values are read and converted where required.
+        """
         params = dict.fromkeys(self.keywords, '')
         for name in self.keywords:
-            params[name] = getattr(self, name)
+            params[name] = getattr(self, name)()
         return params
 
-    @property
     def tickerId(self):
+        ## its not even a tickerId!
         tid = self.tickId.value()
         if tid == -1:
             tid = nextTickerId()
         return tid
 
-    @property
     def contract(self):
         symbol = self.symbolName.text()
         security = self.secType.currentText()
@@ -68,30 +65,24 @@ class HistoricalDataDialog(QDialog, Ui_HistoricalDataDialog):
         contract.m_exchange = str(exchange)
         return contract
 
-    @property
     def endDateTime(self):
-        ## wtf to do with tz ??
-        value = self.startDate.dateTime().toPyDateTime().strftime("%Y%m%d %H:%M:%S EST")
-        return value
+        edt = self.startDate.dateTime().toPyDateTime()
+        fmt = "%Y%m%d %H:%M:%S" # + strftime("%Z", localtime())
+        return edt.strftime(fmt)
 
-    @property
     def durationStr(self):
         dvalue = self.durationValue.value()
         dtype = str(self.durationType.currentText())[0]
         return '%s %s' % (dvalue, dtype, )
 
-    @property
     def barSizeSetting(self):
         return str(self.barSize.currentText())
 
-    @property
     def whatToShow(self):
         return str(self.showType.currentText()).upper()
 
-    @property
     def useRTH(self):
         return self.rthMap[bool(self.rthYes.isChecked())]
 
-    @property
     def formatDate(self):
         return self.dateTypeMap[str(self.dateType.currentText())]

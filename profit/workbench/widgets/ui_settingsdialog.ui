@@ -13,7 +13,7 @@
    <string>Profit Workbench Settings</string>
   </property>
   <property name="windowIcon" >
-   <iconset>
+   <iconset resource="../../lib/widgets/profit.qrc" >
     <normaloff>:/images/icons/blockdevice.png</normaloff>:/images/icons/blockdevice.png</iconset>
   </property>
   <layout class="QVBoxLayout" >
@@ -76,7 +76,7 @@
         <string>General</string>
        </property>
        <property name="icon" >
-        <iconset>
+        <iconset resource="../../lib/widgets/profit.qrc" >
          <normaloff>:/images/icons/kcontrol.png</normaloff>:/images/icons/kcontrol.png</iconset>
        </property>
       </item>
@@ -85,7 +85,7 @@
         <string>Startup</string>
        </property>
        <property name="icon" >
-        <iconset>
+        <iconset resource="../../lib/widgets/profit.qrc" >
          <normaloff>:/images/icons/source_py.png</normaloff>:/images/icons/source_py.png</iconset>
        </property>
       </item>
@@ -94,7 +94,7 @@
         <string>Appearance</string>
        </property>
        <property name="icon" >
-        <iconset>
+        <iconset resource="../../lib/widgets/profit.qrc" >
          <normaloff>:/images/icons/looknfeel.png</normaloff>:/images/icons/looknfeel.png</iconset>
        </property>
       </item>
@@ -103,7 +103,7 @@
         <string>URLs</string>
        </property>
        <property name="icon" >
-        <iconset>
+        <iconset resource="../../lib/widgets/profit.qrc" >
          <normaloff>:/images/icons/www.png</normaloff>:/images/icons/www.png</iconset>
        </property>
       </item>
@@ -201,6 +201,13 @@ p, li { white-space: pre-wrap; }
            <property name="margin" >
             <number>9</number>
            </property>
+           <item>
+            <widget class="QCheckBox" name="useSystemBrowser" >
+             <property name="text" >
+              <string>Use system web browser</string>
+             </property>
+            </widget>
+           </item>
            <item>
             <widget class="QCheckBox" name="useSystemTrayIcon" >
              <property name="text" >
@@ -610,7 +617,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset>
+                  <iconset resource="../../lib/widgets/profit.qrc" >
                    <normaloff>:/images/icons/edit_add.png</normaloff>:/images/icons/edit_add.png</iconset>
                  </property>
                 </widget>
@@ -624,7 +631,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset>
+                  <iconset resource="../../lib/widgets/profit.qrc" >
                    <normaloff>:/images/icons/edit_remove.png</normaloff>:/images/icons/edit_remove.png</iconset>
                  </property>
                 </widget>
@@ -638,7 +645,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset>
+                  <iconset resource="../../lib/widgets/profit.qrc" >
                    <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
                  </property>
                 </widget>
@@ -652,7 +659,7 @@ p, li { white-space: pre-wrap; }
                   <string/>
                  </property>
                  <property name="icon" >
-                  <iconset>
+                  <iconset resource="../../lib/widgets/profit.qrc" >
                    <normaloff>:/images/icons/down.png</normaloff>:/images/icons/down.png</iconset>
                  </property>
                 </widget>
@@ -749,7 +756,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>decreaseColor</tabstop>
  </tabstops>
  <resources>
-  <include location="profit.qrc" />
+  <include location="../../lib/widgets/profit.qrc" />
  </resources>
  <connections>
   <connection>

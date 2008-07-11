@@ -26,6 +26,7 @@ class SessionTreeItem(QStandardItem):
     iconNameMap = {
         'account':'identity',
         'connection':'server',
+        'historical data':'log',
         'messages':'view_text',
         'orders':'klipper_dock',
         'portfolio':'bookcase',
@@ -93,7 +94,7 @@ class SessionTreeTickerItem(SessionTreeItem):
             if not str(act.data().toString()):
                 act.setData(data)
         return actions
-        
+
     def urlActions(self, symbol):
         actions = []
         settings = Settings()

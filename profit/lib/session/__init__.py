@@ -11,6 +11,7 @@ import logging
 
 from cPickle import PicklingError, UnpicklingError, dump, load
 from itertools import ifilter
+from random import randint
 from time import time, strftime
 from Queue import Queue
 
@@ -48,28 +49,28 @@ class Session(QObject):
         self.strategy = strategy if strategy else SessionStrategyBuilder()
         self.connection = self.sessionFile = self.nextId = None
         self.messages = []
+        self.bareMessages = []
         self.savedLength = 0
         self.typedMessages = {}
-        self.bareMessages = []
         self.accountCollection = ac = AccountCollection(self)
         self.tickerCollection = tc = TickerCollection(self)
-        self.histdataQueue = Queue()
-        self.historicalCollection = hc = HistoricalDataCollection(self, self.histdataQueue)
-
+        self.historicalDataCollection = hc = HistoricalDataCollection(self)
         connect = self.connect
         connect(ac, Signals.createdAccountData, self, Signals.createdAccountData)
         connect(tc, Signals.createdSeries, self, Signals.createdSeries)
         connect(tc, Signals.createdTicker, self, Signals.createdTicker)
 
     def __str__(self):
-        return '<Session 0x%x (messages=%s connected=%s)>' % \
-               (id(self), len(self.messages), self.isConnected)
+        fmt = '<Session 0x%x messages:%s connected:%s>'
+        args = id(self), len(self.messages), int(self.isConnected)
+        return  fmt % args
 
     def items(self):
         return [
             ('account', ()),
             ('connection', ()),
             ('executions', ()),
+            ('historical data', ()),
             ('messages', ()),
             ('orders', ()),
             ('portfolio', ()),
@@ -136,6 +137,8 @@ class Session(QObject):
 
 
     def connectTWS(self, hostName, portNo, clientId, enableLogging=False):
+        if clientId == -1:
+            clientId = randint(100, 999)
         self.connection = con = ibConnection(hostName, portNo, clientId)
         con.enableLogging(enableLogging)
         con.connect()
@@ -143,7 +146,6 @@ class Session(QObject):
         con.register(self.on_nextValidId, 'NextValidId')
         self.emit(Signals.connectedTWS)
         con.register(self.on_error, 'Error')
-        self.historicalCollection.start()
 
     def on_nextValidId(self, message):
         self.nextId = int(message.orderId)
@@ -167,6 +169,7 @@ class Session(QObject):
 
     def requestTickers(self):
         connection = self.connection
+        ## need to make this lazy
         for sym, tid in self.strategy.symbols().items():
             contract = self.strategy.contract(sym)
             connection.reqMktData(tid, contract, '', False)
@@ -182,8 +185,9 @@ class Session(QObject):
         connection.reqAllOpenOrders()
         connection.reqOpenOrders()
 
-    def requestHistoricalData(self, reqId, sym):
-        self.historicalCollection.put((sym, reqId))
+    def requestHistoricalData(self, params):
+        ## we should msg the object instead
+        self.historicalDataCollection.begin(params)
 
     def testContract(self, symbol='AAPL'):
         orderid = self.nextId

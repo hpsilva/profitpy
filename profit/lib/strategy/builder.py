@@ -83,9 +83,9 @@ class SessionStrategyBuilder(object):
             v.addIndex('EMA-5', EMA, v, 5)
         return s
 
-    def historal_series(self, tickerId, field):
+    def historicalSeries(self, tickerId, field):
         s = Series()
-        if field in ["date", "hasGaps"]:
+        if field in ['date', 'hasGaps']:
             return s
         elif EMA and KAMA:
             s.addIndex('EMA-20', EMA, s, 20)

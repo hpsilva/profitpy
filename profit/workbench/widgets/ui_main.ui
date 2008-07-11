@@ -13,9 +13,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>43</y>
+     <y>61</y>
      <width>1024</width>
-     <height>706</height>
+     <height>685</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" >
@@ -40,7 +40,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>19</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menEdit" >
@@ -57,6 +57,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionDocumentation" />
+    <addaction name="actionProfitPyHome" />
     <addaction name="actionAboutProfitWorkbench" />
     <addaction name="actionAboutQt" />
    </widget>
@@ -106,9 +107,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>749</y>
+     <y>746</y>
      <width>1024</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
@@ -116,9 +117,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>19</y>
-     <width>434</width>
-     <height>24</height>
+     <y>29</y>
+     <width>565</width>
+     <height>32</height>
     </rect>
    </property>
    <property name="windowTitle" >
@@ -145,10 +146,10 @@
   <widget class="QToolBar" name="editToolbar" >
    <property name="geometry" >
     <rect>
-     <x>434</x>
-     <y>19</y>
-     <width>590</width>
-     <height>24</height>
+     <x>565</x>
+     <y>29</y>
+     <width>459</width>
+     <height>32</height>
     </rect>
    </property>
    <property name="windowTitle" >
@@ -306,6 +307,11 @@
   <action name="actionHistoricalData" >
    <property name="text" >
     <string>Historical Data...</string>
+   </property>
+  </action>
+  <action name="actionProfitPyHome" >
+   <property name="text" >
+    <string>ProfitPy Web Site...</string>
    </property>
   </action>
  </widget>

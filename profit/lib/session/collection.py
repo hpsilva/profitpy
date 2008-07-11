@@ -19,6 +19,7 @@ class DataCollection(QObject):
         QObject.__init__(self)
         self.session = session
         self.data = {}
+        session.registerMeta(self)
 
     def __contains__(self, item):
         return item in self.data
@@ -29,12 +30,16 @@ class DataCollection(QObject):
     def __setitem__(self, name, value):
         self.data[name] = value
 
+    def keys(self):
+        return self.data.keys()
+
+    def setdefault(self, key, default):
+        return self.data.setdefault(key, default)
 
 class AccountCollection(DataCollection):
     def __init__(self, session):
         DataCollection.__init__(self, session)
         self.last = {}
-        session.registerMeta(self)
 
     def on_session_UpdateAccountValue(self, message):
         key = (message.key, message.currency, message.accountName)
@@ -61,9 +66,9 @@ class AccountCollection(DataCollection):
 class TickerCollection(DataCollection):
     def __init__(self, session):
         DataCollection.__init__(self, session)
+        ## have to make the strategy symbols lazy somehow
         for tid in session.strategy.symbols().values():
             self[tid] = session.strategy.ticker(tid)
-        session.registerMeta(self)
 
     def on_session_TickPrice_TickSize(self, message):
         tickerId = message.tickerId
@@ -87,85 +92,26 @@ class TickerCollection(DataCollection):
         seq.append(value)
 
 
-class HistoricalDataCollection(QThread, DataCollection):
-    # "date" has to be the 1st in the list so that data has the same length
-    # this class check "date" to determine if data are finished.
-    fields = [
-        (int, "date"),
-        (float, "open"),
-        (float, "high"),
-        (float, "low"),
-        (float, "close"),
-        (int,   "volume"),
-        (int,   "count"),
-        (float, "WAP"),
-        (bool,  "hasGaps"),
-    ]
+def historyMessages(reqId, msgs):
+    return (m for m in msgs
+            if m[1].reqId==reqId
+            and not m[1].date.startswith('finished'))
 
-    def __init__(self, session, requestQueue, savedir='./histdata/'):
-        QThread.__init__(self, session)
+
+class HistoricalDataCollection(DataCollection):
+    def __init__(self, session):
         DataCollection.__init__(self, session)
-        self.idsym = {}
-        self.requestQueue = requestQueue
-        self.savedir = savedir
-        ##session.registerMeta(self)
-        self.session = session
-
-    def run(self):
-        self.requestNext()
 
     def on_session_HistoricalData(self, message):
-        reqId = message.reqId
-        try:
-            tickerdata = self.data[reqId]
-        except (KeyError, ):
-            tickerdata = self.data[reqId] = \
-                         self.session.strategy.ticker(reqId)
-            self.emit(Signals.createdTicker, reqId, tickerdata)
+        if message.date.startswith('finished'):
+            reqId = message.reqId
+            reqData = self.setdefault(reqId, {})
+            histMsgs = self.session.typedMessages['HistoricalData']
+            reqData['messages'] = historyMessages(reqId, histMsgs)
+            self.emit(Signals.historicalDataFinish, reqId)
 
-        for format, name in self.fields:
-            try:
-                value = format(getattr(message, name))
-            except (ValueError,):
-                #if name=="date" and value.startswith("finished"):
-                self.save(reqId)
-                self.emit(Signals.finishedHistoricalData, reqId)
-                self.requestNext()
-                return
-            try:
-                seq = tickerdata.series[name]
-            except (KeyError, ):
-                seq = tickerdata.series[name] = \
-                      self.session.strategy.historal_series(reqId, name)
-                self.emit(Signals.createdSeries, reqId, name)
-            seq.append(value)
-
-    def requestNext(self):
-        sym, reqId = self.requestQueue.get()
-        self.requestHistoricalData(reqId, sym.upper())
-
-    def requestHistoricalData(self, id, symbol):
-        #sess = self.parent()  # not working?
-        sess = self.session
-        connection = sess.connection
-        contract = sess.strategy.contract(symbol)
-        histparams = sess.strategy.paramsHistoricalData()
-        sess.connection.reqHistoricalData(id, contract, **histparams)
-        self.idsym[id] = symbol
-        self.emit(Signals.requestedHistoricalData, id, symbol)
-        logging.debug("requested for (%s, %d, %r)" % (symbol, id, histparams))
-
-    def save(self, reqId):
-        try:
-            data = self.data[reqId]
-            symbol = self.idsym[reqId]
-        except (IndexError, KeyError, ):
-            return
-        fpath = os.path.join(self.savedir, symbol[0])
-        try:
-            os.makedirs(fpath)
-        except:
-            pass
-        fname = os.path.join(fpath, symbol)
-        dump(data, open(fname, "wb"), protocol=-1)
-
+    def begin(self, params):
+        reqId = params['tickerId']
+        reqData = self.setdefault(reqId, {})
+        reqData.update(params)
+        self.session.connection.reqHistoricalData(**reqData)
