@@ -115,14 +115,6 @@
        </widget>
       </item>
      </layout>
-     <zorder>secType</zorder>
-     <zorder>label_2</zorder>
-     <zorder>label_3</zorder>
-     <zorder>symbolName</zorder>
-     <zorder>exchangeName</zorder>
-     <zorder>label_4</zorder>
-     <zorder>label</zorder>
-     <zorder>tickId</zorder>
     </widget>
    </item>
    <item>
@@ -458,6 +450,22 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tickId</tabstop>
+  <tabstop>symbolName</tabstop>
+  <tabstop>secType</tabstop>
+  <tabstop>exchangeName</tabstop>
+  <tabstop>startDate</tabstop>
+  <tabstop>durationValue</tabstop>
+  <tabstop>durationType</tabstop>
+  <tabstop>barSize</tabstop>
+  <tabstop>rthYes</tabstop>
+  <tabstop>rthNo</tabstop>
+  <tabstop>showType</tabstop>
+  <tabstop>dateType</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
+ <includes/>
  <resources/>
  <connections>
   <connection>

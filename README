@@ -19,5 +19,4 @@
 
 9.  fix zoom bugs
 
-10.  add "use external browser" setting to settings dialog; ref tickerdisplay.py for use
-
+10.  add message detail dialog; use on double click message list item

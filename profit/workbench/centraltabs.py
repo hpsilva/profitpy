@@ -142,12 +142,10 @@ class CentralTabs(QTabWidget, SessionHandler):
     newPortfolioTab = basicTabMethod('portfoliodisplay.PortfolioDisplay')
     newStrategyTab = basicTabMethod('strategydisplay.StrategyDisplay')
 
-    ## slightly-specialized ticker display handling
     def postTickerDisplay(self, widget):
         """ callback for additional setup of a ticker display tab 
 
         """
-        #self.connect(widget, Signals.openUrl, self.newBrowserTab)
         self.connect(widget, Signals.tickerClicked, self.newSymbolTab)
     newTickersTab = basicTabMethod('tickerdisplay.TickerDisplay', post=postTickerDisplay)
 

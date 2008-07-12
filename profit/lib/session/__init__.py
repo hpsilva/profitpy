@@ -135,10 +135,11 @@ class Session(QObject):
             for key in keys:
                 self.deregister(getattr(instance, name), key)
 
-
     def connectTWS(self, hostName, portNo, clientId, enableLogging=False):
         if clientId == -1:
             clientId = randint(100, 999)
+        if portNo == 1023:
+            portNo = 7496
         self.connection = con = ibConnection(hostName, portNo, clientId)
         con.enableLogging(enableLogging)
         con.connect()
