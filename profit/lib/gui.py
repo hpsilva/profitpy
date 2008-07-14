@@ -148,4 +148,5 @@ class UrlRequestor(object):
         if useExternal:
             QDesktopServices.openUrl(QUrl(url))
         else:
-            self.emit(Signals.openUrl, action)
+            value = QVariant(url)
+            self.emit(Signals.openUrl, value) #action)

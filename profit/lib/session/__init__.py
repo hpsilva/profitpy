@@ -59,6 +59,10 @@ class Session(QObject):
         connect(ac, Signals.createdAccountData, self, Signals.createdAccountData)
         connect(tc, Signals.createdSeries, self, Signals.createdSeries)
         connect(tc, Signals.createdTicker, self, Signals.createdTicker)
+        connect(hc, Signals.historicalDataStart,
+                self, Signals.historicalDataStart)
+        connect(hc, Signals.historicalDataFinish,
+                self, Signals.historicalDataFinish)
 
     def __str__(self):
         fmt = '<Session 0x%x messages:%s connected:%s>'

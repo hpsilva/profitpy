@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythno
 # -*- coding: utf-8 -*-
 
 # Copyright 2007 Troy Melhase
@@ -9,33 +9,35 @@ from functools import partial
 from string import Template
 
 from PyQt4.QtCore import Qt, QVariant, pyqtSignature
-from PyQt4.QtGui import (QAction, QApplication, QDesktopServices, QFrame, QIcon, QMenu,
-                         QStandardItem, QStandardItemModel)
+from PyQt4.QtGui import (QAction, QApplication, QDesktopServices,
+                         QFrame, QIcon, QMenu, QStandardItem,
+                         QStandardItemModel)
 
 from profit.lib import defaults, logging
 from profit.lib.gui import UrlAction, UrlRequestor
-from profit.lib.core import SessionHandler
-from profit.lib.core import Settings, Signals, tickerIdRole
+from profit.lib.core import SessionHandler, SettingsHandler
+from profit.lib.core import Settings, Signals, DataRoles
 from profit.workbench.widgets.ui_sessiontree import Ui_SessionTree
+
+
+iconNameMap = {
+    'account':'identity',
+    'connection':'server',
+    'historical data':'log',
+    'messages':'view_text',
+    'orders':'klipper_dock',
+    'portfolio':'bookcase',
+    'strategy':'services',
+    'tickers':'view_detailed',
+}
 
 
 class SessionTreeItem(QStandardItem):
     """ Session tree item.
 
     """
-    iconNameMap = {
-        'account':'identity',
-        'connection':'server',
-        'historical data':'log',
-        'messages':'view_text',
-        'orders':'klipper_dock',
-        'portfolio':'bookcase',
-        'strategy':'services',
-        'tickers':'view_detailed',
-    }
-
     def __init__(self, text):
-        """ Constructor.
+        """ Initializer.
 
         @param text value for item display
         """
@@ -53,7 +55,7 @@ class SessionTreeItem(QStandardItem):
         @return QIcon instance
         """
         try:
-            name = self.iconNameMap[key]
+            name = iconNameMap[key]
             icon = QIcon(':images/icons/%s.png' % name)
         except (KeyError, ):
             style = QApplication.style()
@@ -61,20 +63,23 @@ class SessionTreeItem(QStandardItem):
         return icon
 
     def contextActions(self, index):
-        return None
+        """ Sequence of context menu actions for this tree item.
+
+        """
+        return []
 
 
 class SessionTreeTickerItem(SessionTreeItem):
     """ Specalized session tree item for ticker symbols.
 
     """
-    def lookupIcon(self, key):
-        """ Locates icon for given key.
+    def lookupIcon(self, symbol):
+        """ Locates icon for given symbol.
 
-        @param key ticker symbol
+        @param symbol ticker symbol
         @return QIcon instance
         """
-        return QIcon(':images/tickers/%s.png' % key.lower())
+        return QIcon(':images/tickers/%s.png' % symbol.lower())
 
     def setTickerId(self, tickerId):
         """ Sets item data for ticker id.
@@ -82,26 +87,29 @@ class SessionTreeTickerItem(SessionTreeItem):
         @param tickerId id for ticker as integer
         @return None
         """
-        self.setData(QVariant(tickerId), tickerIdRole)
+        self.setData(QVariant(tickerId), DataRoles.tickerId)
 
     def contextActions(self, index):
+        """ Sequence of actions for this tree item.
+
+        """
         data = index.data()
         symbol = data.toString()
         icon = QIcon(index.data(Qt.DecorationRole))
         actions = [QAction(icon, symbol, None), ]
-        actions.extend(self.urlActions(symbol))
+        actions += self.urlActions(symbol)
         for act in actions:
             if not str(act.data().toString()):
                 act.setData(data)
         return actions
 
     def urlActions(self, symbol):
-        actions = []
         settings = Settings()
         settings.beginGroup(settings.keys.urls)
         urls = settings.value(settings.keys.tickerurls, defaults.tickerUrls())
         settings.endGroup()
         urls = [str(s) for s in defaults.tickerUrls()]
+        actions = []
         for url in urls: #urls.toStringList():
             try:
                 name, url = str(url).split(':', 1)
@@ -110,6 +118,19 @@ class SessionTreeTickerItem(SessionTreeItem):
                 continue
             actions.append(UrlAction(name+'...', url, '%s %s' % (symbol, name)))
         return actions
+
+
+class SessionTreeHistReqItem(SessionTreeItem):
+    """ Specalized session tree item for historical data requests.
+
+    """
+    def __init__(self, text, reqId, reqData):
+        SessionTreeItem.__init__(self, text)
+        self.reqId = reqId
+        self.reqData = reqData
+
+    def lookupIcon(self, key):
+        return QIcon(':images/icons/log.png')
 
 
 class SessionTreeModel(QStandardItemModel):
@@ -129,6 +150,8 @@ class SessionTreeModel(QStandardItemModel):
             item = SessionTreeItem(key)
             root.appendRow(item)
             for value in values:
+                ## FIXME:  load tickers on demand; shouldn't need
+                ## to switch on item type during tree init
                 if key == 'tickers':
                     subitem = SessionTreeTickerItem(value)
                     subitem.setTickerId(values[value])
@@ -137,28 +160,91 @@ class SessionTreeModel(QStandardItemModel):
                 item.appendRow(subitem)
 
 
-class SessionTree(QFrame, Ui_SessionTree, SessionHandler, UrlRequestor):
+def mkHistDataFormatter(t):
+    def formatter(i, d):
+        args = (i, d['contract'].m_symbol, d['contract'].m_secType, )
+        return t % args
+    return formatter
+formatHistDataStart  = mkHistDataFormatter('request %s (%s/%s) (started)')
+formatHistDataFinish = mkHistDataFormatter('request %s (%s/%s) (finished)')
+formatHistDataError  = mkHistDataFormatter('request %s (%s/%s) (error)')
+
+
+class SessionTree(QFrame, Ui_SessionTree, SessionHandler,
+                  SettingsHandler, UrlRequestor):
     """ Tree view of a Session object.
 
     """
     def __init__(self, parent=None):
-        """ Constructor.
+        """ Initializer.
 
         @param parent ancestor of this widget
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.settings = Settings()
-        connect = self.connect
+        self.histDataReqMap = {}
         tree = self.treeView
         tree.header().hide()
         tree.setAnimated(True)
         app = QApplication.instance()
+        connect = self.connect
         connect(self, Signals.openUrl, app, Signals.openUrl)
-        connect(tree, Signals.modelClicked, app, Signals.sessionItemSelected)
-        connect(tree, Signals.modelDoubleClicked,
+        connect(self, Signals.sessionItemActivated,
                 app, Signals.sessionItemActivated)
         self.requestSession()
+
+    def on_treeView_doubleClicked(self, index):
+        print '### index:', index
+        ## set more data
+        self.emit(Signals.sessionItemActivated, index)
+
+    def histDataItem(self):
+        """ returns the 'historical data' item or None
+
+        """
+        itms = self.treeView.model().findItems('historical data')
+        return itms[0] if itms else None
+
+    def histDataReqItems(self):
+        """ returns the children of thie 'historical data' item or []
+
+        """
+        itm = self.histDataItem()
+        return [itm.child(i) for i in range(itm.rowCount())] if itm else []
+
+    def on_session_Error(self, msg):
+        """ Called when error messages are received; we check for hist
+            data codes in the message.
+        """
+        reqId, errorCode, errorMsg = msg.id, msg.errorCode, msg.errorMsg
+        if reqId in self.histDataReqMap:
+            data, item = self.histDataReqMap[reqId]
+            if errorCode == 162:
+                item.setText(formatHistDataError(reqId, data))
+                item.setIcon(QIcon(':images/icons/stop.png'))
+
+    def on_session_historicalDataStart(self, reqId, reqData):
+        """ Called when a historical data response has started.
+
+        """
+        item = self.histDataItem()
+        if item:
+            newItem = SessionTreeHistReqItem(
+                formatHistDataStart(reqId, reqData),
+                reqId, reqData
+            )
+            item.appendRow(newItem)
+            self.treeView.setExpanded(item.index(), True)
+            self.histDataReqMap[reqId] = (reqData, newItem)
+
+    def on_session_historicalDataFinish(self, reqId):
+        """ Called when a historical data response has finished.
+
+        """
+        if reqId in self.histDataReqMap:
+            data, item = self.histDataReqMap[reqId]
+            item.setText(formatHistDataFinish())
+            item.setIcon(QIcon(':images/icons/services.png'))
 
     def setSession(self, session):
         """ Signal handler called when new Session object is created.
@@ -170,6 +256,7 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler, UrlRequestor):
         self.dataModel = model = SessionTreeModel(session, self)
         view = self.treeView
         view.setModel(model)
+        session.registerMeta(self)
         if not session.messages:
             settings = self.settings
             settings.beginGroup(settings.keys.main)
@@ -184,17 +271,24 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler, UrlRequestor):
                 except (IndexError, ):
                     pass
                 else:
-                    view.emit(Signals.modelClicked, item.index())
+                    view.emit(Signals.modelDoubleClicked, item.index())
 
     def contextMenuEvent(self, event):
+        """ Called when context menu is requested on the tree.
+
+        """
         pos = event.pos()
         index = self.treeView.indexAt(pos)
         item = self.dataModel.itemFromIndex(index)
-        if item:
-            actions = item.contextActions(index)
-            if actions:
-                for act in actions:
-                    if isinstance(act, UrlAction):
-                        self.connect(act, Signals.triggered, partial(self.on_urlAction, action=act))
-                QMenu.exec_(actions, self.treeView.viewport().mapToGlobal(pos))
-            event.accept()
+        if not item:
+            return
+        actions = item.contextActions(index)
+        event.accept()
+        if not actions:
+            return
+        for act in actions:
+            if isinstance(act, UrlAction):
+                handler = partial(self.on_urlAction, action=act)
+                self.connect(act, Signals.triggered, handler)
+        QMenu.exec_(actions, self.treeView.viewport().mapToGlobal(pos))
+

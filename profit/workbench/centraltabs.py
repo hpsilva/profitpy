@@ -12,7 +12,7 @@ from PyQt4.QtCore import QTimer, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QApplication, QIcon, QTabWidget
 
 from profit.lib import importItem, logging
-from profit.lib.core import SessionHandler, Signals, tickerIdRole
+from profit.lib.core import SessionHandler, Signals, DataRoles
 from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
 
 
@@ -42,6 +42,78 @@ class CentralTabs(QTabWidget, SessionHandler):
     """ CentralTabs -> tab widget with special powers
 
     """
+    def create_url_tab(self, item):
+        try:
+            url = str(item.toString())
+            self.newBrowserTab(url)
+            return url
+        except (AttributeError, ):
+            return False
+
+    def create_ticker_plot_tab(self, item):
+        try:
+            tickerId, tickerIdValid = item.data(DataRoles.tickerId).toInt()
+            if tickerIdValid:
+                name = str(item.data().toString())
+                icon = QIcon(item.data(Qt.DecorationRole))
+                self.newSymbolTab(None, symbol=name, tickerId=tickerId, icon=icon)
+                return True
+        except (AttributeError, ):
+            return False
+
+    def create_ticker_tab(self, item):
+        try:
+            if str(item.data().toString()) == 'tickers':
+
+                def post(self, widget):
+                    self.connect(widget, Signals.tickerClicked,
+                                 self.newSymbolTab)
+                newTickersTab = basicTabMethod('tickerdisplay.TickerDisplay',
+                                               post=post)
+                newTickersTab(self, 'tickers')
+                return True
+        except (Exception, ), exc:
+            logging.exception('## Exception %s', exc)
+        return False
+
+    def create_basic_tab(self, item):
+        text = str(item.data().toString())
+        if text.lower() in self.moduleClassMap:
+            method = basicTabMethod(self.moduleClassMap[text])
+            tabIndex = method(self, text)
+            icon = QIcon(item.data(Qt.DecorationRole))
+            self.setCurrentIndex(tabIndex)
+            self.setTabIcon(tabIndex, icon)
+            return True
+
+    moduleClassMap = {
+        'account' : 'accountdisplay.AccountDisplay',
+        'collector' : 'collectordisplay.CollectorDisplay',
+        'connection' : 'connectiondisplay.ConnectionDisplay',
+        'execution' : 'executionsdisplay.ExecutionsDisplay',
+        'historical data' : 'historicaldatadisplay.HistoricalDataDisplay',
+        'messages' : 'messagedisplay.MessageDisplay',
+        'orders' : 'orderdisplay.OrderDisplay',
+        'portfolio' : 'portfoliodisplay.PortfolioDisplay',
+        'strategy' : 'strategydisplay.StrategyDisplay',
+    }
+
+    createHandlers = [
+        create_url_tab,
+        create_ticker_tab,
+        create_ticker_plot_tab,
+        create_basic_tab,
+        ]
+
+    def handleItem(self, item):
+        actual = None
+        for handler in self.createHandlers:
+            if handler(self, item):
+                actual = handler
+                break
+        logging.debug('actual handler: %s', actual)
+
+
     def __init__(self, parent=None):
         QTabWidget.__init__(self, parent)
         self.closeTabButton = CloseTabButton(self)
@@ -49,9 +121,8 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.setCornerWidget(self.closeTabButton, Qt.TopRightCorner)
         self.setCornerWidget(self.detachTabButton, Qt.TopLeftCorner)
         app, connect = QApplication.instance(), self.connect
-        connect(app, Signals.sessionItemSelected, self.showTab)
-        connect(app, Signals.sessionItemActivated, self.newTab)
-        connect(app, Signals.openUrl, self.newBrowserTab)
+        connect(app, Signals.sessionItemActivated, self.handleItem)
+        connect(app, Signals.openUrl, self.handleItem)
         connect(self.closeTabButton, Signals.clicked, self.closeTab)
         connect(self.detachTabButton, Signals.clicked, self.detachTab)
         self.requestSession()
@@ -61,40 +132,6 @@ class CentralTabs(QTabWidget, SessionHandler):
 
         """
         return dict([(self.tabText(i), i) for i in range(self.count())])
-
-    def showTab(self, index):
-        """ shows an existing tab or creates a new one
-
-        """
-        name = index.data().toString()
-        pages = self.pageMap()
-        if name in pages:
-            self.setCurrentIndex(pages[name])
-        else:
-            self.newTab(index)
-
-    def newTab(self, index):
-        """ create a new tab
-
-        """
-        text = name = str(index.data().toString())
-        text = text.replace(' ', '_').lower()
-        icon = QIcon(index.data(Qt.DecorationRole))
-        tickerId, tickerIdValid = index.data(tickerIdRole).toInt()
-        ## why do we have to switch on the type of session tree item?
-        ## can't we let the session item determine what method we call
-        ## and how??
-        if tickerIdValid:
-            self.newSymbolTab(None, symbol=name, tickerId=tickerId, icon=icon)
-        else:
-            try:
-                call = getattr(self, 'new%sTab' % text.title())
-                tabIndex = call(name, index)
-                self.setCurrentIndex(tabIndex)
-                self.setTabIcon(tabIndex, icon)
-            except (Exception, ), exc:
-                message = 'Session item create exception: "%s" name: "%s"'
-                logging.debug(message, exc, name)
 
     def newBrowserTab(self, itemData):
         """ slot for creating a new web browser tab
@@ -111,9 +148,8 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.setCurrentIndex(index)
         self.setTabText(index, title)
         self.setTabIcon(index, QIcon(":/images/icons/www.png"))
-        def handle(status):
-            self.setBrowserTab(status, widget)
-        self.connect(widget, Signals.loadFinished, handle)
+        self.connect(widget, Signals.loadFinished,
+                     partial(self.resetBrowserTab, browser=widget))
 
     def newSymbolTab(self, item, index=None, symbol=None, tickerId=None, icon=None, *args):
         """ slot for creating a new symbol display tab
@@ -131,25 +167,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.setTabIcon(index, icon)
         self.setCurrentIndex(index)
 
-    ## slots for various session displays
-    newAccountTab = basicTabMethod('accountdisplay.AccountDisplay')
-    newCollectorTab = basicTabMethod('collectordisplay.CollectorDisplay')
-    newConnectionTab = basicTabMethod('connectiondisplay.ConnectionDisplay')
-    newExecutionsTab = basicTabMethod('executionsdisplay.ExecutionsDisplay')
-    newHistorical_DataTab = basicTabMethod('historicaldatadisplay.HistoricalDataDisplay')
-    newMessagesTab = basicTabMethod('messagedisplay.MessageDisplay')
-    newOrdersTab = basicTabMethod('orderdisplay.OrderDisplay')
-    newPortfolioTab = basicTabMethod('portfoliodisplay.PortfolioDisplay')
-    newStrategyTab = basicTabMethod('strategydisplay.StrategyDisplay')
-
-    def postTickerDisplay(self, widget):
-        """ callback for additional setup of a ticker display tab 
-
-        """
-        self.connect(widget, Signals.tickerClicked, self.newSymbolTab)
-    newTickersTab = basicTabMethod('tickerdisplay.TickerDisplay', post=postTickerDisplay)
-
-    def setBrowserTab(self, okay, browser=None):
+    def resetBrowserTab(self, okay, browser=None):
         """ slot to reconfigure a tab based on a web browser widget state
 
         """

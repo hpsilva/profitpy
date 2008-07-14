@@ -7,9 +7,12 @@
 from functools import partial
 from time import ctime
 
-from PyQt4.QtCore import QAbstractTableModel, QVariant, Qt, pyqtSignature
-from PyQt4.QtGui import QBrush, QColor, QColorDialog, QIcon, QFrame, QMenu
-from PyQt4.QtGui import QPixmap, QSortFilterProxyModel
+from PyQt4.QtCore import (QAbstractListModel, QAbstractTableModel,
+                          QByteArray, QVariant, Qt, pyqtSignature, )
+
+from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
+                         QMenu, QPixmap, QSortFilterProxyModel,
+                         QTableWidgetItem, )
 
 from ib.opt.message import registry
 
@@ -87,8 +90,8 @@ class MessagesTableModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self, parent)
         self.session = session
         self.brushes = brushes
-        self.messagesview = self.messages = session.messages
-        self.messagetypes = []
+        self.messagesReference = self.messages = session.messages
+        self.messageTypes = []
         session.registerAll(self.on_sessionMessage)
 
     def setPaused(self, paused):
@@ -107,9 +110,12 @@ class MessagesTableModel(QAbstractTableModel):
         @param message message instance
         @return None
         """
-        if message.typeName in self.messagetypes:
-            self.enableTypesFilter(self.messagetypes)
-        self.emit(Signals.layoutChanged)
+        if message.typeName in self.messageTypes:
+            self.enableTypesFilter(self.messageTypes)
+        #self.emit(Signals.layoutChanged)
+
+    def message(self, idx):
+        return self.messagesReference[idx]
 
     def data(self, index, role):
         """ Framework hook to determine data stored at index for given role.
@@ -120,7 +126,7 @@ class MessagesTableModel(QAbstractTableModel):
         """
         if not index.isValid():
             return QVariant()
-        message = self.messagesview[index.row()]
+        message = self.messagesReference[index.row()]
         if role == Qt.ForegroundRole:
             return QVariant(self.brushes[message[1].typeName])
         if role != Qt.DisplayRole:
@@ -150,7 +156,7 @@ class MessagesTableModel(QAbstractTableModel):
         @param parent ignored
         @return number of rows (message count)
         """
-        return len(self.messagesview)
+        return len(self.messagesReference)
 
     def columnCount(self, parent=None):
         """ Framework hook to determine data model column count.
@@ -161,14 +167,14 @@ class MessagesTableModel(QAbstractTableModel):
         return len(self.columnTitles)
 
     def enableTypesFilter(self, types):
-        self.messagetypes = list(types)
-        self.messagesview = list(
+        self.messageTypes = list(types)
+        self.messagesReference = list(
             m for m in self.messages if m[1].typeName in types)
         self.reset()
 
     def disableTypesFilter(self):
-        self.messagetypes = []
-        self.messagesview = self.messages
+        self.messageTypes = []
+        self.messagesReference = self.messages
         self.reset()
 
 
@@ -219,11 +225,19 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         self.setupUi(self)
         self.brushMap = {}
         self.displayTypes = messageTypeNames()
-        self.messageTable.verticalHeader().hide()
+
+        for widget in (self.messageTable, self.messageDetail):
+            widget.verticalHeader().hide()
+            widget.verticalHeader().hide()
+        ## widget is the messageDetail widget
+        horizHeader = widget.horizontalHeader()
+        horizHeader.setResizeMode(horizHeader.ResizeToContents)
+
         self.settings = settings = Settings()
         settings.beginGroup(settings.keys.messages)
         self.setupColorButton()
         self.setupDisplayButton()
+        self.splitter.restoreState(messageSplitterState())
         self.requestSession()
 
     def setupColorButton(self):
@@ -272,10 +286,24 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         """
         self.session = session
         self.messages = session.messages
-        self.model = MessagesTableModel(session, self.brushMap, self)
+        self.model = model = MessagesTableModel(session, self.brushMap, self)
         self.proxyModel = None
-        self.messageTable.setModel(self.model)
-        session.registerAll(self.messageTable, Slots.scrollToBottom)
+        self.messageTable.setModel(model)
+        #session.registerAll(self.messageTable, Slots.scrollToBottom)
+
+    def on_messageTable_clicked(self, index):
+        row = index.row()
+        mtime, msg = index.model().message(row)
+        tbl = self.messageDetail
+        tbl.clearContents()
+        items = [('index', row),
+                 ('message type', type(msg).__name__),
+                 ('received time', ctime(mtime)), ]
+        items += list(sorted(msg.items()))
+        tbl.setRowCount(len(items))
+        for idx, (name, value) in enumerate(items):
+            tbl.setItem(idx, 0, QTableWidgetItem(name))
+            tbl.setItem(idx, 1, QTableWidgetItem(str(value)))
 
     def on_colorChange(self):
         """ Signal handler for color change actions.
@@ -346,7 +374,6 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
                     pattern.remove(text + '|')
                     print '## pattern:', pattern
                     self.proxyModel.setFilterRegExp(pattern)
-
         self.model.reset()
 
     @pyqtSignature('bool')
@@ -358,9 +385,14 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         """
         self.model.setPaused(checked)
         session = self.session
-        if checked:
-            session.deregisterAll(self.messageTable, Slots.scrollToBottom)
-        else:
-            session.registerAll(self.messageTable, Slots.scrollToBottom)
+        ## if checked:
+        ##     session.deregisterAll(self.messageTable, Slots.scrollToBottom)
+        ## else:
+        ##     session.registerAll(self.messageTable, Slots.scrollToBottom)
         self.pauseButton.setText(self.pauseButtonText[checked])
         self.pauseButton.setIcon(QIcon(self.pauseButtonIcons[checked]))
+
+
+def messageSplitterState():
+    return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAAChwAAAMEBAAAABgEAAAAB')
+

@@ -114,4 +114,5 @@ class HistoricalDataCollection(DataCollection):
         reqId = params['tickerId']
         reqData = self.setdefault(reqId, {})
         reqData.update(params)
+        self.emit(Signals.historicalDataStart, reqId, reqData)
         self.session.connection.reqHistoricalData(**reqData)

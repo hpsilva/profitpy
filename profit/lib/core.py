@@ -173,10 +173,22 @@ class Settings(QSettings):
         return QSettings.value(self, key, default)
 
 
+def roleId():
+    i = Qt.UserRole
+    while True:
+        yield i
+        i += 1
+nextRoleId = roleId().next
 
 
-##
-tickerIdRole = Qt.UserRole + 32
+class DataRoles:
+    tickerId = nextRoleId()
+    histDataReqId = nextRoleId()
+
+    typeMap = {
+        tickerId:int,
+        histDataReqId:int,
+        }
 
 
 ##
@@ -202,13 +214,13 @@ class SessionHandler(object):
     'requestSession' to retrieve an existing session and connect to
     the 'sessionCreated' signal.
     """
-    sessionref = None
+    sessionRef = None
 
     def sessionGetter(self):
-        return self.sessionref
+        return self.sessionRef
 
     def sessionSetter(self, value):
-        session = self.sessionref
+        session = self.sessionRef
         if session:
             for child in self.children() + [self, ]:
                 session.deregisterMeta(child)
@@ -216,8 +228,8 @@ class SessionHandler(object):
                     child.unsetSession()
                 except (AttributeError, ):
                     pass
-        logging.debug('session set for %s to %s' % (self.objectName(), value))
-        self.sessionref = value
+        logging.debug('Session set for %s to %s' % (self.objectName(), value))
+        self.sessionRef = value
 
     session = property(sessionGetter, sessionSetter)
 
@@ -254,3 +266,21 @@ class SessionHandler(object):
         Subclasses should reimplement this method.
         """
         self.session = session
+
+
+class SettingsHandler(object):
+    """ Provies late and automatic access to 'settings' attribute.
+
+    """
+    settingsRef = None
+
+    def settingsGetter(self):
+         settingsRef = self.settingsRef
+         if not settingsRef:
+             self.settingsRef = settingsRef = Settings()
+         return settingsRef
+
+    def settingsSetter(self, value):
+        self.settingsRef = value
+
+    settings = property(settingsGetter, settingsSetter)
