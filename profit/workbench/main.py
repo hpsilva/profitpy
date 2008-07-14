@@ -473,7 +473,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         return True
 
     def centralTabState(self):
-        return [str(s) for s in self.centralTabs.pageMap()]
+        return [s for s in self.centralTabs.pageMap()]
 
     def writeSettings(self):
         settings = Settings()

@@ -183,7 +183,9 @@ nextRoleId = roleId().next
 
 class DataRoles:
     tickerId = nextRoleId()
+    tickerSymbol = nextRoleId()
     histDataReqId = nextRoleId()
+    url = nextRoleId()
 
     typeMap = {
         tickerId:int,

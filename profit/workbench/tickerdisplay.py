@@ -15,7 +15,7 @@ from ib.ext.TickType import TickType
 from ib.opt.message import TickPrice
 
 from profit.lib import defaults
-from profit.lib.core import SessionHandler, Settings, Signals, nameIn
+from profit.lib.core import SessionHandler, Settings, Signals, nameIn, DataRoles
 from profit.lib.gui import UrlAction, UrlRequestor, ValueTableItem, separator as sep
 from profit.workbench.portfoliodisplay import replayPortfolio
 from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
@@ -58,6 +58,7 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler, UrlRequestor):
         self.contextActions = [sep(), self.actionChart, self.actionOrder, sep(), ]
         app = QApplication.instance()
         self.connect(self, Signals.openUrl, app, Signals.openUrl)
+        self.connect(self, Signals.tickerClicked, app, Signals.tickerClicked)
         self.requestSession()
 
     def setSession(self, session):
@@ -155,6 +156,15 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler, UrlRequestor):
         col = index.column()
         row = index.row()
         item = self.tickerTable.item(row, 0)
+        import __builtin__
+        __builtin__.__dict__['i'] = item
+
+        sym = str(index.data().toString())
+        tid = self.symbols[sym]
+
+        item.setData(DataRoles.tickerId, QVariant(tid), )
+        item.setData(DataRoles.tickerSymbol, QVariant(sym))
+
         if (0 <= col <= 2):
             self.emit(Signals.tickerClicked, item)
         elif  (2 < col < 9):

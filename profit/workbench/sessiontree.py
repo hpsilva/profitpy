@@ -154,7 +154,8 @@ class SessionTreeModel(QStandardItemModel):
                 ## to switch on item type during tree init
                 if key == 'tickers':
                     subitem = SessionTreeTickerItem(value)
-                    subitem.setTickerId(values[value])
+                    subitem.setData(QVariant(value), DataRoles.tickerSymbol, )
+                    subitem.setData(QVariant(values[value]), DataRoles.tickerId, )
                 else:
                     subitem = SessionTreeItem(value)
                 item.appendRow(subitem)
@@ -194,7 +195,7 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler,
         self.requestSession()
 
     def on_treeView_doubleClicked(self, index):
-        print '### index:', index
+        #print '### index:', index
         ## set more data
         self.emit(Signals.sessionItemActivated, index)
 

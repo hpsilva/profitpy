@@ -7,9 +7,9 @@
 
 from PyQt4.QtCore import Qt, QUrl, QVariant
 from PyQt4.QtGui import QAction, QBrush, QColor, QDesktopServices, QIcon, QMessageBox
-from PyQt4.QtGui import QPixmap, QTableWidgetItem
+from PyQt4.QtGui import QPixmap, QTableWidgetItem, QStandardItem
 
-from profit.lib.core import Signals, valueAlign
+from profit.lib.core import DataRoles, Signals, valueAlign
 
 
 class ValueColorItem(object):
@@ -148,5 +148,6 @@ class UrlRequestor(object):
         if useExternal:
             QDesktopServices.openUrl(QUrl(url))
         else:
-            value = QVariant(url)
-            self.emit(Signals.openUrl, value) #action)
+            value = QStandardItem(url)
+            value.setData(QVariant(url), DataRoles.url)
+            self.emit(Signals.openUrl, value)

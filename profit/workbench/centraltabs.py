@@ -14,106 +14,28 @@ from PyQt4.QtGui import QAction, QApplication, QIcon, QTabWidget
 from profit.lib import importItem, logging
 from profit.lib.core import SessionHandler, Signals, DataRoles
 from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
+from profit.workbench.tickerplotdisplay import TickerPlotDisplay
+from profit.lib.widgets.webbrowser import WebBrowserDisplay
 
 
-def basicTabMethod(name, prefix='profit.workbench', pre=None, post=None, reloaded=False):
-    """ creates and returns an object method for handling new tab requests
-
-    The closures created by this function are used in the CentralTabs
-    class below.
-    """
-    def innerMethod(self, title, itemIndex=None):
-        logging.debug('%s %s', name, title)
-        index = None
-        if pre:pre(self)
-        if itemIndex:
-            pages = self.pageMap()
-            index = pages.get(itemIndex.data().toString(), None)
-        if index is None:
-            cls = importItem('%s.%s' % (prefix, name), reloaded=reloaded)
-            widget = cls(self)
-            index = self.addTab(widget, title)
-            if post:post(self, widget)
-        return index
-    return innerMethod
+displayClasses = {
+    'account' : 'accountdisplay.AccountDisplay',
+    'collector' : 'collectordisplay.CollectorDisplay',
+    'connection' : 'connectiondisplay.ConnectionDisplay',
+    'execution' : 'executionsdisplay.ExecutionsDisplay',
+    'historical data' : 'historicaldatadisplay.HistoricalDataDisplay',
+    'messages' : 'messagedisplay.MessageDisplay',
+    'orders' : 'orderdisplay.OrderDisplay',
+    'portfolio' : 'portfoliodisplay.PortfolioDisplay',
+    'strategy' : 'strategydisplay.StrategyDisplay',
+    'tickers' : 'tickerdisplay.TickerDisplay',
+}
 
 
 class CentralTabs(QTabWidget, SessionHandler):
     """ CentralTabs -> tab widget with special powers
 
     """
-    def create_url_tab(self, item):
-        try:
-            url = str(item.toString())
-            self.newBrowserTab(url)
-            return url
-        except (AttributeError, ):
-            return False
-
-    def create_ticker_plot_tab(self, item):
-        try:
-            tickerId, tickerIdValid = item.data(DataRoles.tickerId).toInt()
-            if tickerIdValid:
-                name = str(item.data().toString())
-                icon = QIcon(item.data(Qt.DecorationRole))
-                self.newSymbolTab(None, symbol=name, tickerId=tickerId, icon=icon)
-                return True
-        except (AttributeError, ):
-            return False
-
-    def create_ticker_tab(self, item):
-        try:
-            if str(item.data().toString()) == 'tickers':
-
-                def post(self, widget):
-                    self.connect(widget, Signals.tickerClicked,
-                                 self.newSymbolTab)
-                newTickersTab = basicTabMethod('tickerdisplay.TickerDisplay',
-                                               post=post)
-                newTickersTab(self, 'tickers')
-                return True
-        except (Exception, ), exc:
-            logging.exception('## Exception %s', exc)
-        return False
-
-    def create_basic_tab(self, item):
-        text = str(item.data().toString())
-        if text.lower() in self.moduleClassMap:
-            method = basicTabMethod(self.moduleClassMap[text])
-            tabIndex = method(self, text)
-            icon = QIcon(item.data(Qt.DecorationRole))
-            self.setCurrentIndex(tabIndex)
-            self.setTabIcon(tabIndex, icon)
-            return True
-
-    moduleClassMap = {
-        'account' : 'accountdisplay.AccountDisplay',
-        'collector' : 'collectordisplay.CollectorDisplay',
-        'connection' : 'connectiondisplay.ConnectionDisplay',
-        'execution' : 'executionsdisplay.ExecutionsDisplay',
-        'historical data' : 'historicaldatadisplay.HistoricalDataDisplay',
-        'messages' : 'messagedisplay.MessageDisplay',
-        'orders' : 'orderdisplay.OrderDisplay',
-        'portfolio' : 'portfoliodisplay.PortfolioDisplay',
-        'strategy' : 'strategydisplay.StrategyDisplay',
-    }
-
-    createHandlers = [
-        create_url_tab,
-        create_ticker_tab,
-        create_ticker_plot_tab,
-        create_basic_tab,
-        ]
-
-    def handleItem(self, item):
-        actual = None
-        for handler in self.createHandlers:
-            if handler(self, item):
-                actual = handler
-                break
-        logging.debug('actual handler: %s', actual)
-
-
     def __init__(self, parent=None):
         QTabWidget.__init__(self, parent)
         self.closeTabButton = CloseTabButton(self)
@@ -121,66 +43,82 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.setCornerWidget(self.closeTabButton, Qt.TopRightCorner)
         self.setCornerWidget(self.detachTabButton, Qt.TopLeftCorner)
         app, connect = QApplication.instance(), self.connect
-        connect(app, Signals.sessionItemActivated, self.handleItem)
-        connect(app, Signals.openUrl, self.handleItem)
+        connect(app, Signals.sessionItemActivated, self.createTab)
+        connect(app, Signals.openUrl, self.createTab)
+        connect(app, Signals.tickerClicked, self.createTab)
         connect(self.closeTabButton, Signals.clicked, self.closeTab)
         connect(self.detachTabButton, Signals.clicked, self.detachTab)
         self.requestSession()
 
-    def pageMap(self):
-        """ makes a mapping of tabtitle:tabindex
+    def createTab(self, value):
+        """ create or display a tab from a value; value may be a string or a model item
 
         """
-        return dict([(self.tabText(i), i) for i in range(self.count())])
+        handlers = [self.createBrowserTab, 
+                    self.createTickerPlotTab,
+                    self.createDisplayTab]
+        for handler in handlers:
+            try:
+                if handler(value):
+                    break
+            except (Exception, ), exc:
+                pass
 
-    def newBrowserTab(self, itemData):
-        """ slot for creating a new web browser tab
+    def createBrowserTab(self, item):
+        """ creates a new web browser tab.
 
         """
-        from profit.lib.widgets.webbrowser import WebBrowserDisplay
-        if hasattr(itemData, 'toolTip'):
-            url, title = itemData.data().toString(), itemData.toolTip()
+        if hasattr(item, 'toolTip'):
+            url, title = item.data().toString(), item.toolTip()
         else:
-            url, title = itemData, ''
+            #url, title = item.data().toString(), ''
+            return False
         widget = WebBrowserDisplay(self)
         widget.basicConfig(url)
         index = self.addTab(widget, title)
-        self.setCurrentIndex(index)
-        self.setTabText(index, title)
-        self.setTabIcon(index, QIcon(":/images/icons/www.png"))
-        self.connect(widget, Signals.loadFinished,
+        self.setTextIconCurrentTab(index, title, QIcon(":/images/icons/www.png"))
+        self.connect(widget, Signals.loadFinished, 
                      partial(self.resetBrowserTab, browser=widget))
+        return True
 
-    def newSymbolTab(self, item, index=None, symbol=None, tickerId=None, icon=None, *args):
-        """ slot for creating a new symbol display tab
-
-        """
-        from profit.workbench.tickerplotdisplay import TickerPlotDisplay
-        if item is not None:
-            symbol = str(item.text())
-            tickerId = item.tickerId
-            icon = item.icon()
-        widget = TickerPlotDisplay(self)
-        session = self.session
-        widget.setSessionPlot(session, session.tickerCollection, tickerId, *args)
-        index = self.addTab(widget, symbol)
-        self.setTabIcon(index, icon)
-        self.setCurrentIndex(index)
-
-    def resetBrowserTab(self, okay, browser=None):
-        """ slot to reconfigure a tab based on a web browser widget state
+    def createTickerPlotTab(self, item):
+        """ creates or displays a ticker plot tab
 
         """
-        if not okay or not browser:
+        tickerId, tickerIdValid = item.data(DataRoles.tickerId).toInt()
+        symbol = str(item.data(DataRoles.tickerSymbol).toString())
+        if tickerIdValid and self.setCurrentLabel(symbol):
             return
-        index = self.indexOf(browser)
-        title = tooltip = str(browser.title())
-        if len(title) > 13:
-            title = title[0:13] + '...'
-        self.setTabText(index, title)
-        self.setTabToolTip(index, tooltip)
+        if tickerIdValid:
+            widget = TickerPlotDisplay(self)
+            session = self.session
+            widget.setSessionPlot(session, session.tickerCollection, tickerId)
+            index = self.addTab(widget, symbol)
+            icon = QIcon(item.data(Qt.DecorationRole))
+            self.setTextIconCurrentTab(index, symbol, icon)
+            return True
 
-    @pyqtSignature('')
+    def createDisplayTab(self, item):
+        """ creates or displays a name-based display
+
+        """
+        text = str(item.data().toString())
+        if self.setCurrentLabel(text):
+            return
+        name = displayClasses.get(text.lower(), None)
+        if name is not None:
+            cls = importItem('profit.workbench.%s' % name)
+            widget = cls(self)
+            index = self.addTab(widget, text)
+            self.setTextIconCurrentTab(index, text, QIcon(item.data(Qt.DecorationRole)))
+            return True
+
+    def pageMap(self):
+        """ makes a mapping like {'connection':1, 'account':3, ...}
+
+        """
+        return dict([(str(self.tabText(i)), i) for i in range(self.count())])
+
     def closeTab(self):
         """ slot that closes the current tab tab
 
@@ -192,7 +130,6 @@ class CentralTabs(QTabWidget, SessionHandler):
             widget.setAttribute(Qt.WA_DeleteOnClose)
             widget.close()
 
-    @pyqtSignature('')
     def detachTab(self):
         """ slot that deatches the current tab and makes it a top-level window
 
@@ -219,5 +156,34 @@ class CentralTabs(QTabWidget, SessionHandler):
                 widget.setParent(self.window())
                 widget.setWindowFlags(Qt.Window)
                 widget.show()
-        show.circleref = show
         QTimer.singleShot(100, show)
+
+    def resetBrowserTab(self, okay, browser=None):
+        """ slot to reconfigure a tab based on a web browser widget state
+
+        """
+        if not okay or not browser:
+            return
+        index = self.indexOf(browser)
+        title = tooltip = str(browser.title())
+        if len(title) > 13:
+            title = title[0:13] + '...'
+        self.setTabText(index, title)
+        self.setTabToolTip(index, tooltip)
+
+    def setTextIconCurrentTab(self, index, text, icon):
+        """ sets a tabs text and icon, and makes tab current
+
+        """
+        self.setTabText(index, text)
+        self.setTabIcon(index, icon)
+        self.setCurrentIndex(index)
+
+    def setCurrentLabel(self, label):
+        """ sets current tab by name if available; returns true if successful
+
+        """
+        index = self.pageMap().get(label, None)
+        if index is not None:
+            self.setCurrentIndex(index)
+            return True
