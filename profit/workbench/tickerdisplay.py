@@ -15,8 +15,10 @@ from ib.ext.TickType import TickType
 from ib.opt.message import TickPrice
 
 from profit.lib import defaults
-from profit.lib.core import SessionHandler, Settings, Signals, nameIn, DataRoles
-from profit.lib.gui import UrlRequestor, ValueTableItem, separator as sep, makeUrlAction
+from profit.lib.core import (SessionHandler, Settings, Signals,
+                             nameIn, DataRoles, )
+from profit.lib.gui import (UrlRequestor, ValueTableItem, separator,
+                            makeUrlAction, )
 from profit.workbench.portfoliodisplay import replayPortfolio
 from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
@@ -55,7 +57,7 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler, UrlRequestor):
         self.tickerItems = {}
         self.settings = Settings()
         self.tickerTable.verticalHeader().hide()
-        self.contextActions = [sep(), self.actionChart, self.actionOrder, sep(), ]
+        self.contextActions = [separator(), self.actionChart, self.actionOrder, separator(), ]
         app = QApplication.instance()
         self.connect(self, Signals.openUrl, app, Signals.openUrl)
         self.connect(self, Signals.tickerClicked, app, Signals.tickerClicked)

@@ -264,6 +264,17 @@
     <string>Move to Top Axis</string>
    </property>
   </action>
+  <action name="actionSyncWithData" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="checked" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>Sync with Data</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

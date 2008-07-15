@@ -85,6 +85,7 @@ class Signals:
     tickerClicked = SIGNAL('tickerClicked')
     timeout = SIGNAL('timeout()')
     triggered = SIGNAL('triggered()')
+    triggeredBool = SIGNAL('triggered(bool)')
     zoomed = SIGNAL('zoomed(const QwtDoubleRect &)')
 
     neuralNetworkCreated = SIGNAL('neuralNetworkCreated')

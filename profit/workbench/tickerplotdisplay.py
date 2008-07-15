@@ -4,7 +4,7 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-from PyQt4.QtCore import QVariant
+from PyQt4.QtCore import QVariant, pyqtSignature
 from PyQt4.QtGui import QFrame
 
 from profit.lib.core import Settings, Signals
@@ -45,6 +45,8 @@ class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):
         self.reconfigurePlots()
         self.connect(plot.actionNewPlot, Signals.triggered, self.addPlot)
         self.connect(plot.actionClosePlot, Signals.triggered, self.closePlot)
+        self.connect(plot.actionSyncWithData, Signals.triggeredBool,
+                     plot.syncPlot)
         if self.sessionArgs:
             session, collection, tickerId, args = self.sessionArgs
             plot.setSessionPlot(session, collection, tickerId, *args)

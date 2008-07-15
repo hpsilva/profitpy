@@ -346,6 +346,8 @@ class Plot(QFrame, Ui_Plot):
         plotButton.setMenu(pop)
         pop.addAction(self.actionNewPlot)
         pop.addAction(self.actionClosePlot)
+        pop.addSeparator()
+        pop.addAction(self.actionSyncWithData)
 
     def setupPlot(self):
         """ Configure the plot widget.
@@ -1241,3 +1243,9 @@ class Plot(QFrame, Ui_Plot):
         settings = self.settings
         statekey = '%s/%s' % (self.plotName(), settings.keys.splitstate)
         settings.setValue(statekey, self.plotSplitter.saveState())
+
+    def syncPlot(self, sync=None):
+        print '## sync?', sync
+        session = self.session
+        (session.registerMeta if sync else session.deregisterMeta)(self)
+
