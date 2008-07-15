@@ -62,8 +62,8 @@ def minorGridPen():
     return pen
 
 
-def plotSplitterState():
-    """ Resonable default for plot splitter state.
+def rightMainSplitterState():
+    """ Resonable default for splitter state with primary widget on the right.
 
     @return QByteArray suitable for use with QSplitter.restoreState
     """

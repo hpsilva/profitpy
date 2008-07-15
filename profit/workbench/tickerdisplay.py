@@ -16,7 +16,7 @@ from ib.opt.message import TickPrice
 
 from profit.lib import defaults
 from profit.lib.core import SessionHandler, Settings, Signals, nameIn, DataRoles
-from profit.lib.gui import UrlAction, UrlRequestor, ValueTableItem, separator as sep
+from profit.lib.gui import UrlRequestor, ValueTableItem, separator as sep, makeUrlAction
 from profit.workbench.portfoliodisplay import replayPortfolio
 from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
@@ -118,8 +118,8 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler, UrlRequestor):
                 url = Template(url).substitute(symbol=symbol)
             except (KeyError, ValueError, ):
                 continue
-            act = UrlAction(name+'...', url, '%s %s' % (symbol, name))
-            self.connect(act, Signals.triggered, partial(self.on_urlAction, action=act))
+            act = makeUrlAction(name, url, toolTip='%s %s' % (symbol, name))
+            self.connect(act, Signals.triggered, partial(self.requestUrl, action=act))
             actions.append(act)
         return actions
 

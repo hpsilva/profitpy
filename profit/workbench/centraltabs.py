@@ -9,20 +9,20 @@ from functools import partial
 from sys import platform
 
 from PyQt4.QtCore import QTimer, Qt, pyqtSignature
-from PyQt4.QtGui import QAction, QApplication, QIcon, QTabWidget
+from PyQt4.QtGui import QApplication, QIcon, QTabWidget
 
 from profit.lib import importItem, logging
 from profit.lib.core import SessionHandler, Signals, DataRoles
+from profit.lib.gui import addCloseAction
 from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
-from profit.workbench.tickerplotdisplay import TickerPlotDisplay
 from profit.lib.widgets.webbrowser import WebBrowserDisplay
+from profit.workbench.tickerplotdisplay import TickerPlotDisplay
 
 
 displayClasses = {
     'account' : 'accountdisplay.AccountDisplay',
-    'collector' : 'collectordisplay.CollectorDisplay',
     'connection' : 'connectiondisplay.ConnectionDisplay',
-    'execution' : 'executionsdisplay.ExecutionsDisplay',
+    'executions' : 'executionsdisplay.ExecutionsDisplay',
     'historical data' : 'historicaldatadisplay.HistoricalDataDisplay',
     'messages' : 'messagedisplay.MessageDisplay',
     'orders' : 'orderdisplay.OrderDisplay',
@@ -54,13 +54,10 @@ class CentralTabs(QTabWidget, SessionHandler):
         """ create or display a tab from a value; value may be a string or a model item
 
         """
-        handlers = [self.createBrowserTab, 
-                    self.createTickerPlotTab,
-                    self.createDisplayTab]
-        for handler in handlers:
+        hs = [self.createBrowserTab, self.createTickerPlotTab, self.createDisplayTab]
+        for handler in hs:
             try:
-                if handler(value):
-                    break
+                if handler(value):break
             except (Exception, ), exc:
                 pass
 
@@ -68,18 +65,19 @@ class CentralTabs(QTabWidget, SessionHandler):
         """ creates a new web browser tab.
 
         """
-        if hasattr(item, 'toolTip'):
-            url, title = item.data().toString(), item.toolTip()
-        else:
-            #url, title = item.data().toString(), ''
-            return False
-        widget = WebBrowserDisplay(self)
-        widget.basicConfig(url)
-        index = self.addTab(widget, title)
-        self.setTextIconCurrentTab(index, title, QIcon(":/images/icons/www.png"))
-        self.connect(widget, Signals.loadFinished, 
-                     partial(self.resetBrowserTab, browser=widget))
-        return True
+        if item.data(DataRoles.url).isValid():
+            url = item.data(DataRoles.url).toString()
+            title = item.data(DataRoles.urlTitle).toString()
+            widget = WebBrowserDisplay(self)
+            widget.basicConfig(url)
+            index = self.addTab(widget, title)
+            icon = item.icon()
+            if icon.isNull():
+                icon = QIcon(":/images/icons/www.png")
+            self.setTextIconCurrentTab(index, title, icon)
+            loadHandler = partial(self.resetBrowserTab, browser=widget)
+            self.connect(widget, Signals.loadFinished, loadHandler)
+            return True
 
     def createTickerPlotTab(self, item):
         """ creates or displays a ticker plot tab
@@ -88,7 +86,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         tickerId, tickerIdValid = item.data(DataRoles.tickerId).toInt()
         symbol = str(item.data(DataRoles.tickerSymbol).toString())
         if tickerIdValid and self.setCurrentLabel(symbol):
-            return
+            return True
         if tickerIdValid:
             widget = TickerPlotDisplay(self)
             session = self.session
@@ -104,13 +102,14 @@ class CentralTabs(QTabWidget, SessionHandler):
         """
         text = str(item.data().toString())
         if self.setCurrentLabel(text):
-            return
-        name = displayClasses.get(text.lower(), None)
-        if name is not None:
+            return True
+        name = displayClasses.get(text.lower())
+        if name:
             cls = importItem('profit.workbench.%s' % name)
             widget = cls(self)
             index = self.addTab(widget, text)
-            self.setTextIconCurrentTab(index, text, QIcon(item.data(Qt.DecorationRole)))
+            icon = QIcon(item.data(Qt.DecorationRole))
+            self.setTextIconCurrentTab(index, text, icon)
             return True
 
     def pageMap(self):
@@ -135,17 +134,14 @@ class CentralTabs(QTabWidget, SessionHandler):
 
         """
         index = self.currentIndex()
-        widget, icon = self.widget(index), self.tabIcon(index)
         text = str(self.tabText(index))
-        widget.setWindowIcon(icon)
+        widget = self.widget(index)
+        widget.setWindowIcon(self.tabIcon(index))
         try:
             widget.setWindowTitle(str(widget.windowTitle()) % text)
         except (TypeError, ):
             pass
-        action = QAction('Close', widget)
-        action.setShortcut('Ctrl+W')
-        widget.addAction(action)
-        widget.connect(action, Signals.triggered, widget.close)
+        addCloseAction(widget)
         if platform.startswith('win'):
             def show():
                 widget.setParent(QApplication.desktop())
@@ -183,7 +179,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         """ sets current tab by name if available; returns true if successful
 
         """
-        index = self.pageMap().get(label, None)
+        index = self.pageMap().get(label)
         if index is not None:
             self.setCurrentIndex(index)
             return True

@@ -121,25 +121,12 @@ def complementColor(c):
     return QColor('#' + str.join('', comp))
 
 
-def separator():
-    sep = QAction(None)
-    sep.setSeparator(True)
-    return sep
-
-
-class UrlAction(QAction):
-    def __init__(self, text, url, tooltip=None, parent=None):
-        QAction.__init__(self, text, parent)
-        self.setData(QVariant(url))
-        self.setToolTip(tooltip or text)
-
-
 class UrlRequestor(object):
     """ Mixin that provides method for initial handling of requests to open a URL.
 
     Object instances must have a settings member.
     """
-    def on_urlAction(self, action):
+    def requestUrl(self, action):
         url = action.data().toString()
         settings = self.settings
         settings.beginGroup(settings.keys.main)
@@ -148,6 +135,29 @@ class UrlRequestor(object):
         if useExternal:
             QDesktopServices.openUrl(QUrl(url))
         else:
-            value = QStandardItem(url)
-            value.setData(QVariant(url), DataRoles.url)
-            self.emit(Signals.openUrl, value)
+            item = QStandardItem(url)
+            item.setData(QVariant(url), DataRoles.url)
+            item.setData(QVariant(action.toolTip()), DataRoles.urlTitle)
+            item.setIcon(action.icon())
+            self.emit(Signals.openUrl, item)
+
+
+def separator():
+    sep = QAction(None)
+    sep.setSeparator(True)
+    return sep
+
+
+def addCloseAction(parent):
+    action = QAction('Close', parent)
+    action.setShortcut('Ctrl+W')
+    parent.addAction(action)
+    parent.connect(action, Signals.triggered, parent.close)
+    return action
+
+
+def makeUrlAction(text, url, toolTip='', parent=None):
+    action = QAction(text + '...', parent)
+    action.setData(QVariant(url))
+    action.setToolTip(toolTip)
+    return action

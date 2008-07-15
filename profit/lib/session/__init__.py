@@ -69,19 +69,6 @@ class Session(QObject):
         args = id(self), len(self.messages), int(self.isConnected)
         return  fmt % args
 
-    def items(self):
-        return [
-            ('account', ()),
-            ('connection', ()),
-            ('executions', ()),
-            ('historical data', ()),
-            ('messages', ()),
-            ('orders', ()),
-            ('portfolio', ()),
-            ('strategy', ()),
-            ('tickers', self.strategy.symbols()),
-        ]
-
     def disconnectTWS(self):
         if self.isConnected:
             self.connection.disconnect()

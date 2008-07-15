@@ -16,6 +16,7 @@ from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
 
 from ib.opt.message import registry
 
+from profit.lib import defaults
 from profit.lib.core import SessionHandler, Settings, Signals, Slots
 from profit.lib.gui import colorIcon
 from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay
@@ -237,7 +238,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         settings.beginGroup(settings.keys.messages)
         self.setupColorButton()
         self.setupDisplayButton()
-        self.splitter.restoreState(messageSplitterState())
+        self.splitter.restoreState(defaults.rightMainSplitterState())
         self.requestSession()
 
     def setupColorButton(self):
@@ -391,8 +392,4 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         ##     session.registerAll(self.messageTable, Slots.scrollToBottom)
         self.pauseButton.setText(self.pauseButtonText[checked])
         self.pauseButton.setIcon(QIcon(self.pauseButtonIcons[checked]))
-
-
-def messageSplitterState():
-    return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAAChwAAAMEBAAAABgEAAAAB')
 

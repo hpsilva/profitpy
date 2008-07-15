@@ -387,7 +387,7 @@ class Plot(QFrame, Ui_Plot):
         settings = self.settings
         name = self.plotName()
         statekey = '%s/%s' % (name, settings.keys.splitstate)
-        state = settings.value(statekey, defaults.plotSplitterState())
+        state = settings.value(statekey, defaults.rightMainSplitterState())
         self.plotSplitter.restoreState(state.toByteArray())
         self.setupTree()
         self.loadGrids()

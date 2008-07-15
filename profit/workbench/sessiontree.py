@@ -14,9 +14,10 @@ from PyQt4.QtGui import (QAction, QApplication, QDesktopServices,
                          QStandardItemModel)
 
 from profit.lib import defaults, logging
-from profit.lib.gui import UrlAction, UrlRequestor
+from profit.lib.gui import UrlRequestor, makeUrlAction
 from profit.lib.core import SessionHandler, SettingsHandler
 from profit.lib.core import Settings, Signals, DataRoles
+from profit.workbench.centraltabs import displayClasses
 from profit.workbench.widgets.ui_sessiontree import Ui_SessionTree
 
 
@@ -81,14 +82,6 @@ class SessionTreeTickerItem(SessionTreeItem):
         """
         return QIcon(':images/tickers/%s.png' % symbol.lower())
 
-    def setTickerId(self, tickerId):
-        """ Sets item data for ticker id.
-
-        @param tickerId id for ticker as integer
-        @return None
-        """
-        self.setData(QVariant(tickerId), DataRoles.tickerId)
-
     def contextActions(self, index):
         """ Sequence of actions for this tree item.
 
@@ -116,7 +109,8 @@ class SessionTreeTickerItem(SessionTreeItem):
                 url = Template(url).substitute(symbol=symbol)
             except (KeyError, ValueError, ):
                 continue
-            actions.append(UrlAction(name+'...', url, '%s %s' % (symbol, name)))
+            action = makeUrlAction(name, url, toolTip='%s %s' % (symbol, name))
+            actions.append(action)
         return actions
 
 
@@ -133,10 +127,22 @@ class SessionTreeHistReqItem(SessionTreeItem):
         return QIcon(':images/icons/log.png')
 
 
+def mkTickerItem(k, v):
+    item = SessionTreeTickerItem(k)
+    item.setData(QVariant(k), DataRoles.tickerSymbol)
+    item.setData(QVariant(v), DataRoles.tickerId)
+    return item
+
+def mkItem(k, v):
+    return SessionTreeItem(k)
+
+
 class SessionTreeModel(QStandardItemModel):
     """
 
     """
+    itemMakers = {'tickers':mkTickerItem, }
+
     def __init__(self, session, parent=None):
         """ Constructor.
 
@@ -146,19 +152,17 @@ class SessionTreeModel(QStandardItemModel):
         QStandardItemModel.__init__(self)
         self.session = session
         root = self.invisibleRootItem()
-        for key, values in session.items():
+        ## TODO: still need to make this lazy and account for empty
+        ## strategy and/or strategy load
+        clsmap = dict.fromkeys([k for k in displayClasses], {})
+        clsmap['tickers'] = session.strategy.symbols()
+        items = sorted(clsmap.items())
+        for key, values in items:
             item = SessionTreeItem(key)
             root.appendRow(item)
-            for value in values:
-                ## FIXME:  load tickers on demand; shouldn't need
-                ## to switch on item type during tree init
-                if key == 'tickers':
-                    subitem = SessionTreeTickerItem(value)
-                    subitem.setData(QVariant(value), DataRoles.tickerSymbol, )
-                    subitem.setData(QVariant(values[value]), DataRoles.tickerId, )
-                else:
-                    subitem = SessionTreeItem(value)
-                item.appendRow(subitem)
+            call = self.itemMakers.get(key, mkItem)
+            for subkey, subval in sorted(values.items()):
+                item.appendRow(call(subkey, subval))
 
 
 def mkHistDataFormatter(t):
@@ -288,8 +292,7 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler,
         if not actions:
             return
         for act in actions:
-            if isinstance(act, UrlAction):
-                handler = partial(self.on_urlAction, action=act)
+            if act.data().isValid():
+                handler = partial(self.requestUrl, action=act)
                 self.connect(act, Signals.triggered, handler)
         QMenu.exec_(actions, self.treeView.viewport().mapToGlobal(pos))
-

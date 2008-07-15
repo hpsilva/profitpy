@@ -186,6 +186,7 @@ class DataRoles:
     tickerSymbol = nextRoleId()
     histDataReqId = nextRoleId()
     url = nextRoleId()
+    urlTitle = nextRoleId()
 
     typeMap = {
         tickerId:int,
