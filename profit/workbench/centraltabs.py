@@ -20,15 +20,15 @@ from profit.workbench.tickerplotdisplay import TickerPlotDisplay
 
 
 displayClasses = {
-    'account' : 'accountdisplay.AccountDisplay',
-    'connection' : 'connectiondisplay.ConnectionDisplay',
-    'executions' : 'executionsdisplay.ExecutionsDisplay',
-    'historical data' : 'historicaldatadisplay.HistoricalDataDisplay',
-    'messages' : 'messagedisplay.MessageDisplay',
-    'orders' : 'orderdisplay.OrderDisplay',
-    'portfolio' : 'portfoliodisplay.PortfolioDisplay',
-    'strategy' : 'strategydisplay.StrategyDisplay',
-    'tickers' : 'tickerdisplay.TickerDisplay',
+    'account' : 'profit.workbench.accountdisplay.AccountDisplay',
+    'connection' : 'profit.workbench.connectiondisplay.ConnectionDisplay',
+    'executions' : 'profit.workbench.executionsdisplay.ExecutionsDisplay',
+    'historical data' : 'profit.workbench.historicaldatadisplay.HistoricalDataDisplay',
+    'messages' : 'profit.workbench.messagedisplay.MessageDisplay',
+    'orders' : 'profit.workbench.orderdisplay.OrderDisplay',
+    'portfolio' : 'profit.workbench.portfoliodisplay.PortfolioDisplay',
+    'strategy' : 'profit.workbench.strategydisplay.StrategyDisplay',
+    'tickers' : 'profit.workbench.tickerdisplay.TickerDisplay',
 }
 
 
@@ -105,7 +105,7 @@ class CentralTabs(QTabWidget, SessionHandler):
             return True
         name = displayClasses.get(text.lower())
         if name:
-            cls = importItem('profit.workbench.%s' % name)
+            cls = importItem(name)
             widget = cls(self)
             index = self.addTab(widget, text)
             icon = QIcon(item.data(Qt.DecorationRole))

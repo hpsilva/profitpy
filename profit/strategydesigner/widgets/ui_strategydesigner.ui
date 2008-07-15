@@ -5,15 +5,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>661</width>
-    <height>740</height>
+    <width>504</width>
+    <height>685</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Strategy Designer</string>
   </property>
   <property name="windowIcon" >
-   <iconset resource="../../widgets/profit.qrc" >
+   <iconset resource="../../lib/widgets/profit.qrc" >
     <normaloff>:/images/icons/run.png</normaloff>:/images/icons/run.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
@@ -21,8 +21,8 @@
     <rect>
      <x>0</x>
      <y>68</y>
-     <width>661</width>
-     <height>650</height>
+     <width>504</width>
+     <height>595</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" >
@@ -58,8 +58,8 @@
           <rect>
            <x>2</x>
            <y>2</y>
-           <width>289</width>
-           <height>219</height>
+           <width>217</width>
+           <height>199</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" >
@@ -251,8 +251,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>2</x>
           <y>2</y>
-          <width>340</width>
-          <height>628</height>
+          <width>255</width>
+          <height>573</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" >
@@ -1099,7 +1099,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>661</width>
+     <width>504</width>
      <height>29</height>
     </rect>
    </property>
@@ -1161,8 +1161,8 @@ p, li { white-space: pre-wrap; }
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>718</y>
-     <width>661</width>
+     <y>663</y>
+     <width>504</width>
      <height>22</height>
     </rect>
    </property>
@@ -1227,7 +1227,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>310</x>
      <y>29</y>
-     <width>351</width>
+     <width>194</width>
      <height>39</height>
     </rect>
    </property>
@@ -1257,7 +1257,7 @@ p, li { white-space: pre-wrap; }
   </widget>
   <action name="actionOpenStrategy" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/fileopen.png</normaloff>:/images/icons/fileopen.png</iconset>
    </property>
    <property name="text" >
@@ -1272,7 +1272,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionSaveStrategy" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/filesave.png</normaloff>:/images/icons/filesave.png</iconset>
    </property>
    <property name="text" >
@@ -1287,7 +1287,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionCut" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/editcut.png</normaloff>:/images/icons/editcut.png</iconset>
    </property>
    <property name="text" >
@@ -1299,7 +1299,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionCopy" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/editcopy.png</normaloff>:/images/icons/editcopy.png</iconset>
    </property>
    <property name="text" >
@@ -1314,7 +1314,7 @@ p, li { white-space: pre-wrap; }
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/editpaste.png</normaloff>:/images/icons/editpaste.png</iconset>
    </property>
    <property name="text" >
@@ -1326,7 +1326,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionDelete" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/editdelete.png</normaloff>:/images/icons/editdelete.png</iconset>
    </property>
    <property name="text" >
@@ -1338,7 +1338,7 @@ p, li { white-space: pre-wrap; }
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/up.png</normaloff>:/images/icons/up.png</iconset>
    </property>
    <property name="text" >
@@ -1353,7 +1353,7 @@ p, li { white-space: pre-wrap; }
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/down.png</normaloff>:/images/icons/down.png</iconset>
    </property>
    <property name="text" >
@@ -1365,7 +1365,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionNewStrategy" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/filenew.png</normaloff>:/images/icons/filenew.png</iconset>
    </property>
    <property name="text" >
@@ -1377,7 +1377,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionSaveStrategyAs" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/filesaveas.png</normaloff>:/images/icons/filesaveas.png</iconset>
    </property>
    <property name="text" >
@@ -1386,7 +1386,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionCloseStrategy" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/fileclose.png</normaloff>:/images/icons/fileclose.png</iconset>
    </property>
    <property name="text" >
@@ -1398,7 +1398,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionQuit" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/exit.png</normaloff>:/images/icons/exit.png</iconset>
    </property>
    <property name="text" >
@@ -1410,7 +1410,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionInsertTicker" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/kchart.png</normaloff>:/images/icons/kchart.png</iconset>
    </property>
    <property name="text" >
@@ -1434,7 +1434,7 @@ p, li { white-space: pre-wrap; }
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/package_system.png</normaloff>:/images/icons/package_system.png</iconset>
    </property>
    <property name="text" >
@@ -1463,7 +1463,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionInsertRunner" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/run.png</normaloff>:/images/icons/run.png</iconset>
    </property>
    <property name="text" >
@@ -1484,7 +1484,7 @@ p, li { white-space: pre-wrap; }
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/misc.png</normaloff>:/images/icons/misc.png</iconset>
    </property>
    <property name="text" >
@@ -1502,7 +1502,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionPrintStrategy" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/tool_pen.png</normaloff>:/images/icons/tool_pen.png</iconset>
    </property>
    <property name="text" >
@@ -1514,7 +1514,7 @@ p, li { white-space: pre-wrap; }
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/blockdevice.png</normaloff>:/images/icons/blockdevice.png</iconset>
    </property>
    <property name="text" >
@@ -1523,7 +1523,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionInsertCollector" >
    <property name="icon" >
-    <iconset resource="../../widgets/profit.qrc" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/empty.png</normaloff>:/images/icons/empty.png</iconset>
    </property>
    <property name="text" >
@@ -1561,7 +1561,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>indexCombo</tabstop>
  </tabstops>
  <resources>
-  <include location="../../widgets/profit.qrc" />
+  <include location="../../lib/widgets/profit.qrc" />
  </resources>
  <connections>
   <connection>

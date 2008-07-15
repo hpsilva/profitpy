@@ -86,7 +86,7 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
     itemTypePages = {
         TickerItem:1, FieldItem:2, IndexItem:3, CallableItem:4, RunnerItem:5}
 
-    def __init__(self, filename=None, parent=None):
+    def __init__(self, parent=None, filename=None):
         """ Constructor.
 
         @param parent ancestor of this widget
@@ -997,7 +997,7 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
                     handle = open(filename, 'rb')
                 except (Exception, ):
                     QMessageBox.warning(
-                        self, 'Error', 'IO error reading schema file.')
+                        self, 'Error', 'IO error reading schema file. ' + filename)
                 else:
                     try:
                         schema = load(handle)
@@ -1143,6 +1143,6 @@ if __name__ == '__main__':
         filename = sys.argv[1]
     except (IndexError, ):
         filename = None
-    window = StrategyDesigner(filename)
+    window = StrategyDesigner(filename=filename)
     window.show()
     sys.exit(app.exec_())
