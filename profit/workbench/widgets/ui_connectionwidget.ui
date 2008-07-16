@@ -292,18 +292,12 @@
         <property name="text" >
          <string>Browse...</string>
         </property>
-        <property name="flat" >
-         <bool>true</bool>
-        </property>
        </widget>
       </item>
       <item row="2" column="4" >
        <widget class="QPushButton" name="keyHelperCommandSelectButton" >
         <property name="text" >
          <string>Browse...</string>
-        </property>
-        <property name="flat" >
-         <bool>true</bool>
         </property>
        </widget>
       </item>

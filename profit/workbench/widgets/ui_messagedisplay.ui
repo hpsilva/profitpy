@@ -68,7 +68,11 @@
            </property>
           </column>
          </widget>
-         <widget class="MessageTypeSelect" native="1" name="messageTypeDisplay" />
+         <widget class="MessageTypeSelect" native="1" name="messageTypeDisplay" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+         </widget>
         </widget>
        </item>
        <item>
