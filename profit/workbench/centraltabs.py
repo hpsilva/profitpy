@@ -59,7 +59,7 @@ class CentralTabs(QTabWidget, SessionHandler):
             try:
                 if handler(value):break
             except (Exception, ), exc:
-                pass
+                logging.debug("Exception (debug): %r:%s", exc, exc)
 
     def createBrowserTab(self, item):
         """ creates a new web browser tab.

@@ -46,9 +46,6 @@
          <property name="uniformRowHeights" >
           <bool>true</bool>
          </property>
-         <property name="sortingEnabled" >
-          <bool>true</bool>
-         </property>
          <property name="animated" >
           <bool>true</bool>
          </property>
@@ -281,6 +278,7 @@
    <class>QwtPlot</class>
    <extends>QFrame</extends>
    <header>qwt_plot.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

@@ -7,7 +7,7 @@
 from functools import partial
 from time import ctime
 
-from PyQt4.QtCore import (QAbstractListModel, QAbstractTableModel,
+from PyQt4.QtCore import (QAbstractListModel, QAbstractTableModel, QModelIndex,
                           QByteArray, QVariant, Qt, pyqtSignature, )
 
 from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
@@ -111,9 +111,15 @@ class MessagesTableModel(QAbstractTableModel):
         @param message message instance
         @return None
         """
-        if message.typeName in self.messageTypes:
-            self.enableTypesFilter(self.messageTypes)
-        #self.emit(Signals.layoutChanged)
+        x = len(self.messagesReference)
+        #self.insertRows(x, 1)
+        self.beginInsertRows(QModelIndex(), x, x)
+        self.endInsertRows()
+
+    def __insertRows(self, row, count, parent=QModelIndex()):
+        self.beginInsertRows(parent, row, row+count-1)
+        self.endInsertRows()
+        return True
 
     def message(self, idx):
         return self.messagesReference[idx]

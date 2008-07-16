@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>743</width>
-    <height>568</height>
+    <width>623</width>
+    <height>299</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -41,31 +41,34 @@
       <property name="frameShadow" >
        <enum>QFrame::Plain</enum>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2" >
-       <property name="margin" >
-        <number>0</number>
-       </property>
+      <layout class="QVBoxLayout" name="verticalLayout" >
        <item>
-        <widget class="QTableWidget" name="messageDetail" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
-           <horstretch>0</horstretch>
-           <verstretch>3</verstretch>
-          </sizepolicy>
+        <widget class="QSplitter" name="splitter_2" >
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="selectionMode" >
-          <enum>QAbstractItemView::SingleSelection</enum>
-         </property>
-         <column>
-          <property name="text" >
-           <string>Property</string>
+         <widget class="QTableWidget" name="messageDetail" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
+            <horstretch>0</horstretch>
+            <verstretch>3</verstretch>
+           </sizepolicy>
           </property>
-         </column>
-         <column>
-          <property name="text" >
-           <string>Value</string>
+          <property name="selectionMode" >
+           <enum>QAbstractItemView::SingleSelection</enum>
           </property>
-         </column>
+          <column>
+           <property name="text" >
+            <string>Property</string>
+           </property>
+          </column>
+          <column>
+           <property name="text" >
+            <string>Value</string>
+           </property>
+          </column>
+         </widget>
+         <widget class="MessageTypeSelect" native="1" name="messageTypeDisplay" />
         </widget>
        </item>
        <item>
@@ -128,9 +131,6 @@
         </layout>
        </item>
       </layout>
-      <zorder>messageDetail</zorder>
-      <zorder>messageDetail</zorder>
-      <zorder>layoutWidget</zorder>
      </widget>
      <widget class="QFrame" name="frame" >
       <property name="sizePolicy" >
@@ -145,10 +145,7 @@
       <property name="frameShadow" >
        <enum>QFrame::Plain</enum>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout" >
-       <property name="margin" >
-        <number>0</number>
-       </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2" >
        <item>
         <widget class="QTableView" name="messageTable" >
          <property name="sizePolicy" >
@@ -191,6 +188,12 @@
    <class>SearchBar</class>
    <extends>QWidget</extends>
    <header location="global" >profit.lib.widgets.searchbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MessageTypeSelect</class>
+   <extends>QWidget</extends>
+   <header location="global" >profit.lib.widgets.messagetypeselect.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
