@@ -142,6 +142,26 @@ class UrlRequestor(object):
             self.emit(Signals.openUrl, item)
 
 
+class StandardItem(QStandardItem):
+    """ Convenience QStandardItem subclass with many init keywords.
+
+    """
+
+    def __init__(self, text='', editable=False,
+                 checkState=Qt.Unchecked, checkable=False,
+                 enabled=False, icon=None, alignment=None):
+        QStandardItem.__init__(self, text)
+        self.setEditable(editable)
+        self.setEnabled(enabled)
+        self.setCheckable(checkable)
+        if checkable:
+            self.setCheckState(checkState)
+        if icon:
+            self.setIcon(icon)
+        if alignment is not None:
+            self.setTextAlignment(alignment)
+
+
 def separator():
     sep = QAction(None)
     sep.setSeparator(True)

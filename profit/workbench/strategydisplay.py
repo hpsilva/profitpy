@@ -14,76 +14,64 @@ from PyQt4.QtGui import (QFrame, QIcon, QMessageBox, QPushButton,
 
 from profit.lib import defaults, logging
 from profit.lib.core import SessionHandler, SettingsHandler, Signals, DataRoles
+from profit.lib.gui import StandardItem
 from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
-
-
-class StrategyTableItem(QStandardItem):
-    """ Convenience QStandardItem subclass with many init keywords.
-
-    """
-    def __init__(self, text='', editable=False, enabled=False, checkable=False,
-                 checkState=Qt.Unchecked, icon=None, strategyId=None):
-        QStandardItem.__init__(self, text)
-        self.setEditable(editable)
-        self.setEnabled(enabled)
-        self.setCheckable(checkable)
-        if checkable:
-            self.setCheckState(checkState)
-        if icon:
-            self.setIcon(icon)
-        if strategyId is not None:
-            self.setData(QVariant(strategyId), DataRoles.strategyId)
 
 
 class StrategyDisplayModel(QStandardItemModel):
     """ Model for strategy display table.
 
     """
-    def __init__(self, session, parent=None):
+    labels = ['Active', 'Status', 'File', ]
+
+    def __init__(self, session, view, parent=None):
         QStandardItemModel.__init__(self, parent)
         self.session = session
-        self.activeIcon = (parent.activeIcon if parent else QIcon())
-        self.inactiveIcon = (parent.inactiveIcon if parent else QIcon())
+        self.activeIcon = (view.activeIcon if view else QIcon())
+        self.inactiveIcon = (view.inactiveIcon if view else QIcon())
+        self.setHorizontalHeaderLabels(self.labels)
 
     def appendRowFromData(self, filename, icon):
         """ Create and append row based on model data and method parameters.
 
         """
-        items = self.makeRowItems(self.nextStrategyId(), icon, filename)
+        items = self.makeRowItems(icon, filename)
         self.appendRow(items)
 
-    def nextStrategyId(self):
-        """ Returns next strategy id based on model data.
+    def rowToDict(self, row):
+        """
 
         """
-        items = [self.item(row, 0) for row in range(self.rowCount())]
-        ids = [item.data(DataRoles.strategyId).toInt() for item in items]
-        ids = [idpair[0] for idpair in ids if idpair[1]] or [0]
-        return max(ids) + 1
-
-    def rowToDict(self, row):
-        item = self.item(row, 0)
         return {
-            'filename':str(self.item(row, 3).text()),
-            'strategyId':item.data(DataRoles.strategyId).toInt()[0],
-            'active':item.checkState(),
-            }
+            'active':self.item(row, 0).checkState(),
+            'filename':str(self.item(row, 2).text()),
+        }
 
     def encodeRows(self):
+        """
+
+        """
         return [self.rowToDict(i) for i in range(self.rowCount())]
 
     def decodeRows(self, rows):
-        for row in rows:
-            items = self.makeRowItems(row['strategyId'], self.inactiveIcon, row['filename'])
-            self.appendRow(items)
+        """
 
-    def makeRowItems(self, strategyId, icon, filename):
+        """
+        for row in rows:
+            items = self.makeRowItems(self.inactiveIcon,
+                                      row['filename'])
+            yield items
+
+
+    def makeRowItems(self, icon, filename):
+        """
+
+        """
         return [
-            StrategyTableItem(enabled=True, checkable=True, 
-                              checkState=Qt.Unchecked, strategyId=strategyId),
-            StrategyTableItem('inactive', icon=icon),
-            StrategyTableItem('item: %s' % strategyId),
-            StrategyTableItem(filename),
+            StandardItem(checkable=True, checkState=Qt.Unchecked,
+                         enabled=True, alignment=Qt.AlignCenter),
+            StandardItem('inactive', icon=icon),
+            StandardItem(filename),
         ]
 
 
@@ -99,26 +87,25 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         self.requestSession()
 
     def setSession(self, session):
-        """ 
+        """
 
         """
-        connect = self.connect
-        strategyTable = self.strategyTable
-        self.strategyModel = strategyModel = StrategyDisplayModel(session, self)
-        strategyTable.setModel(strategyModel)
-        connect(strategyModel, Signals.itemChanged, 
-                self.on_strategyTable_itemChanged)
-        connect(strategyTable.selectionModel(), Signals.selectionChanged, 
-                self.on_strategyTable_selectionChanged)
         self.session = session
-        self.strategy = strategy = session.strategy
-        for widget in (self.strategyTable, ):
-            hh = widget.horizontalHeader()
-            vh = widget.verticalHeader()
-            hh.hide()
-            vh.hide()
-            hh.setResizeMode(hh.ResizeToContents)
-        self.readSettings()
+        connect = self.connect
+        try:
+            self.strategyModel = model = session.strategy.displayModel
+        except (AttributeError, ):
+            self.strategyModel = model = session.strategy.displayModel = \
+                                 StrategyDisplayModel(session, self)
+            self.readSettings()
+        view = self.strategyTable
+        view.setModel(model)
+        view.verticalHeader().hide()
+        view.resizeColumnsToContents()
+        connect(model, Signals.itemChanged,
+                self.on_strategyTable_itemChanged)
+        connect(view.selectionModel(), Signals.selectionChanged,
+                self.on_strategyTable_selectionChanged)
 
     def on_strategyTable_selectionChanged(self, selected, deselected):
         """
@@ -142,10 +129,36 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
             other = self.strategyModel.item(item.row(), 1)
             other.setIcon(self.activeIcon if checked else self.inactiveIcon)
             other.setText('active' if checked else 'inactive')
-            for col in [1, 2, 3]:
+            labels = self.strategyModel.labels
+            # labels = ['Active', 'Status', 'File', ]
+            for col in [labels.index('Status'), labels.index('File'), ]:
                 self.strategyModel.item(item.row(), col).setEnabled(checked)
             self.editButton.setEnabled(not checked)
             self.removeButton.setEnabled(not checked)
+
+    @pyqtSignature('bool')
+    def on_enableAll_clicked(self, v):
+        pass
+
+    @pyqtSignature('bool')
+    def on_confirmActivate_clicked(self, v):
+        pass
+
+    @pyqtSignature('')
+    def on_editButton_clicked(self):
+        """
+
+        """
+        from profit.strategydesigner.main import StrategyDesigner
+        indexes = self.strategyTable.selectedIndexes()
+        rows = [i.row() for i in indexes if i.isValid()]
+        items = [self.strategyModel.item(row, 0) for row in rows]
+        for row, item in zip(rows, items):
+            other = self.strategyModel.item(row, 2)
+            filename = other.text()
+            win = StrategyDesigner(filename=filename, parent=self)
+            win.show()
+            break ## only first because there should only be one
 
     @pyqtSignature('')
     def on_loadButton_clicked(self):
@@ -155,6 +168,7 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         fn = QFileDialog.getOpenFileName(self, 'Select Strategy File', '')
         if fn:
             self.strategyModel.appendRowFromData(fn, self.inactiveIcon)
+            self.strategyTable.resizeColumnsToContents()
             self.saveSettings()
 
     @pyqtSignature('')
@@ -163,24 +177,23 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
 
         """
         indexes = self.strategyTable.selectedIndexes()
-        rows = [i.row() for i in indexes if i.isValid()]
-        items = [self.strategyModel.item(row, 0) for row in rows]
-        for row, item in zip(rows, items):
-            strategyId, valid = item.data(DataRoles.strategyId).toInt()
-            if valid:
-                self.strategyModel.takeRow(row)
+        rows = set(i.row() for i in indexes if i.isValid())
+        for row in rows:
+            self.strategyModel.takeRow(row)
         self.strategyTable.clearSelection()
         self.editButton.setEnabled(False)
         self.removeButton.setEnabled(False)
         self.saveSettings()
 
     def readSettings(self):
-        """
+        """ Load saved strategies and send them to the model.
 
         """
         settings = self.settings
         settings.beginGroup(settings.keys.strategy)
-        self.strategyModel.decodeRows(settings.valueLoad('strategies', []))
+        model = self.strategyModel
+        for row in model.decodeRows(settings.valueLoad('strategies', [])):
+            model.appendRow(row)
         settings.endGroup()
 
     def saveSettings(self):
