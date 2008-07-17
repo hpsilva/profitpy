@@ -5,296 +5,189 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-import logging
-
 from PyQt4.QtCore import (Qt, QModelIndex, QVariant, pyqtSignature,
                           QAbstractTableModel, )
 
 from PyQt4.QtGui import (QFrame, QIcon, QMessageBox, QPushButton,
                          QItemDelegate, QStandardItem,
-                         QStandardItemModel, )
+                         QStandardItemModel, QFileDialog, )
 
-from profit.lib.core import SessionHandler, Settings, Signals
+from profit.lib import defaults, logging
+from profit.lib.core import SessionHandler, SettingsHandler, Signals, DataRoles
 from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
 
-class StrategyControlModel(QAbstractTableModel):
-    columnTitles = ['Active', 'Name', 'File', 'Trades']
-    typeDecoders = {
-        'int':lambda v:v.toInt()[0],
-        'QString':lambda v:v.toString(),
-        'double':lambda v:v.toDouble()[0],
-        'bool':lambda v:v.toBool(),
-        }
-    typeDecoders[None] = typeDecoders['QString']
+class StrategyTableItem(QStandardItem):
+    """ Convenience QStandardItem subclass with many init keywords.
 
-    typeEncoders = {
-        0 : lambda v:(2 if v else 0),
-        1 : lambda v:v,
-        }
-    typeEncoders[None] = typeEncoders[1]
+    """
+    def __init__(self, text='', editable=False, enabled=False, checkable=False,
+                 checkState=Qt.Unchecked, icon=None, strategyId=None):
+        QStandardItem.__init__(self, text)
+        self.setEditable(editable)
+        self.setEnabled(enabled)
+        self.setCheckable(checkable)
+        if checkable:
+            self.setCheckState(checkState)
+        if icon:
+            self.setIcon(icon)
+        if strategyId is not None:
+            self.setData(QVariant(strategyId), DataRoles.strategyId)
 
+
+class StrategyDisplayModel(QStandardItemModel):
+    """ Model for strategy display table.
+
+    """
     def __init__(self, session, parent=None):
-        QAbstractTableModel.__init__(self, parent)
+        QStandardItemModel.__init__(self, parent)
         self.session = session
-        self.stratigies = [
-            [True, 'Test One', '/home/troy/foo.strategy', 34, ],
-            [False, 'Test Two', '/var/run/...', 13, ]
-            ]
-        if session:
-            session.registerMeta(self)
+        self.activeIcon = (parent.activeIcon if parent else QIcon())
+        self.inactiveIcon = (parent.inactiveIcon if parent else QIcon())
 
-    def flags(self, index):
-        if not index.isValid():
-            return Qt.ItemIsEnabled
-        column = index.column()
-        flags = QAbstractTableModel.flags(self, index)
-        #Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if column == 0:
-            flags = flags | \
-                    Qt.ItemIsUserCheckable | \
-                    Qt.ItemIsEditable
-        if column == 1:
-            flags =  flags | Qt.ItemIsEditable
-        if column == 2:
-            flags = flags | Qt.ItemIsEditable
-        return flags
+    def appendRowFromData(self, filename, icon):
+        """ Create and append row based on model data and method parameters.
 
-    def setData(self, index, value, role=Qt.EditRole):
-        if not index.isValid():
-            print '## setData WARN', index.isValid(), role
-            return False
-        row, col = index.row(), index.column()
-        cf = self.typeDecoders.get(value.typeName(), self.typeDecoders[None])
-        nv = cf(value)
-        cv = self.stratigies[row][col]
-        self.stratigies[row][col] = nv
-        return (cv == nv)
-
-    def data(self, index, role):
-        """ Framework hook to determine data stored at index for given role.
-
-        @param index QModelIndex instance
-        @param role Qt.DisplayRole flags
-        @return QVariant instance
         """
-        if not index.isValid():
-            return QVariant()
-# col 0 row 0 role 6 FontRole
-# col 0 row 0 role 7 TextAlignmentRole
-# col 0 row 0 role 9 TextColorRole
-# col 0 row 0 role 10 CheckStateRole
-# col 0 row 0 role 1 DecorationRole
-# col 0 row 0 role 0 DisplayRole
-# col 0 row 0 role 8 BackgroundRole
+        items = self.makeRowItems(self.nextStrategyId(), icon, filename)
+        self.appendRow(items)
 
-        #print '##:: ', index.row(), index.column(), role
-        #if role not in (Qt.DisplayRole, Qt.CheckStateRole, Qt.EditRole):
-        #    return QVariant()
-        row, col, sts = index.row(), index.column(), self.stratigies
-        val = QVariant()
-        cell = sts[row][col]
-        encoder = self.typeEncoders.get(col, self.typeEncoders[None])
-        cell = encoder(cell)
-        if col == 0:
-            #print '# col', col, 'row', row, 'role', role
-            if role in (Qt.DecorationRole, Qt.CheckStateRole):
-                val = QVariant(cell)
-        elif col == 1:
-            if role == Qt.DisplayRole:
-                val = QVariant(cell)
-        elif col == 2:
-            if role == Qt.DisplayRole:
-                val = QVariant(cell)
-        elif col == 3:
-            if role == Qt.DisplayRole:
-                val = QVariant(cell)
-        return val
+    def nextStrategyId(self):
+        """ Returns next strategy id based on model data.
 
-    def headerData(self, section, orientation, role):
-        """ Framework hook to determine header data.
-
-        @param section integer specifying header (e.g., column number)
-        @param orientation Qt.Orientation value
-        @param role Qt.DisplayRole flags
-        @return QVariant instance
         """
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self.columnTitles[section])
-        return QVariant()
+        items = [self.item(row, 0) for row in range(self.rowCount())]
+        ids = [item.data(DataRoles.strategyId).toInt() for item in items]
+        ids = [idpair[0] for idpair in ids if idpair[1]] or [0]
+        return max(ids) + 1
 
-    def rowCount(self, parent=None):
-        """ Framework hook to determine data model row count.
+    def rowToDict(self, row):
+        item = self.item(row, 0)
+        return {
+            'filename':str(self.item(row, 3).text()),
+            'strategyId':item.data(DataRoles.strategyId).toInt()[0],
+            'active':item.checkState(),
+            }
 
-        @param parent ignored
-        @return number of rows (message count)
-        """
-        return len(self.stratigies)
+    def encodeRows(self):
+        return [self.rowToDict(i) for i in range(self.rowCount())]
 
-    def columnCount(self, parent=None):
-        """ Framework hook to determine data model column count.
+    def decodeRows(self, rows):
+        for row in rows:
+            items = self.makeRowItems(row['strategyId'], self.inactiveIcon, row['filename'])
+            self.appendRow(items)
 
-        @param parent ignored
-        @return number of columns (see columnTitles)
-        """
-        return len(self.columnTitles)
+    def makeRowItems(self, strategyId, icon, filename):
+        return [
+            StrategyTableItem(enabled=True, checkable=True, 
+                              checkState=Qt.Unchecked, strategyId=strategyId),
+            StrategyTableItem('inactive', icon=icon),
+            StrategyTableItem('item: %s' % strategyId),
+            StrategyTableItem(filename),
+        ]
 
 
-class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler):
+class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandler):
+    """
+
+    """
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
         self.inactiveIcon = QIcon(':/images/icons/connect_no.png')
         self.activeIcon = QIcon(':/images/icons/connect_established.png')
-        self.settings = Settings()
-        self.settings.beginGroup(Settings.keys.strategy)
-        self.setupWidgets()
         self.requestSession()
 
-    def setupWidgets(self):
-        getv = self.settings.value
-        self.strategyTable.currentChanged = self.on_strategyTable_currentChanged
-        #self.connect(edit, Signals.currentIndexChanged, self.on_callableSelect_currentIndexChanged)
-
-    def on_strategyTable_currentChanged(self, index, prev):
-        print '### activated', index, prev
-
-    def on_strategyItem_changed(self, item):
-        #print '##', item
-        if item.column() == 0:
-            checked = item.checkState()
-            item.setIcon(self.activeIcon if checked else self.inactiveIcon)
-            item.setText('active' if checked else 'inactive')
-
     def setSession(self, session):
+        """ 
+
+        """
         connect = self.connect
-
-        self.strategyModel = strategyModel = StrategyDisplayModel(session)
         strategyTable = self.strategyTable
+        self.strategyModel = strategyModel = StrategyDisplayModel(session, self)
         strategyTable.setModel(strategyModel)
-        connect(strategyModel, Signals.itemChanged, self.on_strategyItem_changed)
-
-        ## tmp init
-        import random, string
-        def mkItems(i):
-            items = [
-                QStandardItem('inactive'),
-                QStandardItem('item: %s' % i),
-                QStandardItem('file://asdf/' + str.join('', [random.choice(string.hexdigits) for i in range(random.randint(10,50))])),
-                ]
-            for item in items:
-                item.setEditable(False)
-            items[0].setCheckable(True)
-            items[0].setIcon(self.inactiveIcon)
-            items[0].setCheckState(Qt.Unchecked)
-            #items[1].setText('asdf')
-            #items[2].setText('three')
-            return items
-        for i in range(100):
-            items = mkItems(i)
-            strategyModel.appendRow(items)
-
+        connect(strategyModel, Signals.itemChanged, 
+                self.on_strategyTable_itemChanged)
+        connect(strategyTable.selectionModel(), Signals.selectionChanged, 
+                self.on_strategyTable_selectionChanged)
         self.session = session
         self.strategy = strategy = session.strategy
-        self.on_strategy_activated(strategy.loader.active)
-        self.on_strategy_loaded(strategy.loader.loadMessage)
-
-        connect(strategy.loader, Signals.strategyActivated, self.on_strategy_activated)
-        connect(strategy.loader, Signals.strategyLoaded, self.on_strategy_loaded)
-        connect(strategy.loader, Signals.strategyLoadFailed, self.on_strategy_loadfail)
-
         for widget in (self.strategyTable, ):
             hh = widget.horizontalHeader()
             vh = widget.verticalHeader()
             hh.hide()
             vh.hide()
-            hh.setResizeMode(hh.Stretch)
+            hh.setResizeMode(hh.ResizeToContents)
+        self.readSettings()
 
+    def on_strategyTable_selectionChanged(self, selected, deselected):
+        """
 
-    def on_strategy_activated(self, status):
-        if status:
-            msg = 'Strategy is active.  Click to deactivate it.'
-            ico = 'established'
-        else:
-            msg = 'Strategy is not active.  Click to activate it for trading.'
-            ico = 'no'
-        button = self.activeButton
-        button.setCheckState(Qt.Checked if status else Qt.Unchecked)
-        button.setIcon(QIcon(':/images/icons/connect_%s.png' % ico))
-        self.activeLabel.setText(msg)
+        """
+        indexes = selected.indexes()
+        if indexes:
+            ## get the item from the first index (col 0) to determine
+            ## if this item is active, where active means checked
+            item = self.strategyModel.itemFromIndex(indexes[0])
+            active = item.checkState()
+            self.editButton.setEnabled(not active)
+            self.removeButton.setEnabled(not active)
 
-    def on_strategy_loaded(self, value):
-        self.loadButton.setCheckState(Qt.Checked if value else Qt.Unchecked)
-        if value:
-            value = '%s.  Click to unload it.' % value
-        else:
-            value = 'Strategy unloaded.'
-        self.loadLabel.setText(value)
+    def on_strategyTable_itemChanged(self, item):
+        """
 
-    def on_strategy_loadfail(self, value):
-        self.loadButton.setCheckState(Qt.Unchecked)
-        value = 'Load failure:  %s.' % value
-        self.loadLabel.setText(value)
-
-    @pyqtSignature('int')
-    def on_callableType_currentIndexChanged(self, index):
-        self.settings.setValue(
-            'type', self.callableSelect.callableType.itemData(index))
-
-    def on_callableLocation_textChanged(self, text):
-        self.settings.setValue('location', text)
-
-    @pyqtSignature('bool')
-    def on_activeButton_clicked(self, checked):
-        if not checked and self.strategy.loader.active:
-            self.strategy.loader.active = False
-        elif not checked and not self.strategy.loader.active:
-            pass
-        elif checked and self.strategy.loader.active:
-            pass
-        elif checked and not self.strategy.loader.active:
-            settings = Settings()
-            settings.beginGroup(Settings.keys.main)
-            activate = True
-            if settings.value('confirmActivateStrategy', True).toBool():
-                activate = QMessageBox.Yes == QMessageBox.question(
-                    self, 'Activate Trading Strategy?',
-                    'Do you really want to activate your trading strategy?',
-                    QMessageBox.Yes|QMessageBox.No)
-            if not activate:
-                self.activeButton.setCheckState(Qt.Unchecked)
-            self.strategy.loader.active = activate
+        """
+        if item.column() == 0:
+            checked = item.checkState()
+            other = self.strategyModel.item(item.row(), 1)
+            other.setIcon(self.activeIcon if checked else self.inactiveIcon)
+            other.setText('active' if checked else 'inactive')
+            for col in [1, 2, 3]:
+                self.strategyModel.item(item.row(), col).setEnabled(checked)
+            self.editButton.setEnabled(not checked)
+            self.removeButton.setEnabled(not checked)
 
     @pyqtSignature('')
-    def on_loadButton_clicked(self, reload=False):
-        if self.loadButton.checkState() == Qt.Checked:
-            settings = self.settings
-            params = dict(
-                reload=reload,
-                type=str(settings.value('type').toString()),
-                location=str(settings.value('location').toString()),
-                source=str(settings.value('source').toString()))
-            self.strategy.loader.load(params)
-        else:
-            self.strategy.loader.unload()
+    def on_loadButton_clicked(self):
+        """
+
+        """
+        fn = QFileDialog.getOpenFileName(self, 'Select Strategy File', '')
+        if fn:
+            self.strategyModel.appendRowFromData(fn, self.inactiveIcon)
+            self.saveSettings()
 
     @pyqtSignature('')
-    def on_reloadButton_clicked(self):
-        self.on_loadButton_clicked(reload=True)
+    def on_removeButton_clicked(self):
+        """
 
-    def on_callableSelect_modified(self, typeIndex, callType, callLoc, callText, isValid):
-        print '####', typeIndex, callType, callLoc, callText, isValid
-        logging.debug('CallableSelect modified: %s %s %s', callType, callLoc, callText[0:12])
-        if self.loadButton.checkState() == Qt.Checked:
-            self.loadLabel.setText(
-                'Strategy origin modified.'
-                'Click Reload to re-read it into memory.')
+        """
+        indexes = self.strategyTable.selectedIndexes()
+        rows = [i.row() for i in indexes if i.isValid()]
+        items = [self.strategyModel.item(row, 0) for row in rows]
+        for row, item in zip(rows, items):
+            strategyId, valid = item.data(DataRoles.strategyId).toInt()
+            if valid:
+                self.strategyModel.takeRow(row)
+        self.strategyTable.clearSelection()
+        self.editButton.setEnabled(False)
+        self.removeButton.setEnabled(False)
+        self.saveSettings()
 
-    @pyqtSignature('int')
-    def on_callableSelect_currentIndexChanged(self, index):
-        logging.debug('callableSelect changed')
+    def readSettings(self):
+        """
 
-class StrategyDisplayModel(QStandardItemModel):
-    def __init__(self, session, parent=None):
-        QStandardItemModel.__init__(self, parent)
-        self.session = session
+        """
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        self.strategyModel.decodeRows(settings.valueLoad('strategies', []))
+        settings.endGroup()
+
+    def saveSettings(self):
+        """
+
+        """
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        settings.setValueDump('strategies', self.strategyModel.encodeRows())
+        settings.endGroup()

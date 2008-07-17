@@ -188,10 +188,12 @@ class DataRoles:
     histDataReqId = nextRoleId()
     url = nextRoleId()
     urlTitle = nextRoleId()
+    strategyId = nextRoleId()
 
     typeMap = {
         tickerId:int,
         histDataReqId:int,
+        strategyId:int,
         }
 
 
