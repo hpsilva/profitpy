@@ -111,11 +111,11 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         """
 
         """
-        indexes = selected.indexes()
-        if indexes:
-            ## get the item from the first index (col 0) to determine
-            ## if this item is active, where active means checked
-            item = self.strategyModel.itemFromIndex(indexes[0])
+        try:
+            item = self.strategyModel.itemFromIndex(selected.indexes()[0])
+        except (IndexError, ):
+            pass
+        else:
             active = item.checkState()
             self.editButton.setEnabled(not active)
             self.removeButton.setEnabled(not active)
@@ -130,7 +130,6 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
             other.setIcon(self.activeIcon if checked else self.inactiveIcon)
             other.setText('active' if checked else 'inactive')
             labels = self.strategyModel.labels
-            # labels = ['Active', 'Status', 'File', ]
             for col in [labels.index('Status'), labels.index('File'), ]:
                 self.strategyModel.item(item.row(), col).setEnabled(checked)
             self.editButton.setEnabled(not checked)
@@ -178,7 +177,7 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         """
         indexes = self.strategyTable.selectedIndexes()
         rows = set(i.row() for i in indexes if i.isValid())
-        for row in rows:
+        for row in reversed(sorted(list(rows))):
             self.strategyModel.takeRow(row)
         self.strategyTable.clearSelection()
         self.editButton.setEnabled(False)

@@ -180,7 +180,11 @@ class ExecutionsDisplay(QFrame, Ui_ExecutionsDisplay, SessionHandler):
         @return None
         """
         self.session = session
-        self.dataModel = ExecutionsTableModel(session, self)
-        self.executionsTable.setModel(self.dataModel)
+        try:
+            model = session.executionsDisplayModel
+        except (AttributeError, ):
+            model = session.executionsDisplayModel = \
+                    ExecutionsTableModel(session)
+        self.executionsTable.setModel(model)
         session.register(self.executionsTable, 'ExecDetails',
                          Slots.scrollToBottom)
