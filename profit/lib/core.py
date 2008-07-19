@@ -5,21 +5,20 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-## this module is generally the first to get imported by one of the gui apps,
-## so we execute our ugly hack here.
 
+## this module is generally the first to get imported by one of the
+## gui apps, so we execute our ugly hack here.
 import sys
 if 'profit_rc' not in sys.modules:
     import profit.lib.widgets.profit_rc
     sys.modules['profit_rc'] = profit.lib.widgets.profit_rc
-
-
 ## now back to our regularly scheduled programming.
 
+
 from cPickle import dumps, loads
+
 from PyQt4.QtCore import (QCoreApplication, QPoint, QSettings, QSize,
                           QVariant, Qt, SIGNAL, SLOT)
-
 from profit.lib import logging
 
 
@@ -44,7 +43,7 @@ class Signals:
     doubleValueChanged = SIGNAL('valueChanged(double)')
     enableCurve = SIGNAL('enableCurve')
     finished = SIGNAL('finished()')
-
+    headerDataChanged = SIGNAL('headerDataChanged(Qt::Orientation, int, int)')
     highlightSelections = SIGNAL('highlightSelections')
     historicalDataStart = SIGNAL('historicalDataStart')
     historicalDataFinish = SIGNAL('historicalDataFinish')
@@ -174,12 +173,12 @@ class Settings(QSettings):
         return QSettings.value(self, key, default)
 
 
-def roleId():
+def roleIds():
     i = Qt.UserRole
     while True:
         yield i
         i += 1
-nextRoleId = roleId().next
+nextRoleId = roleIds().next
 
 
 class DataRoles:

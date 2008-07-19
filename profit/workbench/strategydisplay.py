@@ -31,11 +31,11 @@ class StrategyDisplayModel(QStandardItemModel):
         self.inactiveIcon = (view.inactiveIcon if view else QIcon())
         self.setHorizontalHeaderLabels(self.labels)
 
-    def appendRowFromData(self, filename, icon):
+    def appendRowFromData(self, **kwds):
         """ Create and append row based on model data and method parameters.
 
         """
-        items = self.makeRowItems(icon, filename)
+        items = self.makeRowItems(**kwds)
         self.appendRow(items)
 
     def rowToDict(self, row):
@@ -48,34 +48,35 @@ class StrategyDisplayModel(QStandardItemModel):
         }
 
     def encodeRows(self):
-        """
+        """ Encode model items as dictionaries.
 
         """
         return [self.rowToDict(i) for i in range(self.rowCount())]
 
     def decodeRows(self, rows):
-        """
+        """ Yields a list of items for each row.
 
         """
         for row in rows:
-            items = self.makeRowItems(self.inactiveIcon,
-                                      row['filename'])
+            items = self.makeRowItems(icon=self.inactiveIcon,
+                                      filename=row['filename'])
             yield items
 
 
-    def makeRowItems(self, icon, filename):
+    def makeRowItems(self, **kwds):
         """
 
         """
         return [
             StandardItem(checkable=True, checkState=Qt.Unchecked,
                          enabled=True, alignment=Qt.AlignCenter),
-            StandardItem('inactive', icon=icon),
-            StandardItem(filename),
+            StandardItem('inactive', icon=kwds.get('icon', QIcon())),
+            StandardItem(kwds.get('filename', '')),
         ]
 
 
-class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandler):
+class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
+                      SettingsHandler):
     """
 
     """
@@ -107,6 +108,14 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         connect(view.selectionModel(), Signals.selectionChanged,
                 self.on_strategyTable_selectionChanged)
 
+    def on_strategyTable_doubleClicked(self, index):
+        """
+
+        """
+        # don't check item state because the click function does
+        # nothing if the button is disabled.
+        self.editButton.click()
+
     def on_strategyTable_selectionChanged(self, selected, deselected):
         """
 
@@ -126,6 +135,14 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         """
         if item.column() == 0:
             checked = item.checkState()
+            if checked and self.confirmActivate.isChecked():
+                button = QMessageBox.warning(self, 'Confirm',
+                         'Confirm activate strategy.',
+                          QMessageBox.Yes|QMessageBox.No)
+                if button == QMessageBox.No:
+                    ## this causes a single indirect recursion.
+                    item.setCheckState(Qt.Unchecked)
+                    return
             other = self.strategyModel.item(item.row(), 1)
             other.setIcon(self.activeIcon if checked else self.inactiveIcon)
             other.setText('active' if checked else 'inactive')
@@ -136,8 +153,21 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
             self.removeButton.setEnabled(not checked)
 
     @pyqtSignature('bool')
-    def on_enableAll_clicked(self, v):
-        pass
+    def on_enableAll_clicked(self, checked):
+        if checked:
+            if self.confirmActivate.isChecked():
+                button = QMessageBox.warning(self, 'Confirm',
+                                             'Confirm activate strategy manager.',
+                                             QMessageBox.Yes|QMessageBox.No)
+                if button == QMessageBox.No:
+                    ## again, this causes a single indirect recursion
+                    self.enableAll.setChecked(Qt.Unchecked)
+                    return
+            ## emit enable-all signal
+            pass
+        else:
+            ## emit disable-all signal
+            pass
 
     @pyqtSignature('bool')
     def on_confirmActivate_clicked(self, v):
@@ -150,14 +180,17 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         """
         from profit.strategydesigner.main import StrategyDesigner
         indexes = self.strategyTable.selectedIndexes()
-        rows = [i.row() for i in indexes if i.isValid()]
-        items = [self.strategyModel.item(row, 0) for row in rows]
-        for row, item in zip(rows, items):
+        try:
+            row = [i.row() for i in indexes if i.isValid()][0]
+        except (IndexError, ):
+            pass
+        else:
+            item = self.strategyModel.item(row, 0)
             other = self.strategyModel.item(row, 2)
             filename = other.text()
             win = StrategyDesigner(filename=filename, parent=self)
             win.show()
-            break ## only first because there should only be one
+
 
     @pyqtSignature('')
     def on_loadButton_clicked(self):
@@ -166,7 +199,8 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler, SettingsHandle
         """
         fn = QFileDialog.getOpenFileName(self, 'Select Strategy File', '')
         if fn:
-            self.strategyModel.appendRowFromData(fn, self.inactiveIcon)
+            self.strategyModel.appendRowFromData(filename=fn,
+                                                 icon=self.inactiveIcon)
             self.strategyTable.resizeColumnsToContents()
             self.saveSettings()
 

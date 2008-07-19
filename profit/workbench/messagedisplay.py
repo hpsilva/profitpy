@@ -4,212 +4,23 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-from functools import partial
 from time import ctime
 
-from PyQt4.QtCore import (QAbstractListModel, QAbstractTableModel, QModelIndex,
-                          QByteArray, QVariant, Qt, pyqtSignature, )
-
+from PyQt4.QtCore import pyqtSignature
 from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
-                         QMenu, QPixmap, QSortFilterProxyModel,
-                         QTableWidgetItem, )
+                         QMenu, QTableWidgetItem, )
 
-from ib.opt.message import registry
+from ib.opt.message import messageTypeNames
 
 from profit.lib import defaults
-from profit.lib.core import SessionHandler, Settings, Signals, Slots
+from profit.lib.core import SessionHandler, SettingsHandler, Signals, Slots
 from profit.lib.gui import colorIcon
+from profit.lib.models.messages import MessagesTableModel
 from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay
 
 
-def messageTypeNames():
-    """ Builds set of message type names.
-
-    @return set of all message type names as strings
-    """
-    return set([t.typeName for t in registry.values()])
-
-
-def messageRow(index, mtuple, model):
-    """ Extracts the row number from an index and its message.
-
-    @param index QModelIndex instance
-    @param mtuple two-tuple of (message time, message object)
-    @return row number as integer
-    """
-    return model.messages.index(mtuple)
-
-
-def messageTime(index, (mtime, message), model):
-    """ Extracts the message time from an index and its message.
-
-    @param index QModelIndex instance
-    @param mtime message time as float
-    @param message message instance
-    @return mtime formatted with ctime call
-    """
-    return ctime(mtime)
-
-
-def messageName(index, (mtime, message), model):
-    """ Extracts the type name from an index and its message.
-
-    @param index QModelIndex instance
-    @param mtime message time as float
-    @param message message instance
-    @return type name of message as string
-    """
-    return message.typeName
-
-
-def messageText(index, (mtime, message), model):
-    """ Extracts the items from an index and its message.
-
-    @param index QModelIndex instance
-    @param mtime message time as float
-    @param message message instance
-    @return message string formatted with message key=value pairs
-    """
-    return str.join(', ', ['%s=%s' % (k, v) for k, v in message.items()])
-
-
-class MessagesTableModel(QAbstractTableModel):
-    """ Data model for session messages.
-
-    """
-    columnTitles = ['Index', 'Time', 'Type', 'Fields']
-    dataExtractors = {0:messageRow, 1:messageTime,
-                      2:messageName, 3:messageText}
-
-    def __init__(self, session, brushes, parent=None):
-        """ Constructor.
-
-        @param session Session instance
-        @param brushes mapping of typenames to foreground brushes
-        @param parent ancestor object
-        """
-        QAbstractTableModel.__init__(self, parent)
-        self.session = session
-        self.brushes = brushes
-        self.messagesReference = self.messages = session.messages
-        self.messageTypes = []
-        session.registerAll(self.on_sessionMessage)
-
-    def setPaused(self, paused):
-        """ Pauses or resumes signals emitted from this model.
-
-        @param paused if True, disconnects from session, otherwise reconnects
-        @return None
-        """
-        session = self.session
-        regcall = session.deregisterAll if paused else session.registerAll
-        regcall(self.on_sessionMessage)
-
-    def on_sessionMessage(self, message):
-        """ Signal handler for incoming messages.
-
-        @param message message instance
-        @return None
-        """
-        x = len(self.messagesReference)
-        #self.insertRows(x, 1)
-        self.beginInsertRows(QModelIndex(), x, x)
-        self.endInsertRows()
-
-    def __insertRows(self, row, count, parent=QModelIndex()):
-        self.beginInsertRows(parent, row, row+count-1)
-        self.endInsertRows()
-        return True
-
-    def message(self, idx):
-        return self.messagesReference[idx]
-
-    def data(self, index, role):
-        """ Framework hook to determine data stored at index for given role.
-
-        @param index QModelIndex instance
-        @param role Qt.DisplayRole flags
-        @return QVariant instance
-        """
-        if not index.isValid():
-            return QVariant()
-        message = self.messagesReference[index.row()]
-        if role == Qt.ForegroundRole:
-            return QVariant(self.brushes[message[1].typeName])
-        if role != Qt.DisplayRole:
-            return QVariant()
-        try:
-            val = self.dataExtractors[index.column()](index, message, self)
-            val = QVariant(val)
-        except (KeyError, ):
-            val = QVariant()
-        return val
-
-    def headerData(self, section, orientation, role):
-        """ Framework hook to determine header data.
-
-        @param section integer specifying header (e.g., column number)
-        @param orientation Qt.Orientation value
-        @param role Qt.DisplayRole flags
-        @return QVariant instance
-        """
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self.columnTitles[section])
-        return QVariant()
-
-    def rowCount(self, parent=None):
-        """ Framework hook to determine data model row count.
-
-        @param parent ignored
-        @return number of rows (message count)
-        """
-        return len(self.messagesReference)
-
-    def columnCount(self, parent=None):
-        """ Framework hook to determine data model column count.
-
-        @param parent ignored
-        @return number of columns (see columnTitles)
-        """
-        return len(self.columnTitles)
-
-    def enableTypesFilter(self, types):
-        self.messageTypes = list(types)
-        self.messagesReference = list(
-            m for m in self.messages if m[1].typeName in types)
-        self.reset()
-
-    def disableTypesFilter(self):
-        self.messageTypes = []
-        self.messagesReference = self.messages
-        self.reset()
-
-
-class MessagesFilterModel(QSortFilterProxyModel):
-    """ Filters messages from display.
-
-    """
-    def __init__(self, parent=None):
-        """ Constructor.
-
-        @param parent ancestor object
-        """
-        QSortFilterProxyModel.__init__(self, parent)
-
-    def __filterAcceptsRow(self, row, index):
-        """ Framework hook to control row visibility
-
-        @param row row number as integer
-        @param index QModelIndex instance (ignored)
-        @return True if message should be displayed, False if not
-        """
-        if self.stoprow and row > self.stoprow:
-            return False
-        msg = self.messages[row][1]
-        return msg.typeName in self.types
-
-
-class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
+class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler,
+                     SettingsHandler):
     """ Table view of session messages with nifty controls.
 
     """
@@ -240,7 +51,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         horizHeader = widget.horizontalHeader()
         horizHeader.setResizeMode(horizHeader.ResizeToContents)
 
-        self.settings = settings = Settings()
+        settings = self.settings
         settings.beginGroup(settings.keys.messages)
         self.setupColorButton()
         self.setupDisplayButton()
@@ -340,7 +151,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
             allAction.setChecked(False)
             self.displayTypes.clear()
             self.displayTypes.add(str(action.text()))
-            self.model.enableTypesFilter(self.displayTypes)
+            #self.model.enableTypesFilter(self.displayTypes)
             ## add proxy and one regex
             if 0:
                 self.proxyModel = MessagesFilterModel(self)
@@ -366,7 +177,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
             text = str(action.text())
             if actionChecked:
                 self.displayTypes.add(text)
-                self.model.enableTypesFilter(self.displayTypes)
+                #self.model.enableTypesFilter(self.displayTypes)
                 if 0:
                     ## add text to proxy regex
                     self.proxyModel.setFilterRegExp(
@@ -374,7 +185,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
                         )
             else:
                 self.displayTypes.discard(text)
-                self.model.enableTypesFilter(self.displayTypes)
+                #self.model.enableTypesFilter(self.displayTypes)
                 ## remove text from proxy regex
                 if 0:
                     pattern = self.proxyModel.filterRegExp().pattern()
@@ -390,7 +201,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler):
         @param checked toggled state of button
         @return None
         """
-        self.model.setPaused(checked)
+        #self.model.setPaused(checked)
         session = self.session
         ## if checked:
         ##     session.deregisterAll(self.messageTable, Slots.scrollToBottom)

@@ -44,6 +44,9 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     documentationUrl = \
         'http://code.google.com/p/profitpy/w/list?q=label:Documentation'
     homeUrl = 'http://code.google.com/p/profitpy/'
+    ibUrl = 'http://www.interactivebrokers.com/'
+    twsUrl = 'http://individuals.interactivebrokers.com/cgi-bin/jtslink.pl'
+
     iconName = ':images/icons/blockdevice.png'
     maxRecentSessions = 5
 
@@ -149,6 +152,14 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     @pyqtSignature('')
     def on_actionProfitPyHome_triggered(self):
         self.emit(Signals.openUrl, self.homeUrl)
+
+    @pyqtSignature('')
+    def on_actionIbHome_triggered(self):
+        self.emit(Signals.openUrl, self.ibUrl)
+
+    @pyqtSignature('')
+    def on_actionBrowserTwsHome_triggered(self):
+        self.emit(Signals.openUrl, self.twsUrl)
 
     @pyqtSignature('')
     def on_actionHistoricalData_triggered(self):

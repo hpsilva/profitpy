@@ -13,9 +13,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>61</y>
+     <y>68</y>
      <width>1024</width>
-     <height>685</height>
+     <height>678</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" >
@@ -58,6 +58,10 @@
     </property>
     <addaction name="actionDocumentation" />
     <addaction name="actionProfitPyHome" />
+    <addaction name="separator" />
+    <addaction name="actionIbHome" />
+    <addaction name="actionBrowserTwsHome" />
+    <addaction name="separator" />
     <addaction name="actionAboutProfitWorkbench" />
     <addaction name="actionAboutQt" />
    </widget>
@@ -118,8 +122,8 @@
     <rect>
      <x>0</x>
      <y>29</y>
-     <width>565</width>
-     <height>32</height>
+     <width>279</width>
+     <height>39</height>
     </rect>
    </property>
    <property name="windowTitle" >
@@ -146,10 +150,10 @@
   <widget class="QToolBar" name="editToolbar" >
    <property name="geometry" >
     <rect>
-     <x>565</x>
+     <x>279</x>
      <y>29</y>
-     <width>459</width>
-     <height>32</height>
+     <width>745</width>
+     <height>39</height>
     </rect>
    </property>
    <property name="windowTitle" >
@@ -169,7 +173,7 @@
   </widget>
   <action name="actionNewSession" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/filenew.png</normaloff>:/images/icons/filenew.png</iconset>
    </property>
    <property name="text" >
@@ -181,7 +185,7 @@
   </action>
   <action name="actionOpenSession" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/fileopen.png</normaloff>:/images/icons/fileopen.png</iconset>
    </property>
    <property name="text" >
@@ -198,7 +202,7 @@
   </action>
   <action name="actionSaveSession" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/filesave.png</normaloff>:/images/icons/filesave.png</iconset>
    </property>
    <property name="text" >
@@ -210,7 +214,7 @@
   </action>
   <action name="actionSaveSessionAs" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/filesaveas.png</normaloff>:/images/icons/filesaveas.png</iconset>
    </property>
    <property name="text" >
@@ -219,7 +223,7 @@
   </action>
   <action name="actionCloseSession" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/fileclose.png</normaloff>:/images/icons/fileclose.png</iconset>
    </property>
    <property name="text" >
@@ -234,7 +238,7 @@
   </action>
   <action name="actionQuit" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/exit.png</normaloff>:/images/icons/exit.png</iconset>
    </property>
    <property name="text" >
@@ -249,7 +253,7 @@
   </action>
   <action name="actionSettings" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/kcontrol.png</normaloff>:/images/icons/kcontrol.png</iconset>
    </property>
    <property name="text" >
@@ -262,6 +266,10 @@
    </property>
   </action>
   <action name="actionDocumentation" >
+   <property name="icon" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
+     <normaloff>:/images/icons/www.png</normaloff>:/images/icons/www.png</iconset>
+   </property>
    <property name="text" >
     <string>Documentation...</string>
    </property>
@@ -283,7 +291,7 @@
   </action>
   <action name="actionStrategyDesigner" >
    <property name="icon" >
-    <iconset>
+    <iconset resource="../../lib/widgets/profit.qrc" >
      <normaloff>:/images/icons/run.png</normaloff>:/images/icons/run.png</iconset>
    </property>
    <property name="text" >
@@ -310,8 +318,30 @@
    </property>
   </action>
   <action name="actionProfitPyHome" >
+   <property name="icon" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
+     <normaloff>:/images/icons/www.png</normaloff>:/images/icons/www.png</iconset>
+   </property>
    <property name="text" >
     <string>ProfitPy Web Site...</string>
+   </property>
+  </action>
+  <action name="actionIbHome" >
+   <property name="icon" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
+     <normaloff>:/images/icons/www.png</normaloff>:/images/icons/www.png</iconset>
+   </property>
+   <property name="text" >
+    <string>IB Web Site...</string>
+   </property>
+  </action>
+  <action name="actionBrowserTwsHome" >
+   <property name="icon" >
+    <iconset resource="../../lib/widgets/profit.qrc" >
+     <normaloff>:/images/icons/www.png</normaloff>:/images/icons/www.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Browser-based TWS...</string>
    </property>
   </action>
  </widget>
@@ -323,7 +353,9 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../lib/widgets/profit.qrc" />
+ </resources>
  <connections>
   <connection>
    <sender>actionStatusBar</sender>

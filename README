@@ -1,23 +1,26 @@
-1.  refactor account and ticker plot usage
+== To Do for 0.2 ==
 
-2.  enable all plot options on account display; fix account display
-    value update
+1.  fix account display
 
-3.  Add single, inheritable SessionDataModel class using the message
-    data model as the starting point.  Refactor session message
-    viewers to use common class directly or as baseclass.
+2.  fix message display
 
-4.  add csv tick data import/export
+3.  complete basic model class suitable for session.message
 
-5.  add viewable historical data requests and plots
+4.  add viewable historical data requests and plots
 
-6.  add commands and dialogs for all tws request functions
+5.  finish strategy design tool and its integration with the workbench
 
-7.  finish neural network design tool
+6.  finish neural network design tool and its integration
 
-8.  finish strategy design tool
+7.  write the README (this file) and release the code
 
-9.  fix zoom bugs
 
-10.  add urls to help menu:  ib api and ib browser tws
+== 0.3 and Beyond ==
 
+1.  add csv tick data import/export
+
+2.  add commands and dialogs for remaining tws request functions
+
+3.  fix bugs, like the zoom bugs
+
+4.  add peer-to-peer discovery and trade data exchange

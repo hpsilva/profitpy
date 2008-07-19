@@ -14,17 +14,15 @@ from PyQt4.QtGui import QLabel, QMainWindow, QMessageBox
 from PyQt4.QtGui import QSizePolicy, QSpinBox, QStandardItem
 from PyQt4.QtGui import QStandardItemModel, QToolBar
 
-from ib.ext.TickType import TickType
-from ib.opt import message
-
 from profit.lib import series
 from profit.lib import defaults
 from profit.lib.core import Settings, Signals
-from profit.lib.strategy.treeitems import (
-    CallableItem, TickerItem, FieldItem, IndexItem, RunnerItem)
-
 from profit.lib.widgets.syspathdialog import SysPathDialog
+from profit.strategydesigner.treeitems import (
+    CallableItem, TickerItem, FieldItem, IndexItem, RunnerItem)
 from profit.strategydesigner.widgets.ui_strategydesigner import Ui_StrategyDesigner
+
+from ib.ext.TickType import TickType
 
 
 def itemSenderPropMatchMethod(name):
@@ -1036,6 +1034,8 @@ class StrategyDesigner(QMainWindow, Ui_StrategyDesigner):
             newchild.resetForeground()
             model.removeRow(sourcerow, sourceparent.index())
             self.clipItem = None
+        self.treeView.expand(model.indexFromItem(targetitem))
+        self.treeView.expand(model.indexFromItem(newchild))
         self.enableActions(model.indexFromItem(targetitem))
         self.emit(Signals.modified)
 

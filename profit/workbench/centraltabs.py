@@ -8,8 +8,8 @@
 from functools import partial
 from sys import platform
 
-from PyQt4.QtCore import QTimer, Qt, pyqtSignature
-from PyQt4.QtGui import QApplication, QIcon, QTabWidget
+from PyQt4.QtCore import QTimer, QVariant, Qt, pyqtSignature
+from PyQt4.QtGui import QApplication, QIcon, QTabWidget, QStandardItem
 
 from profit.lib import importItem, logging
 from profit.lib.core import SessionHandler, Signals, DataRoles
@@ -30,6 +30,13 @@ displayClasses = {
     'strategy' : 'profit.workbench.strategydisplay.StrategyDisplay',
     'tickers' : 'profit.workbench.tickerdisplay.TickerDisplay',
 }
+
+
+def makeUrlItem(v):
+    item = QStandardItem(v)
+    item.setData(QVariant(v), DataRoles.url)
+    item.setData(QVariant(''), DataRoles.urlTitle)
+    return item
 
 
 class CentralTabs(QTabWidget, SessionHandler):
@@ -59,12 +66,14 @@ class CentralTabs(QTabWidget, SessionHandler):
             try:
                 if handler(value):break
             except (Exception, ), exc:
-                logging.debug("Exception (debug): %r:%s", exc, exc)
+                logging.debug("Exception (debug): %r:%s (h:%s)", exc, exc, handler, )
 
     def createBrowserTab(self, item):
         """ creates a new web browser tab.
 
         """
+        if isinstance(item, (basestring, )):
+            item = makeUrlItem(item)
         if item.data(DataRoles.url).isValid():
             url = item.data(DataRoles.url).toString()
             title = item.data(DataRoles.urlTitle).toString()

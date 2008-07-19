@@ -162,7 +162,10 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler, UrlRequestor):
         __builtin__.__dict__['i'] = item
 
         sym = str(index.data().toString())
-        tid = self.symbols[sym]
+        try:
+            tid = self.symbols[sym]
+        except (KeyError, ):
+            return
 
         item.setData(DataRoles.tickerId, QVariant(tid), )
         item.setData(DataRoles.tickerSymbol, QVariant(sym))

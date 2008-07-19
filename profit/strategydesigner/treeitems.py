@@ -31,7 +31,7 @@ class SchemaItem(QStandardItem):
     def canPaste(self, typeobj):
         try:
             return self.allowChildType(typeobj.__bases__[1])
-        except (IndexError, ):
+        except (AttributeError, IndexError, ):
             return False
 
     def children(self, descend=False):
@@ -127,6 +127,7 @@ class SchemaItem(QStandardItem):
                         for attr, default in self.attrs.items()])
         mapping['children'] = [c.toSchema() for c in self.children()]
         mapping['name'] = str(self.text())
+        mapping['type'] = str(self.__class__.__name__)
         return mapping
 
 
