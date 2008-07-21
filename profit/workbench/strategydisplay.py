@@ -13,7 +13,7 @@ from PyQt4.QtGui import (QFrame, QIcon, QMessageBox, QPushButton,
                          QStandardItemModel, QFileDialog, )
 
 from profit.lib import defaults, logging
-from profit.lib.core import SessionHandler, SettingsHandler, Signals, DataRoles
+from profit.lib.core import SessionHandler, SettingsHandler, Signals, DataRoles, instance
 from profit.lib.gui import StandardItem
 from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
@@ -21,6 +21,10 @@ from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 class StrategyDisplayModel(QStandardItemModel):
     """ Model for strategy display table.
 
+    This model doesn't make any attempt to identify a strategy by a
+    unique key.  The user can add the same strategy file multiple
+    times via a view, yet this class only distinguishes by
+    (transitory) row numbers.
     """
     labels = ['Active', 'Status', 'File', ]
 
@@ -58,10 +62,8 @@ class StrategyDisplayModel(QStandardItemModel):
 
         """
         for row in rows:
-            items = self.makeRowItems(icon=self.inactiveIcon,
-                                      filename=row['filename'])
-            yield items
-
+            yield self.makeRowItems(icon=self.inactiveIcon,
+                                    filename=row['filename'])
 
     def makeRowItems(self, **kwds):
         """
@@ -80,11 +82,19 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
     """
 
     """
+    confirmActivateKey = 'confirmActivate'
+
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
         self.inactiveIcon = QIcon(':/images/icons/connect_no.png')
         self.activeIcon = QIcon(':/images/icons/connect_established.png')
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        confirm = settings.value(self.confirmActivateKey, True)
+        self.confirmActivate.setCheckState(Qt.Checked if confirm.toBool()
+                                           else Qt.Unchecked)
+        settings.endGroup()
         self.requestSession()
 
     def setSession(self, session):
@@ -107,6 +117,8 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
                 self.on_strategyTable_itemChanged)
         connect(view.selectionModel(), Signals.selectionChanged,
                 self.on_strategyTable_selectionChanged)
+        connect(self, Signals.strategyRequestActivate,
+                instance(), Signals.strategyRequestActivate)
 
     def on_strategyTable_doubleClicked(self, index):
         """
@@ -143,6 +155,10 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
                     ## this causes a single indirect recursion.
                     item.setCheckState(Qt.Unchecked)
                     return
+            ## emit the signal for all activate/deactivate changes
+            rowdict = self.strategyModel.rowToDict(item.row())
+            self.emit(Signals.strategyRequestActivate, rowdict, bool(checked))
+            ## house keeping common for all activate/deactivate
             other = self.strategyModel.item(item.row(), 1)
             other.setIcon(self.activeIcon if checked else self.inactiveIcon)
             other.setText('active' if checked else 'inactive')
@@ -171,7 +187,10 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
 
     @pyqtSignature('bool')
     def on_confirmActivate_clicked(self, v):
-        pass
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        settings.setValue(self.confirmActivateKey, v)
+        settings.endGroup()
 
     @pyqtSignature('')
     def on_editButton_clicked(self):

@@ -54,6 +54,7 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         QFrame.__init__(self, parent)
         self.setupUi(self)
         self.requestSession()
+        self.resizePlotControls()
 
     def setSession(self, session):
         """ Configures this instance for a session.
@@ -95,3 +96,8 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
             others = [model.item(item.row(), i) for i in range(1,4)]
             key = tuple(str(i.text()) for i in (item, others[0], others[2]))
             model.items[key] = [item, ] + others
+        self.resizePlotControls()
+
+    def resizePlotControls(self):
+        for i in range(3):
+            self.plot.controlsTree.resizeColumnToContents(i)

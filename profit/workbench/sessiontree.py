@@ -152,14 +152,17 @@ class SessionTreeModel(QStandardItemModel):
         QStandardItemModel.__init__(self)
         self.session = session
         root = self.invisibleRootItem()
-        ## TODO: still need to make this lazy and account for empty
-        ## strategy and/or strategy load
         clsmap = dict.fromkeys([k for k in displayClasses], {})
-        clsmap['tickers'] = session.strategy.symbols()
         items = sorted(clsmap.items())
         for key, values in items:
             item = SessionTreeItem(key)
             root.appendRow(item)
+        connect = self.connect
+        connect(session, Signals.createdTicker, self.on_session_createdTicker)
+
+    def on_session_createdTicker(self, tickerId, tickerData):
+        print '## new session tree ticker', tickerId, tickerData
+        if 0:
             call = self.itemMakers.get(key, mkItem)
             for subkey, subval in sorted(values.items()):
                 item.appendRow(call(subkey, subval))

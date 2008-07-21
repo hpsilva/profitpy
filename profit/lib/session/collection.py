@@ -15,11 +15,16 @@ from profit.lib.core import Signals
 
 
 class DataCollection(QObject):
+    sessionResendSignals = []
+
     def __init__(self, session):
         QObject.__init__(self)
         self.session = session
         self.data = {}
-        session.registerMeta(self)
+        if session:
+            session.registerMeta(self)
+            for signal in self.sessionResendSignals:
+                self.connect(self, signal, session, signal)
 
     def __contains__(self, item):
         return item in self.data
@@ -36,7 +41,10 @@ class DataCollection(QObject):
     def setdefault(self, key, default):
         return self.data.setdefault(key, default)
 
+
 class AccountCollection(DataCollection):
+    sessionResendSignals = [Signals.createdAccountData, ]
+
     def __init__(self, session):
         DataCollection.__init__(self, session)
         self.last = {}
@@ -52,7 +60,7 @@ class AccountCollection(DataCollection):
                 pass
             else:
                 acctdata = self[key] = \
-                           self.session.strategy.accountData(key)
+                           self.session.strategy.makeAccountSeries(key)
                 self.emit(Signals.createdAccountData, key, acctdata, iv)
         try:
             v = float(message.value)
@@ -64,11 +72,13 @@ class AccountCollection(DataCollection):
 
 
 class TickerCollection(DataCollection):
+    sessionResendSignals = [Signals.createdSeries, Signals.createdTicker, ]
+
     def __init__(self, session):
         DataCollection.__init__(self, session)
         ## have to make the strategy symbols lazy somehow
         for tid in session.strategy.symbols().values():
-            self[tid] = session.strategy.ticker(tid)
+            self[tid] = session.strategy.makeTicker(tid)
 
     def on_session_TickPrice_TickSize(self, message):
         tickerId = message.tickerId
@@ -76,7 +86,7 @@ class TickerCollection(DataCollection):
             tickerdata = self[tickerId]
         except (KeyError, ):
             tickerdata = self[tickerId] = \
-                         self.session.strategy.ticker(tickerId)
+                         self.session.strategy.makeTicker(tickerId)
             self.emit(Signals.createdTicker, tickerId, tickerdata)
         try:
             value = message.price
@@ -87,7 +97,7 @@ class TickerCollection(DataCollection):
             seq = tickerdata.series[field]
         except (KeyError, ):
             seq = tickerdata.series[field] = \
-                  self.session.strategy.series(tickerId, field)
+                  self.session.strategy.makeTickerSeries(tickerId, field)
             self.emit(Signals.createdSeries, tickerId, field)
         seq.append(value)
 
@@ -99,6 +109,9 @@ def historyMessages(reqId, msgs):
 
 
 class HistoricalDataCollection(DataCollection):
+    sessionResendSignals = [Signals.historicalDataStart,
+                            Signals.historicalDataFinish]
+
     def __init__(self, session):
         DataCollection.__init__(self, session)
 

@@ -6,21 +6,15 @@
 # Author: Troy Melhase <troy@gci.net>
 #         Yichun Wei <yichun.wei@gmail.com>
 
+from cPickle import load, loads
 from time import time, strftime
+
+from PyQt4.QtCore import QObject
+
+from profit.lib.core import Signals, instance
 from profit.lib.series import Series, MACDHistogram
 
 from ib.ext.Contract import Contract
-from ib.ext.ExecutionFilter import ExecutionFilter
-from ib.ext.Order import Order
-from ib.ext.TickType import TickType
-from ib.opt import ibConnection
-from ib.opt.message import registry
-
-from profit.lib.strategy import Strategy as StrategyLoader
-try:
-    from profit.lib.series import EMA, KAMA
-except (ImportError, ):
-    EMA = KAMA = None
 
 
 class StrategyBuilderTicker(object):
@@ -28,7 +22,7 @@ class StrategyBuilderTicker(object):
         self.series = {}
 
 
-class SessionStrategyBuilder(object):
+class SessionStrategyBuilder(QObject):
     default_paramsHistoricalData = {
         ## change to use datetime
         "endDateTime"       :   strftime("%Y%m%d %H:%M:%S PST", (2007,1,1,0,0,0,0,0,0)),
@@ -39,57 +33,96 @@ class SessionStrategyBuilder(object):
         "formatDate"        :   2,          # 2 for seconds since 1970/1/1
         }
 
-    def __init__(self):
-        self.loader = StrategyLoader()
+    def __init__(self, parent=None):
+        QObject.__init__(self, parent)
+        self.tickerItems = []
+        self.isActive = self.loadMessage = False
+        self.threads = []
+        self.tickers = []
+        app = instance()
+        connect = self.connect
+        connect(app, Signals.strategyFileUpdated,
+                self.externalFileUpdated)
+        connect(app, Signals.strategyRequestActivate,
+                self.requestActivation)
 
     @classmethod
     def paramsHistoricalData(cls, **kwds):
         cls.default_paramsHistoricalData.update(kwds)
         return cls.default_paramsHistoricalData
 
-    def accountData(self, *k):
+    def makeAccountSeries(self, *k):
         s = Series()
-        if EMA:
-            s.addIndex('EMA-25', EMA, s, 25)
         return s
 
-    def strategy(self):
-        return None
-
-    def symbols(self):
-        return {'AAPL':100, 'EBAY':101, 'NVDA':102}
-
-    def contract(self, symbol, secType='STK', exchange='SMART',
-                 currency='USD'):
+    def makeContract(self, symbol, **kwds):
         contract = Contract()
         contract.m_symbol = symbol
-        contract.m_secType = secType
-        contract.m_exchange = exchange
-        contract.m_currency = currency
+        contract.m_secType = kwds.get('secType', 'STK')
+        contract.m_exchange = kwds.get('exchange', 'SMART')
+        contract.m_currency = kwds.get('currency', 'USD')
+        ## other attributes
         return contract
 
-    def order(self):
-        return Order()
+    def makeContracts(self):
+        symids = self.symbols()
+        for symbol, tickerId in symids.items():
+            yield tickerId, self.makeContract(symbol)
 
-    def ticker(self, tickerId):
-        return StrategyBuilderTicker()
+    def makeTicker(self, tickerId):
+        ticker = StrategyBuilderTicker()
+        return ticker
 
-    def series(self, tickerId, field):
+    def makeTickerSeries(self, tickerId, field):
         s = Series()
-        if EMA and KAMA:
-            s.addIndex('EMA-20', EMA, s, 20)
-            s.addIndex('EMA-40', EMA, s, 40)
-            v = s.addIndex('KAMA-10', KAMA, s, 10)
-            v.addIndex('EMA-5', EMA, v, 5)
         return s
 
-    def historicalSeries(self, tickerId, field):
-        s = Series()
-        if field in ['date', 'hasGaps']:
-            return s
-        elif EMA and KAMA:
-            s.addIndex('EMA-20', EMA, s, 20)
-            s.addIndex('EMA-40', EMA, s, 40)
-            v = s.addIndex('KAMA-10', KAMA, s, 10)
-            v.addIndex('EMA-5', EMA, v, 5)
-            return s
+    def symbols(self):
+        syms = [(i.get('symbol'), i.get('tickerId'))
+                for i in self.tickerItems]
+        syms = [(k, v) for k, v in syms if k is not None and v is not None]
+        return dict(syms)
+
+    def load(self, source):
+        if not hasattr(source, 'read'):
+            source = open(source)
+        try:
+            instance = load(source)
+        except (Exception, ), exc:
+            raise Exception('Exception "%s" loading strategy.' % exc)
+        for item in instance:
+            methName = 'load_%s' % item.get('type', 'Unknown')
+            call = getattr(self, methName, None)
+            try:
+                call(item)
+            except (TypeError, ):
+                pass
+
+    def load_TickerItem(self, instance):
+        print '## load ticker item', instance
+        self.tickerItems.append(instance)
+
+    def requestActivation(self, strategy, activate=False):
+        print '## requestActivation of strategy', strategy, activate
+        filename = strategy.get('filename', None)
+        if activate:
+            if filename:
+                self.load(filename)
+                self.parent().requestTickers()
+
+    def externalFileUpdated(self, filename):
+        print '## strategy external file updated'
+
+    def __load(self, params):
+        origintype = params.get('type', '') or 'empty'
+        try:
+            call = getattr(self, 'from%s' % origintype.title())
+            okay, message = call(**params)
+            self.loadMessage = message
+            signal = Signals.strategyLoaded if okay else \
+                     Signals.strategyLoadFailed
+            self.emit(signal, message)
+            if okay and params.get('reload', False):
+                self.emit(signal, 'Strategy reloaded')
+        except (Exception, ), ex:
+            self.emit(Signals.strategyLoadFailed, str(ex))

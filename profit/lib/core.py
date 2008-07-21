@@ -74,7 +74,9 @@ class Signals:
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')
-    strategyActivated = SIGNAL('strategyActivated(bool)')
+
+    strategyRequestActivate = SIGNAL('strategyActivated(PyQt_PyObject, bool)')
+
     strategyLoaded = SIGNAL('strategyLoaded(PyQt_PyObject)')
     strategyLoadFailed = SIGNAL('strategyLoadFaield(PyQt_PyObject)')
     strategyFileUpdated = SIGNAL('strategyFileUpdated(PyQt_PyObject)')
@@ -250,7 +252,7 @@ class SessionHandler(object):
         """
         self.disconnect(
             instance(), Signals.sessionReference, self.existingSession)
-        if not session is self.session:
+        if session is not self.session:
             self.setSession(session)
 
     def requestSession(self):

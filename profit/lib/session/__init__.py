@@ -46,7 +46,7 @@ class Session(QObject):
     def __init__(self, strategy=None):
         QObject.__init__(self)
         self.setObjectName('session')
-        self.strategy = strategy if strategy else SessionStrategyBuilder()
+        self.strategy = strategy if strategy else SessionStrategyBuilder(self)
         self.connection = self.sessionFile = self.nextId = None
         self.messages = []
         self.bareMessages = []
@@ -56,13 +56,6 @@ class Session(QObject):
         self.tickerCollection = tc = TickerCollection(self)
         self.historicalDataCollection = hc = HistoricalDataCollection(self)
         connect = self.connect
-        connect(ac, Signals.createdAccountData, self, Signals.createdAccountData)
-        connect(tc, Signals.createdSeries, self, Signals.createdSeries)
-        connect(tc, Signals.createdTicker, self, Signals.createdTicker)
-        connect(hc, Signals.historicalDataStart,
-                self, Signals.historicalDataStart)
-        connect(hc, Signals.historicalDataFinish,
-                self, Signals.historicalDataFinish)
 
     def __str__(self):
         fmt = '<Session 0x%x messages:%s connected:%s>'
@@ -126,10 +119,13 @@ class Session(QObject):
             for key in keys:
                 self.deregister(getattr(instance, name), key)
 
+    specialClientId = -1
+    specialPortNo = 1023
+
     def connectTWS(self, hostName, portNo, clientId, enableLogging=False):
-        if clientId == -1:
+        if clientId == self.specialClientId:
             clientId = randint(100, 999)
-        if portNo == 1023:
+        if portNo == self.specialPortNo:
             portNo = 7496
         self.connection = con = ibConnection(hostName, portNo, clientId)
         con.enableLogging(enableLogging)
@@ -161,11 +157,11 @@ class Session(QObject):
 
     def requestTickers(self):
         connection = self.connection
-        ## need to make this lazy
-        for sym, tid in self.strategy.symbols().items():
-            contract = self.strategy.contract(sym)
-            connection.reqMktData(tid, contract, '', False)
-            connection.reqMktDepth(tid, contract, 1)
+        if connection:
+            for tickerId, contract  in self.strategy.makeContracts():
+                connection.reqMktData(tickerId, contract, '', False)
+                connection.reqMktDepth(tickerId, contract, 1)
+        ## else queue for later?
 
     def requestAccount(self):
         self.connection.reqAccountUpdates(True, "")
@@ -180,21 +176,6 @@ class Session(QObject):
     def requestHistoricalData(self, params):
         ## we should msg the object instead
         self.historicalDataCollection.begin(params)
-
-    def testContract(self, symbol='AAPL'):
-        orderid = self.nextId
-        if orderid is None:
-            return False
-        contract = self.strategy.contract(symbol)
-        order = self.strategy.order()
-        order.m_action = 'SELL'
-        order.m_orderType = 'MKT'
-        order.m_totalQuantity = '300'
-        order.m_lmtPrice = contract.m_auxPrice = 78.5
-        order.m_openClose = 'O'
-        self.connection.placeOrder(orderid, contract, order)
-        self.nextId += 1
-        return True
 
     def saveFinished(self):
         if self.saveThread.status:
