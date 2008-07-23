@@ -78,12 +78,12 @@ class CollectorThread(QThread):
         interval = options.interval * 60
 
         self.session = session = Session(strategy=False)
-        session.sessionFile = options.output
+        session.filename = options.output
         self.connect(session, Signals.sessionStatus, logging.debug)
 
         session.connectTWS(
             options.host, options.port, options.clientid)
-        if not session.isConnected:
+        if not session.isConnected():
             logging.error('Could not connect to %s:%s.',
                           options.host, options.port)
             logging.error('Aborting.')

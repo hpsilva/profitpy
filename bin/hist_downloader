@@ -150,11 +150,11 @@ def main(options):
     sess.histdataQueue.put(('AAPL', 100))
 
     sess.connect(sess, Signals.sessionStatus, logging.debug)
-    sess.sessionFile = options.output
+    sess.filename = options.output
     sess.connectTWS(
          options.host, options.port, options.clientid)
 
-    if not sess.isConnected:
+    if not sess.isConnected():
         logging.error('Could not connect to %s:%s.',
                       options.host, options.port)
         logging.error('Aborting.')

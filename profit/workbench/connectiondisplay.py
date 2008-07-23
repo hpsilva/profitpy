@@ -58,7 +58,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
 
     def setSession(self, session):
         self.session = session
-        connected = session.isConnected
+        connected = session.isConnected()
         self.setControlsEnabled(not connected, connected)
         session.registerMeta(self)
         session.registerAll(self.updateLastMessage)
@@ -83,7 +83,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
 
     def on_connectedTWS(self):
         session = self.session
-        if session.isConnected:
+        if session.isConnected():
             self.setControlsEnabled(False, True)
             try:
                 if self.requestAccount.isChecked():
@@ -117,7 +117,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler):
 
     @pyqtSignature('')
     def on_disconnectButton_clicked(self):
-        if self.session and self.session.isConnected:
+        if self.session and self.session.isConnected():
             self.session.disconnectTWS()
             self.setControlsEnabled(True, False)
 

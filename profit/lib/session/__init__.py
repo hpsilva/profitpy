@@ -6,38 +6,28 @@
 # Author: Troy Melhase <troy@gci.net>
 #         Yichun Wei <yichun.wei@gmail.com>
 
-import os
-import logging
-
-from cPickle import PicklingError, UnpicklingError, dump, load
-from itertools import ifilter
+from cPickle import UnpicklingError, load
 from random import randint
-from time import time, strftime
-from Queue import Queue
+from time import time
 
-from PyQt4.QtCore import QObject, QMutex, QThread, SIGNAL
+from PyQt4.QtCore import QObject, SIGNAL
 
-from ib.ext.Contract import Contract
-from ib.ext.ExecutionFilter import ExecutionFilter
-from ib.ext.Order import Order
-from ib.ext.TickType import TickType
 from ib.opt import ibConnection
-from ib.opt.message import registry
+from ib.opt.message import messageTypeNames
+from ib.ext.ExecutionFilter import ExecutionFilter
 
+from profit.lib import logging
 from profit.lib.core import Signals
-from profit.lib.series import Series, MACDHistogram
-from profit.lib.session.collection import (AccountCollection,
-                                           TickerCollection,
-                                           HistoricalDataCollection, )
+from profit.lib.session import collection
 from profit.lib.session.savethread import SaveThread
-try:
-    from profit.lib.series import EMA, KAMA
-except (ImportError, ):
-    EMA = KAMA = None
-
 from profit.lib.strategy.builder import SessionStrategyBuilder
 
+from profit.lib.models import accountdata
 
+class SessionModels(object):
+    def __init__(self, session):
+        self.accountDataAll = accountdata.AllAccountData(session)
+        self.accountDataLast = accountdata.LatestAccountData(session)
 
 class Session(QObject):
     """ This is the big-honkin Session class.
@@ -45,84 +35,129 @@ class Session(QObject):
     """
     def __init__(self, strategy=None):
         QObject.__init__(self)
-        self.setObjectName('session')
         self.strategy = strategy if strategy else SessionStrategyBuilder(self)
-        self.connection = self.sessionFile = self.nextId = None
+        self.connection = self.filename = None
         self.messages = []
         self.bareMessages = []
         self.savedLength = 0
         self.typedMessages = {}
-        self.accountCollection = ac = AccountCollection(self)
-        self.tickerCollection = tc = TickerCollection(self)
-        self.historicalDataCollection = hc = HistoricalDataCollection(self)
-        connect = self.connect
+        self.tickerCollection = collection.TickerCollection(self)
+        self.historicalDataCollection = collection.HistoricalDataCollection(self)
+        self.models = SessionModels(self)
 
     def __str__(self):
-        fmt = '<Session 0x%x messages:%s connected:%s>'
-        args = id(self), len(self.messages), int(self.isConnected)
-        return  fmt % args
+        """ x.__str__() <==> str(x)
 
-    def disconnectTWS(self):
-        if self.isConnected:
-            self.connection.disconnect()
-            self.emit(Signals.disconnectedTWS)
+        @return string representation of this object
+        """
+        format = '<Session 0x%x messages:%s connected:%s>'
+        args = id(self), len(self.messages), self.isConnected()
+        return  format % args
 
-    @property
     def isConnected(self):
+        """ Returns True if this object has a TWS connection.
+
+        @return True if this object is connected to TWS
+        """
         return bool(self.connection and self.connection.isConnected())
 
-    @property
     def isModified(self):
+        """ Returns True if this object has unsaved messages.
+
+        @return True if this object has unsaved messages
+        """
         return len(self.messages) != self.savedLength
 
     def register(self, obj, name, other=None):
+        """ Connects TWS message signal sent from this object to another.
+
+        @param obj slot, method, or function to receive signals
+        @param name signal name as string
+        @keyparam other=None if not None, slot to receive signals
+        @return None
+        """
         if other is None:
             self.connect(self, SIGNAL(name), obj)
         else:
             self.connect(self, SIGNAL(name), obj, other)
 
     def registerAll(self, obj, other=None):
-        names = [typ.__name__ for typ in registry.values()]
-        for name in names:
-            if other is None:
-                self.connect(self, SIGNAL(name), obj)
-            else:
-                self.connect(self, SIGNAL(name), obj, other)
+        """ Connects all TWS message signals sent from this object to another.
 
-    def registerMeta(self, instance):
-        prefix = 'on_session_'
-        names = [n for n in dir(instance) if n.startswith('on_session_')]
-        for name in names:
+        @param obj slot, method, or function to receive signals
+        @keyparam other=None if not None, slot to receive signals
+        @return None
+        """
+        for name in messageTypeNames():
+            self.register(obj, name, other)
+
+    def registerMeta(self, instance, prefix='on_session_'):
+        """ Inspects instance for named message slots and connects those found.
+
+        @param instance object with zero or more session message slots
+        @keyparam prefix='on_session_' session message method name prefix
+        @return None
+        """
+        for name in [n for n in dir(instance) if n.startswith(prefix)]:
             keys = name[len(prefix):].split('_')
             for key in keys:
                 self.register(getattr(instance, name), key)
 
     def deregister(self, obj, name, other=None):
+        """ Disconnects TWS message signal sent from this object.
+
+        @param obj slot, method, or function to receive signals
+        @param name signal name as string
+        @keyparam other=None if not None, slot to receive signals
+        @return None
+        """
         if other is None:
             self.disconnect(self, SIGNAL(name), obj)
         else:
             self.disconnect(self, SIGNAL(name), obj, other)
 
     def deregisterAll(self, obj, other=None):
-        names = [typ.__name__ for typ in registry.values()]
-        for name in names:
-            if other is None:
-                self.disconnect(self, SIGNAL(name), obj)
-            else:
-                self.disconnect(self, SIGNAL(name), obj, other)
+        """ Disconnects all TWS message signals sent from this object to another.
 
-    def deregisterMeta(self, instance):
-        prefix = 'on_session_'
-        names = [n for n in dir(instance) if n.startswith('on_session_')]
-        for name in names:
+        @param obj slot, method, or function to receive signals
+        @keyparam other=None if not None, slot to receive signals
+        @return None
+        """
+        for name in messageTypeNames():
+            self.deregister(obj, name, other)
+
+    def deregisterMeta(self, instance, prefix='on_session_'):
+        """ Inspects instance for named message slots and disconnects those found.
+
+        @param instance object with zero or more session message slots
+        @keyparam prefix='on_session_' session message method name prefix
+        @return None
+        """
+        for name in [n for n in dir(instance) if n.startswith(prefix)]:
             keys = name[len(prefix):].split('_')
             for key in keys:
                 self.deregister(getattr(instance, name), key)
 
+    ##
+    # This special clientId is set in the connection display spinbox.
+    # We support it by substituting a random id for it when
+    # connecting.
     specialClientId = -1
+
+    ##
+    # We interpret this privileged port number to mean instead the
+    # default TWS port.
     specialPortNo = 1023
 
     def connectTWS(self, hostName, portNo, clientId, enableLogging=False):
+        """ Connect this instance to TWS.
+
+        @param hostName name or IP address of host
+        @param portNo port number for connection
+        @param clientId connection client id
+        @keyparam enableLogging=False enables or disables connection logging
+        @return None
+        """
         if clientId == self.specialClientId:
             clientId = randint(100, 999)
         if portNo == self.specialPortNo:
@@ -131,17 +166,24 @@ class Session(QObject):
         con.enableLogging(enableLogging)
         con.connect()
         con.registerAll(self.receiveMessage)
-        con.register(self.on_nextValidId, 'NextValidId')
         self.emit(Signals.connectedTWS)
-        con.register(self.on_error, 'Error')
 
-    def on_nextValidId(self, message):
-        self.nextId = int(message.orderId)
+    def disconnectTWS(self):
+        """ Disconnects this instance from TWS.
 
-    def on_error(self, message):
-        logging.debug(str(message))
+        @return None
+        """
+        if self.isConnected():
+            self.connection.disconnect()
+            self.emit(Signals.disconnectedTWS)
 
     def receiveMessage(self, message, mtime=time):
+        """ Receive a message from TWS and propagate it as a Qt signal.
+
+        @param message IbPy message instance
+        @keyparam mtime=time message timestamp or function to generate timestamp
+        @return None
+        """
         messages = self.messages
         try:
             mtime = mtime()
@@ -156,28 +198,47 @@ class Session(QObject):
         self.emit(SIGNAL(typename), message)
 
     def requestTickers(self):
+        """ Request market data and depth for each of the strategy contracts.
+
+        @return None
+        """
         connection = self.connection
-        if connection:
-            for tickerId, contract  in self.strategy.makeContracts():
+        if connection and connection.isConnected():
+            for tickerId, contract in self.strategy.makeContracts():
                 connection.reqMktData(tickerId, contract, '', False)
                 connection.reqMktDepth(tickerId, contract, 1)
         ## else queue for later?
 
     def requestAccount(self):
-        self.connection.reqAccountUpdates(True, "")
+        """ Request account data.
+
+        @return None
+        """
+        connection = self.connection
+        if connection and connection.isConnected():
+            connection.reqAccountUpdates(True, '')
 
     def requestOrders(self):
+        """ Request orders.
+
+        @return None
+        """
         connection = self.connection
-        filt = ExecutionFilter()
-        connection.reqExecutions(filt)
-        connection.reqAllOpenOrders()
-        connection.reqOpenOrders()
+        if connection and connection.isConnected():
+            filt = ExecutionFilter()
+            connection.reqExecutions(filt)
+            connection.reqAllOpenOrders()
+            connection.reqOpenOrders()
 
     def requestHistoricalData(self, params):
         ## we should msg the object instead
         self.historicalDataCollection.begin(params)
 
     def saveFinished(self):
+        """ Slot that updates this instance after a save thread has completed.
+
+        @return None
+        """
         if self.saveThread.status:
             count = self.saveThread.writeCount
             self.savedLength = count
@@ -187,6 +248,10 @@ class Session(QObject):
         self.emit(Signals.sessionStatus, msg)
 
     def exportFinished(self):
+        """ Slot that updates this instance after an export thread has completed.
+
+        @return None
+        """
         if self.exportThread.status:
             count = self.exportThread.writeCount
             msg = 'Session exported.  Wrote %s messages.' % count
@@ -195,25 +260,38 @@ class Session(QObject):
         self.emit(Signals.sessionStatus, msg)
 
     def saveTerminated(self):
+        """ Slot for handling a canceled save thread.
+
+        @return None
+        """
         self.emit(Signals.sessionStatus, 'Session file save terminated.')
 
     def exportTerminated(self):
+        """ Slot for handling a canceled export thread.
+
+        @return None
+        """
         self.emit(Signals.sessionStatus, 'Session export terminated.')
 
-    @property
     def saveInProgress(self):
+        """ Returns True if this instance has a running save thread
+
+        @return True if save thread is running, otherwise False
+        """
         try:
-            thread = self.saveThread
+            return self.saveThread.isRunning()
         except (AttributeError, ):
             return False
-        else:
-            return thread.isRunning()
 
     def save(self):
-        if self.saveInProgress:
+        """ Save the messages in this object to a file.
+
+        @return None
+        """
+        if self.saveInProgress():
             return
         self.saveThread = thread = \
-            SaveThread(filename=self.sessionFile, types=None, parent=self)
+            SaveThread(filename=self.filename, types=None, parent=self)
         self.connect(thread, Signals.finished, self.saveFinished)
         self.connect(thread, Signals.terminated, self.saveTerminated)
         thread.start()
@@ -245,7 +323,7 @@ class Session(QObject):
             except (UnpicklingError, ):
                 pass
             finally:
-                self.sessionFile= filename
+                self.filename = filename
                 self.savedLength = len(messages)
                 handle.close()
 
@@ -281,17 +359,24 @@ class Session(QObject):
             finally:
                 handle.close()
 
-    @property
     def exportInProgress(self):
+        """ Returns True if this instance has a running export thread
+
+        @return True if save thread is running, otherwise False
+        """
         try:
-            thread = self.exportThread
+            return self.exportThread.isRunning()
         except (AttributeError, ):
             return False
-        else:
-            return thread.isRunning()
 
     def exportMessages(self, filename, types):
-        if self.exportInProgress:
+        """ Export some or all session messages.
+
+        @param filename name of file to write
+        @param types sequence of types to export; use false value to export all
+        @return None
+        """
+        if self.exportInProgress():
             return
         self.exportThread = thread = \
             SaveThread(filename=filename, types=types, parent=self)

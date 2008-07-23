@@ -11,12 +11,27 @@ from PyQt4.QtCore import QThread
 
 
 class SaveThread(QThread):
+    """ SaveThread -> Thread class for saving session messages asynchronously.
+
+
+    """
     def __init__(self, filename, types, parent):
+        """ Initializer.
+
+        @param filename name of file to write
+        @param types sequence of types to save; use a false value to save all
+        @param parent parent of this object; should be a Session instance
+        @return None
+        """
         QThread.__init__(self, parent)
         self.filename = filename
         self.types = types
 
     def run(self):
+        """ Saves parent's messages to a file with the pickling protocol.
+
+        @return None
+        """
         status = False
         session = self.parent()
         try:

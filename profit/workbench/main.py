@@ -80,10 +80,10 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         settings.beginGroup(settings.keys.main)
         confirm = settings.value('confirmCloseWhenModified', QVariant(1))
         confirm = confirm.toInt()[0]
-        if self.session.isModified and confirm:
+        if self.session.isModified() and confirm:
             buttons = QMessageBox.Save|QMessageBox.Discard|QMessageBox.Cancel
             text = 'This session has been modified'
-            if self.session.isConnected:
+            if self.session.isConnected():
                 text += ' and is connected and receiving messages.'
             else:
                 text += '.'
@@ -167,7 +167,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         dlg = HistoricalDataDialog(self)
         if dlg.exec_() != dlg.Accepted:
             return
-        if self.session.isConnected:
+        if self.session.isConnected():
             params = dlg.historicalRequestParameters()
             self.session.requestHistoricalData(params)
 
@@ -178,7 +178,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
             filename = QFileDialog.getSaveFileName(
                 self, 'Export Session To File')
         if filename:
-            if self.session.exportInProgress:
+            if self.session.exportInProgress():
                 warningBox('Export in Progress',
                            'Session export already in progress.')
             else:
@@ -190,7 +190,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
                     return
                 self.session.exportMessages(filename, types)
                 def lookup():
-                    return not self.session.exportInProgress
+                    return not self.session.exportInProgress()
                 dlg = WaitMessageBox(lookup, self)
                 dlg.setText('Export in Progress...')
                 dlg.setWindowTitle('Profit Workbench Session Export')
@@ -288,16 +288,16 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     @pyqtSignature('')
     def on_actionSaveSession_triggered(self):
-        if self.session.sessionFile is None:
+        if self.session.filename is None:
             self.actionSaveSessionAs.trigger()
         else:
-            if self.session.saveInProgress:
+            if self.session.saveInProgress():
                 warningBox('Save in Progress',
                            'Session save already in progress.')
             else:
                 self.session.save()
                 def lookup():
-                    return not self.session.saveInProgress
+                    return not self.session.saveInProgress()
                 dlg = WaitMessageBox(lookup, self)
                 dlg.setText('Save in Progress...')
                 dlg.setWindowTitle('Profit Workbench Session Save')
@@ -307,7 +307,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     def on_actionSaveSessionAs_triggered(self):
         filename = QFileDialog.getSaveFileName(self, 'Save Session As')
         if filename:
-            self.session.sessionFile = str(filename)
+            self.session.filename = str(filename)
             self.actionSaveSession.trigger()
 
     @pyqtSignature('')
@@ -338,7 +338,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         if reason == QSystemTrayIcon.Trigger:
             self.setVisible(not self.isVisible())
         elif reason == QSystemTrayIcon.MiddleClick:
-            if self.session and self.session.isConnected:
+            if self.session and self.session.isConnected():
                 msg = 'Connected'
             else:
                 msg = 'Not Connected'

@@ -303,7 +303,7 @@ class Plot(QFrame, Ui_Plot):
 
     """
     def __init__(self, parent=None):
-        """ Constructor.
+        """ Initializer.
 
         @param parent ancestor of this widget
         """
@@ -427,7 +427,7 @@ class Plot(QFrame, Ui_Plot):
         tree.sortByColumn(0, Qt.AscendingOrder)
         try:
             ticker = self.collection[self.key]
-        except (KeyError, ):
+        except (KeyError, TypeError, ):
             pass
         else:
             for field, series in ticker.series.items():

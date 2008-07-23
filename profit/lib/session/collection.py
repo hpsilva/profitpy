@@ -7,10 +7,10 @@
 #         Yichun Wei <yichun.wei@gmail.com>
 
 import os
-import logging
 from cPickle import PicklingError, UnpicklingError, dump, load
 
 from PyQt4.QtCore import QObject, QThread
+from profit.lib import logging
 from profit.lib.core import Signals
 
 
@@ -57,7 +57,8 @@ class AccountCollection(DataCollection):
             try:
                 iv = float(message.value)
             except (ValueError, ):
-                pass
+                ## log this
+                return
             else:
                 acctdata = self[key] = \
                            self.session.strategy.makeAccountSeries(key)
@@ -102,11 +103,6 @@ class TickerCollection(DataCollection):
         seq.append(value)
 
 
-def historyMessages(reqId, msgs):
-    return (m for m in msgs
-            if m[1].reqId==reqId
-            and not m[1].date.startswith('finished'))
-
 
 class HistoricalDataCollection(DataCollection):
     sessionResendSignals = [Signals.historicalDataStart,
@@ -120,7 +116,7 @@ class HistoricalDataCollection(DataCollection):
             reqId = message.reqId
             reqData = self.setdefault(reqId, {})
             histMsgs = self.session.typedMessages['HistoricalData']
-            reqData['messages'] = historyMessages(reqId, histMsgs)
+            reqData['messages'] = self.historyMessages(reqId, histMsgs)
             self.emit(Signals.historicalDataFinish, reqId)
 
     def begin(self, params):
@@ -129,3 +125,23 @@ class HistoricalDataCollection(DataCollection):
         reqData.update(params)
         self.emit(Signals.historicalDataStart, reqId, reqData)
         self.session.connection.reqHistoricalData(**reqData)
+
+    @staticmethod
+    def historyMessages(reqId, msgs):
+        return (m for m in msgs
+                if m[1].reqId==reqId
+                and not m[1].date.startswith('finished'))
+
+
+
+class OrderDataCollection(DataCollection):
+    nextId = 0
+
+    def on_session_nextValidId(self, message):
+        self.nextId = int(message.orderId)
+
+
+class ErrorDataCollection(DataCollection):
+    def on_session_Error(self, message):
+        logging.debug(str(message))
+
