@@ -99,7 +99,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         if tickerIdValid:
             widget = TickerPlotDisplay(self)
             session = self.session
-            widget.setSessionPlot(session, session.tickerCollection, tickerId)
+            widget.setSessionPlot(session, session.dataMaps.ticker, tickerId)
             index = self.addTab(widget, symbol)
             icon = QIcon(item.data(Qt.DecorationRole))
             self.setTextIconCurrentTab(index, symbol, icon)

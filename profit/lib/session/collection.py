@@ -21,10 +21,9 @@ class DataCollection(QObject):
         QObject.__init__(self)
         self.session = session
         self.data = {}
-        if session:
-            session.registerMeta(self)
-            for signal in self.sessionResendSignals:
-                self.connect(self, signal, session, signal)
+        session.registerMeta(self)
+        for signal in self.sessionResendSignals:
+            self.connect(self, signal, session, signal)
 
     def __contains__(self, item):
         return item in self.data
@@ -37,6 +36,9 @@ class DataCollection(QObject):
 
     def keys(self):
         return self.data.keys()
+
+    def items(self):
+        return self.data.items()
 
     def setdefault(self, key, default):
         return self.data.setdefault(key, default)
@@ -57,7 +59,6 @@ class AccountCollection(DataCollection):
             try:
                 iv = float(message.value)
             except (ValueError, ):
-                ## log this
                 return
             else:
                 acctdata = self[key] = \
@@ -115,7 +116,7 @@ class HistoricalDataCollection(DataCollection):
         if message.date.startswith('finished'):
             reqId = message.reqId
             reqData = self.setdefault(reqId, {})
-            histMsgs = self.session.typedMessages['HistoricalData']
+            histMsgs = self.session.messagesTyped['HistoricalData']
             reqData['messages'] = self.historyMessages(reqId, histMsgs)
             self.emit(Signals.historicalDataFinish, reqId)
 

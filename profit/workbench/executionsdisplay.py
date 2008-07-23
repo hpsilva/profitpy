@@ -98,7 +98,7 @@ class ExecutionsTableModel(QAbstractTableModel):
         @param message ExecDetails message instance
         @return None
         """
-        self.messageIndexes.append(self.session.bareMessages.index(message))
+        self.messageIndexes.append(self.session.messagesBare.index(message))
         self.emit(Signals.layoutChanged)
 
     def data(self, index, role):

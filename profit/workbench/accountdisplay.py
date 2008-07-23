@@ -22,14 +22,9 @@ class AccountTableModel(QStandardItemModel):
         self.setHorizontalHeaderLabels(self.columnTitles)
         self.items = {}
         self.session = session
-        try:
-            messages = session.typedMessages['UpdateAccountValue']
-        except (KeyError, ):
-            pass
-        else:
-            slot = self.on_session_UpdateAccountValue
-            for mrec in messages:
-                slot(mrec[1])
+        fillSlot = self.on_session_UpdateAccountValue
+        for mrec in session.iterMessageTypes('UpdateAccountValue'):
+            fillSlot(mrec[1])
         session.registerMeta(self)
 
     def on_session_UpdateAccountValue(self, message):
@@ -66,13 +61,13 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         self.dataModel = model = AccountTableModel(session, self)
         plot = self.plot
         plot.plotButton.setVisible(False)
-        plot.setSessionPlot(session, session.accountCollection, 'account')
+        plot.setSessionPlot(session, session.dataMaps.account, 'account')
         plot.controlsTreeModel = model
         plot.controlsTree.setModel(model)
         plot.controlsTree.header().show()
-        for key, series in session.accountCollection.data.items():
+        for key, series in session.dataMaps.account.items():
             self.newPlotSeries(
-                key, series, session.accountCollection.last.get(key, None))
+                key, series, session.dataMaps.account.last.get(key, None))
         connect = self.connect
         connect(session, Signals.createdAccountData, self.newPlotSeries)
         connect(

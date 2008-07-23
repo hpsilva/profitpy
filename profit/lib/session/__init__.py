@@ -22,12 +22,15 @@ from profit.lib.session import collection
 from profit.lib.session.savethread import SaveThread
 from profit.lib.strategy.builder import SessionStrategyBuilder
 
-from profit.lib.models import accountdata
 
-class SessionModels(object):
+class DataMaps(object):
     def __init__(self, session):
-        self.accountDataAll = accountdata.AllAccountData(session)
-        self.accountDataLast = accountdata.LatestAccountData(session)
+        self.account = collection.AccountCollection(session)
+        self.historical = collection.HistoricalDataCollection(session)
+        self.ticker = collection.TickerCollection(session)
+        self.error = collection.ErrorDataCollection(session)
+        self.order = collection.OrderDataCollection(session)
+
 
 class Session(QObject):
     """ This is the big-honkin Session class.
@@ -38,12 +41,10 @@ class Session(QObject):
         self.strategy = strategy if strategy else SessionStrategyBuilder(self)
         self.connection = self.filename = None
         self.messages = []
-        self.bareMessages = []
+        self.messagesBare = []
+        self.messagesTyped = {}
         self.savedLength = 0
-        self.typedMessages = {}
-        self.tickerCollection = collection.TickerCollection(self)
-        self.historicalDataCollection = collection.HistoricalDataCollection(self)
-        self.models = SessionModels(self)
+        self.dataMaps = DataMaps(self)
 
     def __str__(self):
         """ x.__str__() <==> str(x)
@@ -184,18 +185,18 @@ class Session(QObject):
         @keyparam mtime=time message timestamp or function to generate timestamp
         @return None
         """
-        messages = self.messages
         try:
             mtime = mtime()
         except (TypeError, ):
             pass
+        messages = self.messages
         current = (mtime, message)
         messages.append(current)
-        typename = message.typeName
-        typed = self.typedMessages.setdefault(typename, [])
-        typed.append(current + (len(messages), ))
-        self.bareMessages.append(message)
-        self.emit(SIGNAL(typename), message)
+        self.messagesBare.append(message)
+        typeName = message.typeName
+        typedMessages = self.messagesTyped.setdefault(typeName, [])
+        typedMessages.append(current + (len(messages), ))
+        self.emit(SIGNAL(typeName), message)
 
     def requestTickers(self):
         """ Request market data and depth for each of the strategy contracts.
@@ -384,3 +385,12 @@ class Session(QObject):
         self.connect(thread, Signals.terminated, self.exportTerminated)
         thread.start()
         self.emit(Signals.sessionStatus, 'Started session export.')
+
+    def iterMessageTypes(self, *types):
+        for key in types:
+            try:
+                key = key.__name__
+            except (AttributeError, ):
+                pass
+            for msgTimeIndex in self.messagesTyped.get(key, ()):
+                yield msgTimeIndex
