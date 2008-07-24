@@ -13,17 +13,28 @@ from profit.lib.core import SessionHandler, nameIn
 from profit.workbench.widgets.ui_orderdisplay import Ui_OrderDisplay
 
 
-def replayOrders(messages, obj):
+def replayOrderMessages(messages, openOrder, orderStatus):
+    """
+
+    """
     ismsg = nameIn('OpenOrder', 'OrderStatus')
+    calls = {'OpenOrder':openOrder, 'OrderStatus':orderStatus}
     def pred((t, m)):
         return ismsg(m)
     for time, message in ifilter(pred, messages):
-        call = getattr(obj, 'on_session_%s' % message.typeName)
-        call(message)
+        calls[message.typeName](message)
 
 
 class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
+    """ OrderDisplay -> table of orders
+
+    """
     def __init__(self, parent=None):
+        """ Initializer.
+
+        @param parent ancestor of this object
+        @return None
+        """
         QFrame.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setupUi(self)
@@ -32,8 +43,17 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         self.requestSession()
 
     def setSession(self, session):
+        """ Configures this instance for a session.
+
+        @param session Session instance
+        @return None
+        """
         self.session = session
-        replayOrders(session.messages, self)
+        replayOrderMessages(
+            session.messages,
+            self.on_session_OpenOrder,
+            self.on_session_OrderStatus,
+        )
         session.registerMeta(self)
 
     def on_session_OrderStatus(self, message):
@@ -41,7 +61,8 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         try:
             items = self.orderItems[orderId]
         except (KeyError, ):
-            print '### warning:  order items not found on status for', orderId
+            ## status received before open order message received.
+            ## should log this.
             return
         table = self.orderTable
         items[3].setText(message.status)
@@ -55,24 +76,24 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         table.resizeColumnsToContents()
 
     def on_session_OpenOrder(self, message):
-        table = self.orderTable
-        contract = message.contract
         order = message.order
         orderId = order.m_orderId
         try:
             items = self.orderItems[orderId]
         except (KeyError, ):
+            table = self.orderTable
             items = self.orderItems[orderId] = table.newItemsRow()
             table.resizeRowsToContents()
+        contract = message.contract
         items[0].setText(str(orderId))
-        items[1].setSymbol(contract.m_symbol) # OK
-        items[2].setText(order.m_totalQuantity) # OK
+        items[1].setSymbol(contract.m_symbol)
+        items[2].setText(order.m_totalQuantity)
         #items[3].setText('') # active
-        items[4].setText(order.m_action) # OK
-        items[5].setText(order.m_orderType) # OK
-        items[6].setText(order.m_lmtPrice) # OK
-        items[7].setText(order.m_auxPrice) # OK
-        items[8].setText(order.m_openClose) # OK
+        items[4].setText(order.m_action)
+        items[5].setText(order.m_orderType)
+        items[6].setText(order.m_lmtPrice)
+        items[7].setText(order.m_auxPrice)
+        items[8].setText(order.m_openClose)
         #items[9].setText('') # filled
         #items[10].setText('') # remaining
         for col in [0, 2, 6, 7, 9, 10, 11, 12, 13, 14, 15]:

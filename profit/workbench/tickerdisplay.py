@@ -24,7 +24,7 @@ from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
 
 ##
-# Maps ticktype fields to column numbers
+# Our map of TickType fields to column numbers
 fieldColumns = {
     TickType.ASK_SIZE : 3,
     TickType.ASK : 4,
@@ -35,8 +35,8 @@ fieldColumns = {
     }
 
 
-def replayTick(messages, symbols, callback):
-    """ Sends callback last message for every symbol and field
+def replayTickerMessages(messages, symbols, callback):
+    """ Invokes callback with the last message for every symbol and field
 
     @param messages session message sequence
     @param symbols mapping of symbol:tickerIds
@@ -59,17 +59,22 @@ def fakeTickerMessages(tickerId):
     @param tickerId ticker id
     @return None
     """
+    tick = partial(TickPrice, tickerId=tickerId, price=0, canAutoExecute=False)
     for field in fieldColumns:
-        yield TickPrice(tickerId=tickerId, field=field, price=0,
-                        canAutoExecute=False)
+        yield tick(field=field)
 
 
 class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
                     SettingsHandler, UrlRequestor):
-    """
+    """ TickerDisplay -> shows ticker data in a nice table.
 
     """
     def __init__(self, parent=None):
+        """ Initializer.
+
+        @param parent ancestor of this object
+        @return None
+        """
         QFrame.__init__(self, parent)
         self.setupUi(self)
         self.tickerItems = {}
@@ -81,9 +86,14 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
         self.requestSession()
 
     def setSession(self, session):
+        """ Configures this instance for a session.
+
+        @param session Session instance
+        @return None
+        """
         self.session = session
         symbols = session.strategy.symbols()
-        replayTick(session.messages, symbols,
+        replayTickerMessages(session.messages, symbols,
                    self.on_session_TickPrice_TickSize)
         replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
         session.registerMeta(self)
@@ -92,27 +102,12 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
                 for msg in fakeTickerMessages(tickerId):
                     self.on_session_TickPrice_TickSize(msg)
 
-    @pyqtSignature('')
-    def on_actionChart_triggered(self):
-        table = self.tickerTable
-        try:
-            item = table.selectedItems()[0]
-        except (IndexError, ):
-            pass
-        else:
-            index = table.model().index(item.row(), 0)
-            if index and index.isValid():
-                self.emit(Signals.tickerClicked, table.itemFromIndex(index))
-
-    @pyqtSignature('')
-    def on_actionOrder_triggered(self):
-        print '## order for ', self.actionOrder.data().toString()
-
-    @pyqtSignature('')
-    def on_closePosition(self):
-        print '## close position order dialog'
-
     def basicActions(self, index):
+        """ Creates action and separator list suitable for a context menu.
+
+        @param index QModelIndex instance
+        @return list of suitable QActions
+        """
         data = index.data()
         symbol = data.toString()
         icon = QIcon(index.data(Qt.DecorationRole))
@@ -127,15 +122,24 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
             act.setData(data)
         return actions
 
+    @pyqtSignature('')
+    def closePosition(self):
+        """ Emits a signal for a position to be closed.
+
+        """
+        print '## close position order dialog'
+
     def urlActions(self, symbol):
+        """
+
+        """
         actions = []
         settings = self.settings
         settings.beginGroup(self.settings.keys.urls)
         urls = settings.value(settings.keys.tickerurls, defaults.tickerUrls())
         settings.endGroup()
-        ## print [str(s) for s in urls.toStringList()] # wtf
         urls = [str(s) for s in defaults.tickerUrls()]
-        for url in urls: #urls.toStringList(): # wtf
+        for url in urls:
             try:
                 name, url = str(url).split(':', 1)
                 url = Template(url).substitute(symbol=symbol)
@@ -147,6 +151,11 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
         return actions
 
     def closePositionAction(self, row):
+        """ Creates an action for closing a position.
+
+        @param row ticker table row number
+        @return close action connected to close method, or None
+        """
         act = None
         index = self.tickerTable.model().index(row, 1)
         if index and index.isValid():
@@ -156,10 +165,35 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
                 pos = 0
             if pos:
                 act = QAction('Close %s shares...' % abs(pos), None)
-                self.connect(act, Signals.triggered, self.on_closePosition)
+                self.connect(act, Signals.triggered, self.closePosition)
         return act
 
+    @pyqtSignature('')
+    def on_actionChart_triggered(self):
+        """ Emits a signal for a ticker chart.
+
+        """
+        table = self.tickerTable
+        try:
+            item = table.selectedItems()[0]
+        except (IndexError, ):
+            pass
+        else:
+            index = table.model().index(item.row(), 0)
+            if index and index.isValid():
+                self.emit(Signals.tickerClicked, table.itemFromIndex(index))
+
+    @pyqtSignature('')
+    def on_actionOrder_triggered(self):
+        """ Emits a signal for an order dialog.
+
+        """
+        print '## order for ', self.actionOrder.data().toString()
+
     def on_tickerTable_customContextMenuRequested(self, pos):
+        """ Display a context menu over the ticker table.
+
+        """
         table = self.tickerTable
         item = table.itemAt(pos)
         if item:
@@ -174,10 +208,12 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
                 QMenu.exec_(actions, table.viewport().mapToGlobal(pos))
 
     def on_tickerTable_doubleClicked(self, index):
+        """ Emits an item from the ticker table as a signal argument.
+
+        """
         if not index.isValid():
             return
-        col = index.column()
-        row = index.row()
+        row, col = index.row(), index.column()
         item = self.tickerTable.item(row, 0)
         sym = str(index.data().toString())
         symbols = self.session.strategy.symbols()
@@ -194,6 +230,9 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
                 self.emit(Signals.tickerClicked, item, col)
 
     def on_session_UpdatePortfolio(self, message):
+        """ Updates the position and market value columns in the ticker table.
+
+        """
         sym = message.contract.m_symbol
         symbols = self.session.strategy.symbols()
         try:
@@ -206,6 +245,10 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
             items[2].setValue(message.marketValue)
 
     def on_session_TickPrice_TickSize(self, message):
+        """ Updates size and price columns in the ticker table.
+        Creates rows as needed.
+
+        """
         tid = message.tickerId
         table = self.tickerTable
         try:

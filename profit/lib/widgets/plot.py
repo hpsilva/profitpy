@@ -256,15 +256,16 @@ class ControlTreeItem(QStandardItem):
     """ Self-configuring control tree item.
 
     """
-    def __init__(self, text, data, key):
+    def __init__(self, text, data, key, checkable=True):
         """ Constructor.
 
         @param text value for this item
         @param data reference to data series for this item
         """
         QStandardItem.__init__(self, text)
-        self.setCheckable(True)
-        self.setCheckState(Qt.Unchecked)
+        if checkable:
+            self.setCheckable(True)
+            self.setCheckState(Qt.Unchecked)
         self.setEditable(False)
         self.curve = PlotCurve(text)
         self.curve.setYAxis(yRight)
@@ -443,7 +444,7 @@ class Plot(QFrame, Ui_Plot):
              self.actionChangeCurveAxisY,])
         tree.expandAll()
 
-    def addSeries(self, name, series, parent=None, items=[]):
+    def addSeries(self, name, series, parent=None, items=[], checkable=True):
         """ Creates new controls and curve for an individual series.
 
         @param name series key
@@ -458,12 +459,13 @@ class Plot(QFrame, Ui_Plot):
             name = name[0]
         if parent is None:
             parent = self.controlsTreeModel.invisibleRootItem()
-        item = ControlTreeItem(name, series, key)
+        item = ControlTreeItem(name, series, key, checkable=checkable)
         self.controlsTreeItems.append(item)
         if not items:
             items = [ControlTreeValueItem(''), ]
         parent.appendRow([item, ] + items)
-        item.setColor(self.loadItemPen(item).color())
+        if checkable:
+            item.setColor(self.loadItemPen(item).color())
         for index in getattr(series, 'indexes', []):
             self.addSeries(index.key, index, parent=item)
         return item
@@ -906,11 +908,15 @@ class Plot(QFrame, Ui_Plot):
         index = self.controlsTree.indexAt(pos)
         if index.isValid():
             item = self.controlsTreeModel.itemFromIndex(index)
+            indexZero = self.controlsTreeModel.sibling(index.row(), 0, index)
+            first = self.controlsTreeModel.itemFromIndex(indexZero)
             try:
-                curve = item.curve
+                curve = first.curve
+                color = first.color
             except (AttributeError, ):
-                print '## that item does not have a curve'
                 return
+            else:
+                item = first
             if not curve.settingsLoaded:
                 self.loadCurve(self.itemName(item), curve)
             cplot = curve.plot()

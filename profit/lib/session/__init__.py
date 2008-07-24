@@ -227,7 +227,7 @@ class Session(QObject):
         connection = self.connection
         if connection and connection.isConnected():
             filt = ExecutionFilter()
-            connection.reqExecutions(filt)
+#            connection.reqExecutions(filt)
             connection.reqAllOpenOrders()
             connection.reqOpenOrders()
 
@@ -394,3 +394,16 @@ class Session(QObject):
                 pass
             for msgTimeIndex in self.messagesTyped.get(key, ()):
                 yield msgTimeIndex
+
+
+    def testContract(self, orderId, price=30.0, symbol='MSFT'):
+        strategy = self.strategy
+        contract = strategy.makeContract(symbol)
+        order = strategy.makeOrder(action='SELL',
+                                   orderType='MKT',
+                                   totalQuantity='100',
+                                   openClose='O',
+                                   )
+        order.m_lmtPrice = contract.m_auxPrice = price
+        self.connection.placeOrder(orderId, contract, order)
+        return True

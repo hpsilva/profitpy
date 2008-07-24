@@ -75,6 +75,7 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
             plot.on_controlsTree_itemChanged)
         connect(model, Signals.rowsInserted, self.modelRowsInserted)
         plot.loadSelections()
+        self.plot.controlsTree.sortByColumn(0, Qt.AscendingOrder)
 
     def newPlotSeries(self, key, series, value):
         cols = range(len(self.dataModel.columnTitles))
@@ -82,7 +83,12 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         items[0].setText(key[1])
         items[1].setText(str(value))
         items[2].setText(key[2])
-        item = self.plot.addSeries(key, series, items=items)
+        try:
+            value = float(value)
+            checkable = True
+        except (TypeError, ValueError, ):
+            checkable = False
+        self.plot.addSeries(key, series, items=items, checkable=checkable)
 
     def modelRowsInserted(self, parent, start, end):
         model = self.dataModel
@@ -92,6 +98,7 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
             key = tuple(str(i.text()) for i in (item, others[0], others[2]))
             model.items[key] = [item, ] + others
         self.resizePlotControls()
+        self.plot.controlsTree.sortByColumn(0, Qt.AscendingOrder)
 
     def resizePlotControls(self):
         for i in range(3):

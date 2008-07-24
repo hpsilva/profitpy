@@ -15,6 +15,7 @@ from profit.lib.core import Signals, instance
 from profit.lib.series import Series, MACDHistogram
 
 from ib.ext.Contract import Contract
+from ib.ext.Order import Order
 
 
 class StrategyBuilderTicker(object):
@@ -57,17 +58,31 @@ class SessionStrategyBuilder(QObject):
 
     def makeContract(self, symbol, **kwds):
         contract = Contract()
-        contract.m_symbol = symbol
+        kwds['symbol'] = symbol
+        attrs = [k for k in dir(contract) if k.startswith('m_')]
+        for attr in attrs:
+            kwd = attr[2:]
+            if kwd in kwds:
+                setattr(contract, attr, kwds[kwd])
+        ## set these even if they're already set
         contract.m_secType = kwds.get('secType', 'STK')
         contract.m_exchange = kwds.get('exchange', 'SMART')
         contract.m_currency = kwds.get('currency', 'USD')
-        ## other attributes
         return contract
 
     def makeContracts(self):
         symids = self.symbols()
         for symbol, tickerId in symids.items():
             yield tickerId, self.makeContract(symbol)
+
+    def makeOrder(self, **kwds):
+        order = Order()
+        attrs = [k for k in dir(order) if k.startswith('m_')]
+        for attr in attrs:
+            kwd = attr[2:]
+            if kwd in kwds:
+                setattr(order, attr, kwds[kwd])
+        return order
 
     def makeTicker(self, tickerId):
         ticker = StrategyBuilderTicker()

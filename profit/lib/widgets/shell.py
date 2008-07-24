@@ -22,7 +22,7 @@ from traceback import extract_tb, format_exception_only, format_list
 from PyQt4.QtCore import Qt, QString
 from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit, QTextCharFormat
 
-from profit.lib.core import Settings, Signals
+from profit.lib.core import Settings, Signals, SessionHandler
 
 
 # disable the help function because it reads directly from stdin and
@@ -68,7 +68,7 @@ class PythonInterpreter(InteractiveInterpreter):
     def update(self, **kwds):
         self.locals.update(kwds)
 
-class PythonShell(QTextEdit):
+class PythonShell(QTextEdit, SessionHandler):
     """ PythonShell(...) -> python shell widget
 
     """
@@ -101,7 +101,11 @@ class PythonShell(QTextEdit):
                      self.writeShellHistory)
         self.connect(self.window(), Signals.settingsChanged,
                      self.setupShellFont)
+        self.requestSession()
         self.setupFinal()
+
+    def setSession(self, session):
+        self.interp.update(session=session)
 
     def setupInterp(self):
         self.interp = PythonInterpreter(output=sys.stderr, parent=self)

@@ -135,7 +135,7 @@ class Settings(QSettings):
         externalbrowser = 'ExternalBrowser'
 
     def __init__(self):
-        """ Constructor.
+        """ Initializer.
 
         """
         QSettings.__init__(self, self.keys.org, self.keys.app)

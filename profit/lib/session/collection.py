@@ -54,23 +54,17 @@ class AccountCollection(DataCollection):
     def on_session_UpdateAccountValue(self, message):
         key = (message.key, message.currency, message.accountName)
         try:
+            iv = float(message.value)
+        except (ValueError, ):
+            iv = message.value
+        try:
             acctdata = self[key]
         except (KeyError, ):
-            try:
-                iv = float(message.value)
-            except (ValueError, ):
-                return
-            else:
-                acctdata = self[key] = \
-                           self.session.strategy.makeAccountSeries(key)
-                self.emit(Signals.createdAccountData, key, acctdata, iv)
-        try:
-            v = float(message.value)
-        except (ValueError, ):
-            v = message.value
-        else:
-            acctdata.append(v)
-        self.last[key] = v
+            acctdata = self[key] = \
+                       self.session.strategy.makeAccountSeries(key)
+            self.emit(Signals.createdAccountData, key, acctdata, iv)
+        acctdata.append(iv)
+        self.last[key] = iv
 
 
 class TickerCollection(DataCollection):
