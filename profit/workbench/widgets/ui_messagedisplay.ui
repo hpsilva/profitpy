@@ -5,48 +5,44 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>623</width>
-    <height>299</height>
+    <width>669</width>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Message Display</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" >
-   <item>
-    <widget class="SearchBar" native="1" name="searchBar" >
-     <property name="sizePolicy" >
-      <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
-       <horstretch>1</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-    </widget>
-   </item>
+  <layout class="QHBoxLayout" name="horizontalLayout_2" >
    <item>
     <widget class="QSplitter" name="splitter" >
-     <property name="sizePolicy" >
-      <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
-       <horstretch>0</horstretch>
-       <verstretch>3</verstretch>
-      </sizepolicy>
-     </property>
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QFrame" name="frame_2" >
-      <property name="frameShape" >
-       <enum>QFrame::NoFrame</enum>
+     <widget class="QTabWidget" name="tabWidget" >
+      <property name="tabPosition" >
+       <enum>QTabWidget::South</enum>
       </property>
-      <property name="frameShadow" >
-       <enum>QFrame::Plain</enum>
+      <property name="currentIndex" >
+       <number>1</number>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout" >
-       <item>
-        <widget class="QSplitter" name="splitter_2" >
-         <property name="orientation" >
-          <enum>Qt::Vertical</enum>
-         </property>
+      <widget class="QWidget" name="propertyTab" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>334</width>
+         <height>459</height>
+        </rect>
+       </property>
+       <attribute name="title" >
+        <string>Properties</string>
+       </attribute>
+       <attribute name="icon" >
+        <iconset resource="../../lib/widgets/profit.qrc" >
+         <normaloff>:/images/icons/view_text.png</normaloff>:/images/icons/view_text.png</iconset>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout" >
+        <item>
          <widget class="QTableWidget" name="messageDetail" >
           <property name="sizePolicy" >
            <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
@@ -54,8 +50,17 @@
             <verstretch>3</verstretch>
            </sizepolicy>
           </property>
+          <property name="frameShape" >
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="alternatingRowColors" >
+           <bool>true</bool>
+          </property>
           <property name="selectionMode" >
            <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="gridStyle" >
+           <enum>Qt::DashLine</enum>
           </property>
           <column>
            <property name="text" >
@@ -68,75 +73,71 @@
            </property>
           </column>
          </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="displayTab" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>334</width>
+         <height>459</height>
+        </rect>
+       </property>
+       <attribute name="title" >
+        <string>Display</string>
+       </attribute>
+       <attribute name="icon" >
+        <iconset resource="../../lib/widgets/profit.qrc" >
+         <normaloff>:/images/icons/display.png</normaloff>:/images/icons/display.png</iconset>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3" >
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout" >
+          <item>
+           <widget class="QPushButton" name="pauseButton" >
+            <property name="text" >
+             <string>Pause</string>
+            </property>
+            <property name="icon" >
+             <iconset resource="../../lib/widgets/profit.qrc" >
+              <normaloff>:/images/icons/player_pause.png</normaloff>:/images/icons/player_pause.png</iconset>
+            </property>
+            <property name="checkable" >
+             <bool>true</bool>
+            </property>
+            <property name="checked" >
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="SearchBar" native="1" name="searchBar" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <widget class="MessageTypeSelect" native="1" name="messageTypeDisplay" >
-          <property name="enabled" >
-           <bool>false</bool>
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
           </property>
          </widget>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout" >
-         <item>
-          <widget class="QPushButton" name="displayButton" >
-           <property name="contextMenuPolicy" >
-            <enum>Qt::DefaultContextMenu</enum>
-           </property>
-           <property name="text" >
-            <string>Display</string>
-           </property>
-           <property name="icon" >
-            <iconset resource="../../lib/widgets/profit.qrc" >
-             <normaloff>:/images/icons/filter.png</normaloff>:/images/icons/filter.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="colorButton" >
-           <property name="text" >
-            <string>Highlight</string>
-           </property>
-           <property name="icon" >
-            <iconset resource="../../lib/widgets/profit.qrc" >
-             <normaloff>:/images/icons/colorize.png</normaloff>:/images/icons/colorize.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pauseButton" >
-           <property name="text" >
-            <string>Pause</string>
-           </property>
-           <property name="icon" >
-            <iconset resource="../../lib/widgets/profit.qrc" >
-             <normaloff>:/images/icons/player_pause.png</normaloff>:/images/icons/player_pause.png</iconset>
-           </property>
-           <property name="checkable" >
-            <bool>true</bool>
-           </property>
-           <property name="checked" >
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer" >
-           <property name="orientation" >
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0" >
-            <size>
-             <width>13</width>
-             <height>24</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-      </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
-     <widget class="QFrame" name="frame" >
+     <widget class="QFrame" name="messageTableFrame" >
       <property name="sizePolicy" >
        <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
         <horstretch>0</horstretch>

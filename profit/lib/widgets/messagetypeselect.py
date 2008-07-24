@@ -13,9 +13,8 @@ from profit.lib.gui import colorIcon, complementColor
 from profit.lib.series import Series
 from profit.lib.widgets.plot import PlotCurve, ControlTreeValueItem
 
-
 from profit.lib.widgets.ui_messagetypeselect import Ui_MessageTypeSelect
-from ib.opt import message
+from ib.opt.message import messageTypeNames
 
 
 class MessageTypeSelect(QFrame, Ui_MessageTypeSelect):
@@ -23,7 +22,7 @@ class MessageTypeSelect(QFrame, Ui_MessageTypeSelect):
 
     """
     def __init__(self, parent=None):
-        """ Constructor.
+        """ Initializer.
 
         @param parent ancestor object
         """
@@ -38,7 +37,7 @@ class MessageTypeSelect(QFrame, Ui_MessageTypeSelect):
     def populateTypeList(self):
         listWidget = self.typesList
         listWidget.clear()
-        self.allTypeNames = [c.typeName for c in message.registry.values()]
+        self.allTypeNames = messageTypeNames()
         for row, typeName in enumerate(sorted(self.allTypeNames)):
             listWidget.addItem(typeName)
             item = listWidget.item(row)

@@ -14,16 +14,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <item>
-    <widget class="QCheckBox" name="allCheck" >
-     <property name="text" >
-      <string>All Message Types</string>
-     </property>
-     <property name="checked" >
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QLabel" name="typesListText" >
      <property name="enabled" >
       <bool>false</bool>
@@ -54,6 +44,16 @@
      <property name="margin" >
       <number>0</number>
      </property>
+     <item>
+      <widget class="QCheckBox" name="allCheck" >
+       <property name="text" >
+        <string>All Message Types</string>
+       </property>
+       <property name="checked" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QPushButton" name="checkAllButton" >
        <property name="enabled" >
