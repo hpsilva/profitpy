@@ -41,6 +41,7 @@ class Signals:
     dialogFinished = SIGNAL('finished(int)')
     disconnectedTWS = SIGNAL('disconnectedTWS')
     doubleValueChanged = SIGNAL('valueChanged(double)')
+    editingFinished = SIGNAL('editingFinished()')
     enableCurve = SIGNAL('enableCurve')
     finished = SIGNAL('finished()')
     headerDataChanged = SIGNAL('headerDataChanged(Qt::Orientation, int, int)')

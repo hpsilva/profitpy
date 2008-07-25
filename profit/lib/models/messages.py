@@ -14,6 +14,7 @@ class MessagesTableModel(QAbstractTableModel):
 
     """
     columnTitles = ['Index', 'Time', 'Type', 'Fields']
+    sync = True
 
     def __init__(self, session, brushes, parent=None):
         """ Constructor.
@@ -55,7 +56,8 @@ class MessagesTableModel(QAbstractTableModel):
         #self.beginInsertRows(QModelIndex(), count, count)
         #self.endInsertRows()
         ## temporary:
-        self.reset()
+        if self.sync:
+            self.reset()
 
     def data(self, index, role):
         """ Framework hook to determine data stored at index for given role.
@@ -106,37 +108,24 @@ class MessagesTableModel(QAbstractTableModel):
         """
         return len(self.columnTitles)
 
+    def setSync(self, sync):
+        """
 
-    ## crufty crufty
-
-    def setPaused(self, paused):
-        """ Pauses or resumes signals emitted from this model.
-
-        @param paused if True, disconnects from session, otherwise reconnects
+        @param sync if True, model is reset after messages received
         @return None
         """
-        session = self.session
-        regcall = session.deregisterAll if paused else session.registerAll
-        regcall(self.on_sessionMessage)
+        self.sync = sync
+        if sync:
+            self.reset()
 
     def __insertRows(self, row, count, parent=QModelIndex()):
         self.beginInsertRows(parent, row, row+count-1)
         self.endInsertRows()
         return True
 
+    ## crufty crufty
     def message(self, idx):
         return self.messages[idx]
-
-    def __enableTypesFilter(self, types):
-        self.messageTypes = list(types)
-        self.messagesReference = list(
-            m for m in self.messages if m[1].typeName in types)
-        self.reset()
-
-    def __disableTypesFilter(self):
-        self.messageTypes = []
-        self.messagesReference = self.messages
-        self.reset()
 
 
 def messageRow(index, mtuple, model):

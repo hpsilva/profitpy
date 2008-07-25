@@ -7,6 +7,7 @@
 from PyQt4.QtCore import pyqtSignature
 from PyQt4.QtGui import QWidget
 
+from profit.lib.core import Signals
 from profit.lib.widgets.ui_searchbar import Ui_SearchBar
 
 
@@ -29,6 +30,7 @@ class SearchBar(QWidget, Ui_SearchBar):
         @return None
         """
         self.searchEdit.clear()
+        self.searchEdit.emit(Signals.editingFinished)
 
     def on_searchEdit_textChanged(self, text):
         """ signal handler called when line edit text changed

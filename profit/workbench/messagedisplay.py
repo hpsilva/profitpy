@@ -7,44 +7,88 @@
 from time import ctime
 
 from PyQt4.QtCore import Qt, QVariant, pyqtSignature
-from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
-                         QMenu, QTableWidgetItem, QSortFilterProxyModel)
 
+from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
+                         QSortFilterProxyModel, QTableWidgetItem, )
 
 from ib.opt.message import messageTypeNames
 
 from profit.lib import defaults
-from profit.lib.core import SessionHandler, SettingsHandler, Signals, Slots
+from profit.lib.core import SessionHandler, SettingsHandler, Slots
 from profit.lib.gui import colorIcon
 from profit.lib.models.messages import MessagesTableModel
 from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay
 
 
-class TypesFilter(QSortFilterProxyModel):
-    def __init__(self, session, acceptTypes=[], parent=None):
-        QSortFilterProxyModel.__init__(self, parent)
-        self.messagesBare = session.messagesBare
-        self.acceptTypes = acceptTypes
-
-    def filterAcceptsRow(self, row, parent):
-        msg = self.messagesBare[row]
-        return msg.typeName in self.acceptTypes
-
-
-class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler,
-                     SettingsHandler):
-    """ Table view of session messages with nifty controls.
+class MessagesFilter(QSortFilterProxyModel):
+    """ MessagesFilter -> proxy model for filtering a message model by types
 
     """
-    pauseButtonIcons = {
-        True:':/images/icons/player_play.png',
-        False:':/images/icons/player_pause.png',
-    }
+    def __init__(self, messages, parent=None):
+        """ Initializer.
 
-    pauseButtonText = {
-        True:'Resume',
-        False:'Pause',
-    }
+        @param messages sequence of broker messages
+        @param parent ancestor object
+        """
+        QSortFilterProxyModel.__init__(self, parent)
+        self.acceptTypes = None
+        self.messages = messages
+
+    def filterAcceptsRow(self, row, parent):
+        """ Framework hook to filter rows.
+
+        @param row source model rown number
+        @param parent QModelIndex instance
+        @return True if row should be included in view
+        """
+        baseAccepts = QSortFilterProxyModel.filterAcceptsRow(self, row, parent)
+        if self.acceptTypes is None:
+            return True and baseAccepts
+        msg = self.messages[row]
+        return msg.typeName in self.acceptTypes and baseAccepts
+
+    def includeAll(self):
+        """ Sets filter to accept all message types.
+
+        """
+        self.acceptTypes = None
+        self.reset()
+
+    def includeTypes(self, *names):
+        """ Sets filter to include specified message types.
+
+        """
+        if self.acceptTypes is None:
+            self.acceptTypes = []
+        for name in names:
+            if name not in self.acceptTypes:
+                self.acceptTypes.append(name)
+        self.reset()
+
+    def excludeAll(self):
+        """ Sets filter to reject all message types.
+
+        """
+        self.acceptTypes = []
+        self.reset()
+
+    def excludeTypes(self, *names):
+        """ Sets filter to reject specified message types.
+
+        """
+        if self.acceptTypes is None:
+            self.acceptTypes = []
+        for name in names:
+            if name in self.acceptTypes:
+                self.acceptTypes.remove(name)
+        self.reset()
+
+
+class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler):
+    """ MessageDisplay -> table view of session messages with nifty controls
+
+    """
+    filterModel = None
 
     def __init__(self, parent=None):
         """ Initializer.
@@ -54,81 +98,86 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler,
         QFrame.__init__(self, parent)
         self.setupUi(self)
         self.brushMap = {}
-        self.displayTypes = messageTypeNames()
-
+        self.messageTypeNames = messageTypeNames()
         for widget in (self.messageTable, self.messageDetail):
-            widget.verticalHeader().hide()
             widget.verticalHeader().hide()
         ## widget is the messageDetail widget
         horizHeader = widget.horizontalHeader()
         horizHeader.setResizeMode(horizHeader.ResizeToContents)
-
         settings = self.settings
         settings.beginGroup(settings.keys.messages)
-        self.setupColors()
         self.splitter.restoreState(defaults.rightMainSplitterState())
+        self.setupColors()
         self.requestSession()
+
+    def on_searchEdit_editingFinished(self):
+        self.filterModel.setFilterWildcard(self.searchBar.searchEdit.text())
+
 
     @pyqtSignature('int')
     def on_allCheck_stateChanged(self, state):
-        try:
-            filterModel = self.filterModel
-        except (AttributeError, ):
-            # not initialized yet
-            return
+        """ Updates the filter model with all types or those checked.
+
+        @param state 0 if unchecked, 1 if checked
+        @return None
+        """
+        model = self.filterModel
         if state:
-            filterModel.acceptTypes = list(self.colorTypes)
+            model.includeAll()
         else:
-            types = self.messageTypeDisplay.selectedTypes()
-            filterModel.acceptTypes = types
-        filterModel.reset()
+            model.excludeAll()
+            model.includeTypes(*self.messageTypeDisplay.selectedTypes())
 
     @pyqtSignature('')
     def on_checkNoneButton_clicked(self):
-        self.filterModel.acceptTypes = []
-        self.filterModel.reset()
+        """ Updates the filter model to exclude all message types.
+
+        """
+        self.filterModel.excludeAll()
 
     @pyqtSignature('')
     def on_checkAllButton_clicked(self):
-        ## should swap out model
-        self.filterModel.acceptTypes = list(self.colorTypes)
-        self.filterModel.reset()
+        """ Updates the filter model to include all message types.
+
+        """
+        self.filterModel.includeAll()
 
     def on_typesList_itemChanged(self, item):
-        try:
-            filterModel = self.filterModel
-        except (AttributeError, ):
-            # not initialized yet
+        model = self.filterModel
+        if model is None:
             return
-        text = str(item.text())
-        types = filterModel.acceptTypes
-        checked = item.checkState()
-        if checked and text not in types:
-            types.append(text)
-            filterModel.reset()
-        elif checked and (text in types):
-            types.remove(text)
-            filterModel.reset()
+        call = model.includeTypes if item.checkState() else model.excludeTypes
+        call(str(item.text()))
 
     def on_typesList_itemDoubleClicked(self, item):
-        color = QColor(item.data(Qt.DecorationRole))
-        color = QColorDialog.getColor(color, self)
+        """ Displays a dialog for selecting the color of a message type.
+
+        """
+        currentColor = QColor(item.data(Qt.DecorationRole))
+        color = QColorDialog.getColor(currentColor, self)
         if color.isValid():
             item.setData(Qt.DecorationRole, QVariant(color))
             item.setIcon(colorIcon(color))
-            self.brushMap[str(item.text())] = QBrush(color)
-            self.model.reset()
+            self.brushMap[str(item.text())] = itemBrush = QBrush(color)
+            self.messagesModel.reset()
             self.settings.setValue('%s/color' % item.text(), color)
+            messageDetail = self.messageDetail
+            typeItem = messageDetail.item(1, 1) # yuk
+            if typeItem.text() == item.text():
+                for row in range(messageDetail.rowCount()):
+                    nameItem = messageDetail.item(row, 0)
+                    valueItem = messageDetail.item(row, 1)
+                    nameItem.setForeground(itemBrush)
+                    valueItem.setForeground(itemBrush)
 
     def setupColors(self):
         """ Configures the color highlight button.
 
         @return None
         """
-        self.colorTypes = messageTypeNames()
         getValue = self.settings.value
         defaultColor = QColor(0,0,0)
-        for name in self.colorTypes:
+        for name in self.messageTypeNames:
             self.brushMap[name] = getValue('%s/color' % name, defaultColor)
         items = self.messageTypeDisplay.listItems()
         for item in items:
@@ -143,40 +192,41 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler,
         @return None
         """
         self.session = session
-        self.messages = session.messages
-        self.model = model = MessagesTableModel(session, self.brushMap, self)
-        self.filterModel = TypesFilter(session, self.colorTypes, self)
-        self.filterModel.setSourceModel(model)
-        self.proxyModel = None
+        self.messagesModel = MessagesTableModel(session, self.brushMap, self)
+        self.filterModel = MessagesFilter(session.messagesBare, self)
+        self.filterModel.setFilterKeyColumn(3)
+        self.filterModel.setSourceModel(self.messagesModel)
         self.messageTable.setModel(self.filterModel)
         if 0:
             session.registerAll(self.messageTable, Slots.scrollToBottom)
 
     def on_messageTable_clicked(self, index):
-        row = index.row()
-        mtime, msg = self.model.message(row) ## WRONG
-        tbl = self.messageDetail
-        tbl.clearContents()
-        items = [('index', row),
-                 ('message type', type(msg).__name__),
-                 ('received time', ctime(mtime)), ]
-        items += list(sorted(msg.items()))
-        tbl.setRowCount(len(items))
-        for idx, (name, value) in enumerate(items):
-            tbl.setItem(idx, 0, QTableWidgetItem(name))
-            tbl.setItem(idx, 1, QTableWidgetItem(str(value)))
+        """ Displays the message keys and values.
 
-    def on_pauseButton_clicked(self, checked=False):
-        """ Signal handler for pause button.
-
-        @param checked toggled state of button
+        @param index QModelIndex instance; filterModel index, not messageModel.
         @return None
         """
-        #self.model.setPaused(checked)
-        session = self.session
-        ## if checked:
-        ##     session.deregisterAll(self.messageTable, Slots.scrollToBottom)
-        ## else:
-        ##     session.registerAll(self.messageTable, Slots.scrollToBottom)
-        self.pauseButton.setText(self.pauseButtonText[checked])
-        self.pauseButton.setIcon(QIcon(self.pauseButtonIcons[checked]))
+        row = index.row()
+        messageIndex, validIndex = index.sibling(row, 0).data().toInt()
+        if not validIndex:
+            return
+        row = messageIndex
+        mtime, message = self.messagesModel.message(messageIndex)
+        messageDetail = self.messageDetail
+        messageDetail.clearContents()
+        typeName = message.typeName
+        items = [('index', row), ('type', typeName), ('received', ctime(mtime))]
+        items += list(sorted(message.items()))
+        messageDetail.setRowCount(len(items))
+        itemBrush = QBrush(self.brushMap[typeName])
+        for row, (name, value) in enumerate(items):
+            nameItem = QTableWidgetItem(name)
+            valueItem = QTableWidgetItem(str(value))
+            nameItem.setForeground(itemBrush)
+            valueItem.setForeground(itemBrush)
+            messageDetail.setItem(row, 0, nameItem)
+            messageDetail.setItem(row, 1, valueItem)
+
+    def on_syncSource_stateChanged(self, state):
+        self.messagesModel.setSync(bool(state))
+
