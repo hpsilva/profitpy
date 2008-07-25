@@ -110,8 +110,8 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler)
         self.setupColors()
         self.requestSession()
 
-    def on_searchEdit_editingFinished(self):
-        self.filterModel.setFilterWildcard(self.searchBar.searchEdit.text())
+    def on_filterEdit_editingFinished(self):
+        self.filterModel.setFilterWildcard(self.filterBar.filterEdit.text())
 
 
     @pyqtSignature('int')

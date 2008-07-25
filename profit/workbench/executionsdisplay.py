@@ -160,7 +160,7 @@ class ExecutionsTableModel(QAbstractTableModel):
 
 
 class ExecutionsDisplay(QFrame, Ui_ExecutionsDisplay, SessionHandler):
-    """ Combines a search filter bar (not working) and an exec details table.
+    """ Combines a filter bar and an exec details table.
 
     """
     def __init__(self, parent=None):

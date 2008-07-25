@@ -20,7 +20,7 @@
     <number>9</number>
    </property>
    <item>
-    <widget class="SearchBar" native="1" name="widget" />
+    <widget class="FilterBar" native="1" name="widget" />
    </item>
    <item>
     <widget class="LocalTable" name="tickerTable" >
@@ -114,9 +114,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SearchBar</class>
+   <class>FilterBar</class>
    <extends>QWidget</extends>
-   <header location="global" >profit.lib.widgets.searchbar.h</header>
+   <header location="global" >profit.lib.widgets.filterbar.h</header>
   </customwidget>
   <customwidget>
    <class>LocalTable</class>

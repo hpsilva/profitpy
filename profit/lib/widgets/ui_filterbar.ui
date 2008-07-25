@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>SearchBar</class>
- <widget class="QWidget" name="SearchBar" >
+ <class>FilterBar</class>
+ <widget class="QWidget" name="FilterBar" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -36,12 +36,12 @@
    <item>
     <widget class="QLabel" name="label" >
      <property name="text" >
-      <string>Search:</string>
+      <string>Filter:</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="searchEdit" >
+    <widget class="QLineEdit" name="filterEdit" >
      <property name="text" >
       <string/>
      </property>

@@ -8,11 +8,11 @@ from PyQt4.QtCore import pyqtSignature
 from PyQt4.QtGui import QWidget
 
 from profit.lib.core import Signals
-from profit.lib.widgets.ui_searchbar import Ui_SearchBar
+from profit.lib.widgets.ui_filterbar import Ui_FilterBar
 
 
-class SearchBar(QWidget, Ui_SearchBar):
-    """ Widget with search line edit and clear button.
+class FilterBar(QWidget, Ui_FilterBar):
+    """ Widget with filter line edit and clear button.
 
     """
     def __init__(self, parent=None):
@@ -29,10 +29,10 @@ class SearchBar(QWidget, Ui_SearchBar):
 
         @return None
         """
-        self.searchEdit.clear()
-        self.searchEdit.emit(Signals.editingFinished)
+        self.filterEdit.clear()
+        self.filterEdit.emit(Signals.editingFinished)
 
-    def on_searchEdit_textChanged(self, text):
+    def on_filterEdit_textChanged(self, text):
         """ signal handler called when line edit text changed
 
         @param text current value of line edit as QString instance

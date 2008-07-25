@@ -133,7 +133,7 @@
           </widget>
          </item>
          <item>
-          <widget class="SearchBar" native="1" name="searchBar" >
+          <widget class="FilterBar" native="1" name="filterBar" >
            <property name="sizePolicy" >
             <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
              <horstretch>1</horstretch>
@@ -183,9 +183,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SearchBar</class>
+   <class>FilterBar</class>
    <extends>QWidget</extends>
-   <header location="global" >profit.lib.widgets.searchbar.h</header>
+   <header location="global" >profit.lib.widgets.filterbar.h</header>
   </customwidget>
   <customwidget>
    <class>MessageTypeSelect</class>
