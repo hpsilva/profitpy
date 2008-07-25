@@ -5,7 +5,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>669</width>
+    <width>673</width>
     <height>511</height>
    </rect>
   </property>
@@ -23,14 +23,14 @@
        <enum>QTabWidget::South</enum>
       </property>
       <property name="currentIndex" >
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="propertyTab" >
        <property name="geometry" >
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>321</width>
+         <width>323</width>
          <height>457</height>
         </rect>
        </property>
@@ -45,7 +45,7 @@
         <item>
          <widget class="QTableWidget" name="messageDetail" >
           <property name="sizePolicy" >
-           <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
+           <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
             <horstretch>0</horstretch>
             <verstretch>3</verstretch>
            </sizepolicy>
@@ -81,7 +81,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>321</width>
+         <width>323</width>
          <height>457</height>
         </rect>
        </property>
@@ -100,6 +100,16 @@
             <horstretch>0</horstretch>
             <verstretch>1</verstretch>
            </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="syncSource" >
+          <property name="text" >
+           <string>Sync with Session</string>
+          </property>
+          <property name="checked" >
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -122,16 +132,6 @@
       <layout class="QVBoxLayout" name="verticalLayout_2" >
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout" >
-         <item>
-          <widget class="QCheckBox" name="syncSource" >
-           <property name="text" >
-            <string>Sync</string>
-           </property>
-           <property name="checked" >
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="FilterBar" native="1" name="filterBar" >
            <property name="sizePolicy" >

@@ -2,11 +2,7 @@
 
 0.  replace Signals.tickerClicked emits with more descriptive signals
 
-1.  fix account display
-
-2.  fix message display
-
-3.  complete basic model class suitable for session.message
+1.  fix account display plot save/restore settings
 
 4.  add viewable historical data requests and plots
 

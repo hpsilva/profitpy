@@ -50,14 +50,11 @@ class MessagesTableModel(QAbstractTableModel):
         @param message message instance
         @return None
         """
-        self.messageCount += 1
         count = self.messageCount
-        ## this doesn't work with the filter model; causes segfaults:
-        #self.beginInsertRows(QModelIndex(), count, count)
-        #self.endInsertRows()
-        ## temporary:
+        self.messageCount += 1
         if self.sync:
-            self.reset()
+            self.beginInsertRows(QModelIndex(), count, count)
+            self.endInsertRows()
 
     def data(self, index, role):
         """ Framework hook to determine data stored at index for given role.

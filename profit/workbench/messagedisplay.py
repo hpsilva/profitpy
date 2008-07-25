@@ -41,9 +41,10 @@ class MessagesFilter(QSortFilterProxyModel):
         @param parent QModelIndex instance
         @return True if row should be included in view
         """
-        baseAccepts = QSortFilterProxyModel.filterAcceptsRow(self, row, parent)
+        baseClass = QSortFilterProxyModel
+        baseAccepts = baseClass.filterAcceptsRow(self, row, parent)
         if self.acceptTypes is None:
-            return True and baseAccepts
+            return baseAccepts
         msg = self.messages[row]
         return msg.typeName in self.acceptTypes and baseAccepts
 
@@ -107,12 +108,12 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler)
         settings = self.settings
         settings.beginGroup(settings.keys.messages)
         self.splitter.restoreState(defaults.rightMainSplitterState())
+        self.filterBar.setEnabled(False)
         self.setupColors()
         self.requestSession()
 
     def on_filterEdit_editingFinished(self):
         self.filterModel.setFilterWildcard(self.filterBar.filterEdit.text())
-
 
     @pyqtSignature('int')
     def on_allCheck_stateChanged(self, state):
@@ -228,5 +229,10 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler)
             messageDetail.setItem(row, 1, valueItem)
 
     def on_syncSource_stateChanged(self, state):
-        self.messagesModel.setSync(bool(state))
+        state = bool(state)
+        self.messagesModel.setSync(state)
+        if state:
+            self.filterBar.filterEdit.setText('')
+            self.on_filterEdit_editingFinished()
+        self.filterBar.setEnabled(not state)
 
