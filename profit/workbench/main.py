@@ -19,7 +19,7 @@ from PyQt4.QtCore import QUrl, QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QAction, QApplication, QColor, QMainWindow
 from PyQt4.QtGui import QFileDialog, QMessageBox, QProgressDialog, QMenu
 from PyQt4.QtGui import QSystemTrayIcon, QToolBar
-from PyQt4.QtGui import QIcon, QDesktopServices
+from PyQt4.QtGui import QIcon, QDesktopServices, QFrame
 
 from profit.lib import defaults
 from profit.lib import Signals, Settings, instance
@@ -387,7 +387,8 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         bottom = Qt.BottomDockWidgetArea
         tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
-        tabify(self.sessionDock, self.sessionDock)
+        self.anyWidget = Dock('Empty', self, QFrame)
+        tabify(self.anyWidget, self.sessionDock)
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
         makeShell = partial(
@@ -473,11 +474,14 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
 
     def warningOpenTabs(self):
         if self.centralTabs.count():
+            buttons = QMessageBox.Ignore|QMessageBox.Abort|QMessageBox.Close
             button = QMessageBox.warning(self, 'Warning',
-                         'Session loading is very slow with open tabs.\n'
-                         'Close all tabs for fastest possible loading.',
-                          QMessageBox.Ignore|QMessageBox.Abort)
-            return button == QMessageBox.Ignore
+                         'Session loading is very slow with open tabs.\n\n'
+                         'Close tabs for fastest possible loading.',
+                          buttons)
+            if button == QMessageBox.Close:
+                self.centralTabs.closeTabs()
+            return button in (QMessageBox.Ignore, QMessageBox.Close)
         return True
 
     def centralTabState(self):

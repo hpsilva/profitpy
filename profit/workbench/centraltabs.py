@@ -29,6 +29,11 @@ class CentralTabs(QTabWidget, SessionHandler):
         @param parent ancestor of this widget
         """
         QTabWidget.__init__(self, parent)
+        self.createHandlers = [
+            self.createBrowserTab,
+            self.createTickerPlotTab,
+            self.createDisplayTab
+        ]
         self.closeTabButton = CloseTabButton(self)
         self.detachTabButton = DetachTabButton(self)
         self.setCornerWidget(self.closeTabButton, Qt.TopRightCorner)
@@ -47,8 +52,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         @param value string or model item
         @return None
         """
-        hs = [self.createBrowserTab, self.createTickerPlotTab, self.createDisplayTab]
-        for handler in hs:
+        for handler in self.createHandlers:
             try:
                 if handler(value):
                     break
@@ -122,9 +126,8 @@ class CentralTabs(QTabWidget, SessionHandler):
         return dict([(str(self.tabText(i)), i) for i in range(self.count())])
 
     def closeTab(self):
-        """ Closes the current tab tab.
+        """ Closes the current tab.
 
-        @return None
         """
         index = self.currentIndex()
         widget = self.widget(index)
@@ -132,6 +135,13 @@ class CentralTabs(QTabWidget, SessionHandler):
             self.removeTab(index)
             widget.setAttribute(Qt.WA_DeleteOnClose)
             widget.close()
+
+    def closeTabs(self):
+        """ Closes all tabs.
+
+        """
+        while self.pageMap():
+            self.closeTab()
 
     def detachTab(self):
         """ Deatches the current tab and makes it a top-level window.

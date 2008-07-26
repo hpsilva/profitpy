@@ -467,7 +467,9 @@ class Plot(QFrame, Ui_Plot):
             item.setColor(self.loadItemPen(item).color())
         for index in getattr(series, 'indexes', []):
             self.addSeries(index.key, index, parent=item)
+        self.loadSelection(item)
         return item
+
 
     def anyCheckedItems(self):
         """ True if any control is checked.
@@ -650,28 +652,30 @@ class Plot(QFrame, Ui_Plot):
     def loadLegend(self):
         """ Restores the plot legend visibility from saved settings.
 
-        @return None
         """
         key = '%s/legend/enabled' % self.plotName()
         if self.settings.value(key).toBool():
             self.actionDrawLegend.trigger()
 
-    def loadSelections(self):
-        """ Restores the control tree items state from saved settings.
+    def loadSelection(self, item):
+        """ Restores an item check state and pen from saved settings.
 
-        @return None
         """
         key = '%s/checkeditems' % self.plotName()
-        names = self.settings.valueLoad(key, '')
+        if self.itemName(item) in self.settings.valueLoad(key, ''):
+            item.setCheckState(Qt.Checked)
+            item.setColor(self.loadItemPen(item).color())
+
+    def loadSelections(self):
+        """ Restores each control tree item check state and pen.
+
+        """
         for item in self.controlsTreeItems:
-            if self.itemName(item) in names:
-                item.setCheckState(Qt.Checked)
-                item.setColor(self.loadItemPen(item).color())
+            self.loadSelection(item)
 
     def saveSelections(self):
         """ Saves the selected control item names.
 
-        @return None
         """
         key = '%s/checkeditems' % self.plotName()
         names = self.checkedNames()

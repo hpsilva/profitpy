@@ -173,6 +173,17 @@ class SessionTreeModel(QStandardItemModel):
             root.appendRow(item)
         connect = self.connect
         connect(session, Signals.createdTicker, self.on_session_createdTicker)
+        connect(session.strategy,  Signals.createdTicker, self.on_strategy_createdTicker)
+
+    def on_strategy_createdTicker(self, tickerId, tickerData):
+        tickers = self.findItems('tickers')
+        if tickers:
+            tickers = tickers[0]
+        else:
+            return
+        tickerData = tickerData or {}
+        item = mkTickerItem(tickerData.get('symbol', ''), tickerId)
+        tickers.appendRow(item)
 
     def on_session_createdTicker(self, tickerId, tickerData):
         print '## new session tree ticker', tickerId, tickerData

@@ -113,12 +113,11 @@ class SessionStrategyBuilder(QObject):
             except (TypeError, ):
                 pass
 
-    def load_TickerItem(self, instance):
-        print '## load ticker item', instance
-        self.tickerItems.append(instance)
+    def load_TickerItem(self, item):
+        self.tickerItems.append(item)
+        self.emit(Signals.createdTicker, item['tickerId'], item)
 
     def requestActivation(self, strategy, activate=False):
-        print '## requestActivation of strategy', strategy, activate
         filename = strategy.get('filename', None)
         if activate:
             if filename:

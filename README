@@ -1,9 +1,5 @@
 == To Do for 0.2 ==
 
-0.  replace Signals.tickerClicked emits with more descriptive signals
-
-1.  fix account display plot save/restore settings
-
 4.  add viewable historical data requests and plots
 
 5.  finish strategy design tool and its integration with the workbench
