@@ -7,14 +7,12 @@
 from time import ctime
 
 from PyQt4.QtCore import Qt, QVariant, pyqtSignature
-
 from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
                          QSortFilterProxyModel, QTableWidgetItem, )
 
 from ib.opt.message import messageTypeNames
 
-from profit.lib import defaults
-from profit.lib import SessionHandler, SettingsHandler, Slots
+from profit.lib import SessionHandler, SettingsHandler, Slots, defaults
 from profit.lib.gui import colorIcon
 from profit.lib.models.messages import MessagesTableModel
 from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay
@@ -31,22 +29,23 @@ class MessagesFilter(QSortFilterProxyModel):
         @param parent ancestor object
         """
         QSortFilterProxyModel.__init__(self, parent)
-        self.acceptTypes = None
         self.messages = messages
+        self.acceptTypes = None
 
     def filterAcceptsRow(self, row, parent):
         """ Framework hook to filter rows.
 
-        @param row source model rown number
+        @param row source model row number
         @param parent QModelIndex instance
         @return True if row should be included in view
         """
         baseClass = QSortFilterProxyModel
         baseAccepts = baseClass.filterAcceptsRow(self, row, parent)
-        if self.acceptTypes is None:
+        acceptTypes = self.acceptTypes
+        if acceptTypes is None:
             return baseAccepts
-        msg = self.messages[row]
-        return msg.typeName in self.acceptTypes and baseAccepts
+        message = self.messages[row]
+        return message.typeName in acceptTypes and baseAccepts
 
     def includeAll(self):
         """ Sets filter to accept all message types.
@@ -98,22 +97,56 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler)
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.brushMap = {}
-        self.messageTypeNames = messageTypeNames()
-        for widget in (self.messageTable, self.messageDetail):
-            widget.verticalHeader().hide()
-        ## widget is the messageDetail widget
-        horizHeader = widget.horizontalHeader()
-        horizHeader.setResizeMode(horizHeader.ResizeToContents)
-        settings = self.settings
-        settings.beginGroup(settings.keys.messages)
-        self.splitter.restoreState(defaults.rightMainSplitterState())
-        self.filterBar.setEnabled(False)
+        self.setupWidgets()
         self.setupColors()
         self.requestSession()
 
-    def on_filterEdit_editingFinished(self):
-        self.filterModel.setFilterWildcard(self.filterBar.filterEdit.text())
+    def setupWidgets(self):
+        """ Configures our widgets like we like.
+
+        """
+        settings = self.settings
+        settings.beginGroup(settings.keys.messages)
+        self.splitter.restoreState(defaults.rightMainSplitterState())
+        messageDetail = self.messageDetail
+        messageDetail.verticalHeader().hide()
+        horizHeader = messageDetail.horizontalHeader()
+        horizHeader.setResizeMode(horizHeader.Stretch)
+        messageTable = self.messageTable
+        messageTable.verticalHeader().hide()
+        horizHeader = messageTable.horizontalHeader()
+        horizHeader.setResizeMode(horizHeader.ResizeToContents)
+        for widget in (self.messageTypeDisplay.typesListText,
+                       self.messageTypeDisplay.allCheck):
+            widget.setText('Display ' + widget.text())
+
+    def setupColors(self):
+        """ Configures the colors and icons of the message type items.
+
+        """
+        getValue = self.settings.value
+        defaultColor = QColor(0,0,0)
+        brushItems = [(name, getValue('%s/color' % name, defaultColor))
+                      for name in messageTypeNames()]
+        self.brushMap = brushMap = dict(brushItems)
+        items = self.messageTypeDisplay.listItems()
+        for item in items:
+            color = QColor(brushMap[str(item.text())])
+            item.setData(Qt.DecorationRole, QVariant(color))
+            item.setIcon(colorIcon(color))
+
+    def setSession(self, session):
+        """ Configures this instance for a session.
+
+        @param session Session instance
+        """
+        self.session = session
+        self.messagesModel = MessagesTableModel(session, self.brushMap, self)
+        self.filterModel = MessagesFilter(session.messagesBare, self)
+        sortCol = self.messagesModel.columnTitles.index('Fields')
+        self.filterModel.setFilterKeyColumn(sortCol)
+        self.filterModel.setSourceModel(self.messagesModel)
+        self.messageTable.setModel(self.filterModel)
 
     @pyqtSignature('int')
     def on_allCheck_stateChanged(self, state):
@@ -130,20 +163,65 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler)
             model.includeTypes(*self.messageTypeDisplay.selectedTypes())
 
     @pyqtSignature('')
-    def on_checkNoneButton_clicked(self):
-        """ Updates the filter model to exclude all message types.
-
-        """
-        self.filterModel.excludeAll()
-
-    @pyqtSignature('')
     def on_checkAllButton_clicked(self):
         """ Updates the filter model to include all message types.
 
         """
         self.filterModel.includeAll()
 
+    @pyqtSignature('')
+    def on_checkNoneButton_clicked(self):
+        """ Updates the filter model to exclude all message types.
+
+        """
+        self.filterModel.excludeAll()
+
+    def on_filterEdit_editingFinished(self):
+        """ Sets filter when the user presses enter in the filter line edit.
+
+        """
+        self.filterModel.setFilterWildcard(self.filterBar.filterEdit.text())
+
+    def on_messageTable_clicked(self, index):
+        """ Displays the message keys and values.
+
+        @param index QModelIndex instance; filterModel index, not messageModel.
+        @return None
+        """
+        firstIndex = index.sibling(index.row(), 0)
+        messageIndex, validIndex = firstIndex.data().toInt()
+        messageTime, message = self.messagesModel.message(messageIndex)
+        messageDetail = self.messageDetail
+        messageDetail.clearContents()
+        typeName = message.typeName
+        itemBrush = QBrush(self.brushMap[typeName])
+        items = [
+            ('index', messageIndex),
+            ('type', typeName),
+            ('received', ctime(messageTime))
+        ] + list(sorted(message.items()))
+        messageDetail.setRowCount(len(items))
+        for row, pair in enumerate(items):
+            for col, text in enumerate(pair):
+                item = QTableWidgetItem(str(text))
+                item.setForeground(itemBrush)
+                messageDetail.setItem(row, col, item)
+
+    def on_syncSource_stateChanged(self, state):
+        """ Turns model updates on or off and enables filter bar to match.
+
+        """
+        state = bool(state)
+        self.messagesModel.setSync(state)
+        if state:
+            self.filterBar.filterEdit.setText('')
+            self.on_filterEdit_editingFinished()
+        self.filterBar.setDisabled(state)
+
     def on_typesList_itemChanged(self, item):
+        """ Updates the filter model by including or excluding a type.
+
+        """
         model = self.filterModel
         if model is None:
             return
@@ -153,86 +231,22 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler)
     def on_typesList_itemDoubleClicked(self, item):
         """ Displays a dialog for selecting the color of a message type.
 
+        If the user selects a new color, we update the type list icon
+        and color, the message table foreground, and possibly the
+        message detail foreground.
         """
         currentColor = QColor(item.data(Qt.DecorationRole))
-        color = QColorDialog.getColor(currentColor, self)
-        if color.isValid():
-            item.setData(Qt.DecorationRole, QVariant(color))
-            item.setIcon(colorIcon(color))
-            self.brushMap[str(item.text())] = itemBrush = QBrush(color)
+        newColor = QColorDialog.getColor(currentColor, self)
+        if newColor.isValid():
+            item.setData(Qt.DecorationRole, QVariant(newColor))
+            item.setIcon(colorIcon(newColor))
+            self.brushMap[str(item.text())] = itemBrush = QBrush(newColor)
             self.messagesModel.reset()
-            self.settings.setValue('%s/color' % item.text(), color)
+            self.settings.setValue('%s/color' % item.text(), newColor)
             messageDetail = self.messageDetail
             typeItem = messageDetail.item(1, 1) # yuk
             if typeItem.text() == item.text():
                 for row in range(messageDetail.rowCount()):
-                    nameItem = messageDetail.item(row, 0)
-                    valueItem = messageDetail.item(row, 1)
-                    nameItem.setForeground(itemBrush)
-                    valueItem.setForeground(itemBrush)
-
-    def setupColors(self):
-        """ Configures the color highlight button.
-
-        @return None
-        """
-        getValue = self.settings.value
-        defaultColor = QColor(0,0,0)
-        for name in self.messageTypeNames:
-            self.brushMap[name] = getValue('%s/color' % name, defaultColor)
-        items = self.messageTypeDisplay.listItems()
-        for item in items:
-            color = QColor(self.brushMap[str(item.text())])
-            item.setData(Qt.DecorationRole, QVariant(color))
-            item.setIcon(colorIcon(color))
-
-    def setSession(self, session):
-        """ Configures this instance for a session.
-
-        @param session Session instance
-        @return None
-        """
-        self.session = session
-        self.messagesModel = MessagesTableModel(session, self.brushMap, self)
-        self.filterModel = MessagesFilter(session.messagesBare, self)
-        self.filterModel.setFilterKeyColumn(3)
-        self.filterModel.setSourceModel(self.messagesModel)
-        self.messageTable.setModel(self.filterModel)
-        if 0:
-            session.registerAll(self.messageTable, Slots.scrollToBottom)
-
-    def on_messageTable_clicked(self, index):
-        """ Displays the message keys and values.
-
-        @param index QModelIndex instance; filterModel index, not messageModel.
-        @return None
-        """
-        row = index.row()
-        messageIndex, validIndex = index.sibling(row, 0).data().toInt()
-        if not validIndex:
-            return
-        row = messageIndex
-        mtime, message = self.messagesModel.message(messageIndex)
-        messageDetail = self.messageDetail
-        messageDetail.clearContents()
-        typeName = message.typeName
-        items = [('index', row), ('type', typeName), ('received', ctime(mtime))]
-        items += list(sorted(message.items()))
-        messageDetail.setRowCount(len(items))
-        itemBrush = QBrush(self.brushMap[typeName])
-        for row, (name, value) in enumerate(items):
-            nameItem = QTableWidgetItem(name)
-            valueItem = QTableWidgetItem(str(value))
-            nameItem.setForeground(itemBrush)
-            valueItem.setForeground(itemBrush)
-            messageDetail.setItem(row, 0, nameItem)
-            messageDetail.setItem(row, 1, valueItem)
-
-    def on_syncSource_stateChanged(self, state):
-        state = bool(state)
-        self.messagesModel.setSync(state)
-        if state:
-            self.filterBar.filterEdit.setText('')
-            self.on_filterEdit_editingFinished()
-        self.filterBar.setEnabled(not state)
-
+                    for col in range(messageDetail.columnCount()):
+                        item = messageDetail.item(row, col)
+                        item.setForeground(itemBrush)
