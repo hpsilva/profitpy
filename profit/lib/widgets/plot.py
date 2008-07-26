@@ -21,8 +21,7 @@ from PyQt4.Qwt5 import QwtPlotMarker, QwtPlotPanner, QwtSymbol, QwtText
 
 from ib.ext.TickType import TickType
 
-from profit.lib import defaults
-from profit.lib.core import Settings, Signals
+from profit.lib import Settings, Signals, defaults
 from profit.lib.gui import ValueColorItem, colorIcon, complementColor
 from profit.lib.widgets.plotdatadialog import PlotDataDialog
 from profit.lib.widgets.plotitemdialog import PlotItemDialog

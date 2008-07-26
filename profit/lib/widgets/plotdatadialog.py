@@ -9,8 +9,7 @@ from PyQt4.QtCore import QAbstractTableModel, QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QApplication, QBrush, QColorDialog, QDialog
 from PyQt4.QtGui import QFileDialog, QFont, QFontDialog, QListWidgetItem
 
-from profit.lib import defaults
-from profit.lib.core import Settings, Signals
+from profit.lib import Settings, Signals, defaults
 from profit.lib.gui import colorIcon
 from profit.lib.widgets.ui_plotdatadialog import Ui_PlotDataDialog
 

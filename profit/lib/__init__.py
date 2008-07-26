@@ -11,16 +11,31 @@ from cPickle import dumps, loads
 from PyQt4.QtCore import (QCoreApplication, QPoint, QSettings, QSize,
                           QVariant, Qt, SIGNAL, SLOT)
 
+
 ## this module is generally the first to get imported by one of the
-## gui apps, so we execute our ugly hack here.
+## gui apps, so we execute our ugly hack here.  this brings the
+## resources into the client program, but it does not bring in
+## PyQt4.QtGui.
 if 'profit_rc' not in sys.modules:
     from profit.lib.widgets import profit_rc
     sys.modules['profit_rc'] = profit_rc
     del(profit_rc)
 ## now back to our regularly scheduled programming.
 
+
+valueAlign = Qt.AlignRight | Qt.AlignVCenter
+instance = QCoreApplication.instance
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s')
+
+
+def nameIn(*names):
+    def check(obj):
+        try:
+            return obj.typeName in names
+        except (AttributeError, ):
+            return False
+    return check
 
 
 def importName(name, reloaded=False):
@@ -207,44 +222,22 @@ class Settings(QSettings):
         return QSettings.value(self, key, default)
 
 
-def roleIds():
+def generateUserRoles():
     i = Qt.UserRole
     while True:
         yield i
         i += 1
-nextRoleId = roleIds().next
+nextUserRole = generateUserRoles().next
 
 
 class DataRoles:
-    tickerId = nextRoleId()
-    tickerSymbol = nextRoleId()
-    histDataReqId = nextRoleId()
-    url = nextRoleId()
-    urlTitle = nextRoleId()
-    strategyName = nextRoleId()
-    displayImportName = nextRoleId()
-
-    typeMap = {
-        tickerId:int,
-        histDataReqId:int,
-        strategyName:str,
-        }
-
-
-##
-valueAlign = Qt.AlignRight | Qt.AlignVCenter
-
-
-def nameIn(*names):
-    def check(obj):
-        try:
-            return obj.typeName in names
-        except (AttributeError, ):
-            return False
-    return check
-
-
-instance = QCoreApplication.instance
+    tickerId = nextUserRole()
+    tickerSymbol = nextUserRole()
+    histDataReqId = nextUserRole()
+    url = nextUserRole()
+    urlTitle = nextUserRole()
+    strategyName = nextUserRole()
+    displayImportName = nextUserRole()
 
 
 class SessionHandler(object):

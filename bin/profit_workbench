@@ -9,7 +9,7 @@ import sys
 
 from PyQt4.QtGui import QApplication
 
-from profit.lib.core import Settings
+from profit.lib import Settings
 from profit.workbench.main import ProfitWorkbenchWindow
 
 if __name__ == '__main__':

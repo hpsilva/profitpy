@@ -9,7 +9,7 @@ import sys
 
 from PyQt4.QtGui import QApplication
 
-from profit.lib.core import Signals, Settings
+from profit.lib import Signals, Settings
 from profit.strategydesigner import StrategyDesigner
 
 
