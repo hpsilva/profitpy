@@ -29,13 +29,13 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s')
 
 
-def nameIn(*names):
-    def check(obj):
+def makeCheckNames(*names):
+    def checkNames(obj):
         try:
             return obj.typeName in names
         except (AttributeError, ):
             return False
-    return check
+    return checkNames
 
 
 def importName(name, reloaded=False):

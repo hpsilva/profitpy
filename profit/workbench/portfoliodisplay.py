@@ -9,17 +9,17 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
-from profit.lib import SessionHandler, nameIn
+from profit.lib import SessionHandler, makeCheckNames
 from profit.lib.gui import ValueTableItem
 from profit.workbench.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
 
 
 def replayPortfolio(messages, callback):
-    ismsg = nameIn('UpdatePortfolio')
-    symbols = (m.contract.m_symbol for t, m in messages if ismsg(m))
+    isPortMessage = makeCheckNames('UpdatePortfolio')
+    symbols = (m.contract.m_symbol for t, m in messages if isPortMessage(m))
     for symbol in set(symbols):
         def pred((t, m)):
-            return ismsg(m) and m.contract.m_symbol==symbol
+            return isPortMessage(m) and m.contract.m_symbol==symbol
         for time, message in ifilter(pred, reversed(messages)):
             callback(message)
             break

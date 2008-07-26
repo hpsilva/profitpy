@@ -14,9 +14,8 @@ from PyQt4.QtGui import QAction, QFrame, QIcon, QMenu
 from ib.ext.TickType import TickType
 from ib.opt.message import TickPrice
 
-from profit.lib import defaults
 from profit.lib import (SessionHandler, SettingsHandler, Signals,
-                             nameIn, DataRoles, instance)
+                        makeCheckNames, DataRoles, defaults, instance, )
 from profit.lib.gui import (UrlRequestor, ValueTableItem, separator,
                             makeUrlAction, )
 from profit.workbench.portfoliodisplay import replayPortfolio
@@ -43,7 +42,7 @@ def replayTickerMessages(messages, symbols, callback):
     @param callback function to call with replayed messages
     @return None
     """
-    isMsg = nameIn('TickSize', 'TickPrice')
+    isMsg = makeCheckNames('TickSize', 'TickPrice')
     for symbol, tickerId in symbols.items():
         for field in fieldColumns.keys():
             def pred((t, m)):

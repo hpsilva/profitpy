@@ -9,15 +9,15 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
-from profit.lib import SessionHandler, nameIn
+from profit.lib import SessionHandler, makeCheckNames
 from profit.lib.gui import ValueTableItem
 from profit.workbench.widgets.ui_historicaldatadisplay import Ui_HistoricalDataDisplay
 
 
 def replayHistoricalData(messages, callback):
-    ismsg = nameIn('HistoricalData')
+    isHistMessage = makeCheckNames('HistoricalData')
     def pred((t, m)):
-        return ismsg(m)
+        return isHistMessage(m)
     for time, message in ifilter(pred, reversed(messages)):
         callback(message)
 

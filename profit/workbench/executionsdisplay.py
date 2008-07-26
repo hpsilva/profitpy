@@ -9,7 +9,7 @@ from time import strftime, strptime
 from PyQt4.QtCore import QAbstractTableModel, QVariant, Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib import SessionHandler, Signals, Slots, nameIn, valueAlign
+from profit.lib import SessionHandler, Signals, Slots, makeCheckNames, valueAlign
 from profit.lib.gui import symbolIcon
 from profit.workbench.widgets.ui_executionsdisplay import Ui_ExecutionsDisplay
 
@@ -85,9 +85,9 @@ class ExecutionsTableModel(QAbstractTableModel):
         @param session Session instance
         @return None
         """
-        ismsg = nameIn('ExecDetails')
+        isExecMessage = makeCheckNames('ExecDetails')
         msgs = enumerate((msg for time, msg in session.messages))
-        self.messageIndexes = [idx for idx, msg in msgs if ismsg(msg)]
+        self.messageIndexes = [idx for idx, msg in msgs if isExecMessage(msg)]
         self.session = session
         self.messages = session.messages
         session.registerMeta(self)

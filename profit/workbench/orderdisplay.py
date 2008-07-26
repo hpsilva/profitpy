@@ -9,7 +9,7 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib import SessionHandler, nameIn
+from profit.lib import SessionHandler, makeCheckNames
 from profit.workbench.widgets.ui_orderdisplay import Ui_OrderDisplay
 
 ## TODO: orders should be displayed in a parent/child relationship,
@@ -21,10 +21,10 @@ def replayOrderMessages(messages, openOrder, orderStatus):
     """
 
     """
-    ismsg = nameIn('OpenOrder', 'OrderStatus')
+    isOrderMessage = makeCheckNames('OpenOrder', 'OrderStatus')
     calls = {'OpenOrder':openOrder, 'OrderStatus':orderStatus}
     def pred((t, m)):
-        return ismsg(m)
+        return isOrderMessage(m)
     for time, message in ifilter(pred, messages):
         calls[message.typeName](message)
 
