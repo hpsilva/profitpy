@@ -17,7 +17,7 @@ from ib.opt.message import messageTypeNames
 from ib.ext.ExecutionFilter import ExecutionFilter
 
 from profit.lib import logging
-from profit.lib.core import Signals
+from profit.lib import Signals
 from profit.lib.session import collection
 from profit.lib.session.savethread import SaveThread
 from profit.lib.strategy.builder import SessionStrategyBuilder

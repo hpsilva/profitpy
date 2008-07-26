@@ -22,7 +22,7 @@ from PyQt4.QtGui import QSystemTrayIcon, QToolBar
 from PyQt4.QtGui import QIcon, QDesktopServices
 
 from profit.lib import defaults
-from profit.lib.core import Signals, Settings
+from profit.lib import Signals, Settings, instance
 from profit.lib.gui import ValueColorItem, warningBox
 from profit.lib.session import Session
 
@@ -32,11 +32,9 @@ from profit.lib.widgets.shell import PythonShell
 
 from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
 from profit.workbench.sessiontree import SessionTree
-from profit.workbench.collectordisplay import CollectorDisplay
 
 
 applicationName = QApplication.applicationName
-instance = QApplication.instance
 processEvents = QApplication.processEvents
 
 
@@ -215,7 +213,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
             dlg = SessionReplay()
             dlg.setWindowTitle('Reading session file.')
             dlg.setWindowModality(Qt.WindowModal)
-            dlg.setImport(self.session, filename, types)
+            dlg.setImportParameters(self.session, filename, types)
             dlg.exec_()
 
     @pyqtSignature('bool')
@@ -389,8 +387,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         bottom = Qt.BottomDockWidgetArea
         tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
-        self.collectorDock = Dock('Collector', self, CollectorDisplay)
-        tabify(self.sessionDock, self.collectorDock) # self.strategyDock)
+        tabify(self.sessionDock, self.sessionDock)
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
         makeShell = partial(

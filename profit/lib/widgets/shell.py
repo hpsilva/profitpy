@@ -22,7 +22,7 @@ from traceback import extract_tb, format_exception_only, format_list
 from PyQt4.QtCore import Qt, QString
 from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit, QTextCharFormat
 
-from profit.lib.core import Settings, Signals, SessionHandler
+from profit.lib import Settings, Signals, SessionHandler
 
 
 # disable the help function because it reads directly from stdin and

@@ -19,7 +19,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qwt5 import QwtThermo; QtGui.QwtThermo = QwtThermo
 
 from profit.lib import defaults, logging
-from profit.lib.core import SessionHandler, SettingsHandler, Signals
+from profit.lib import SessionHandler, SettingsHandler, Signals
 from profit.workbench.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
 

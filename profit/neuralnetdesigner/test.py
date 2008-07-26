@@ -11,8 +11,8 @@ from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel)
 
-from profit.lib.core import SessionHandler
-from profit.lib.core import Signals, tickerIdRole
+from profit.lib import SessionHandler
+from profit.lib import Signals, tickerIdRole
 
 from profit.neuralnetdesigner.widgets.ui_test import Ui_TestTree
 

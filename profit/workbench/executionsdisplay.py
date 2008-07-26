@@ -9,7 +9,7 @@ from time import strftime, strptime
 from PyQt4.QtCore import QAbstractTableModel, QVariant, Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib.core import SessionHandler, Signals, Slots, nameIn, valueAlign
+from profit.lib import SessionHandler, Signals, Slots, nameIn, valueAlign
 from profit.lib.gui import symbolIcon
 from profit.workbench.widgets.ui_executionsdisplay import Ui_ExecutionsDisplay
 

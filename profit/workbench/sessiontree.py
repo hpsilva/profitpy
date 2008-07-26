@@ -15,10 +15,22 @@ from PyQt4.QtGui import (QAction, QApplication, QDesktopServices,
 
 from profit.lib import defaults, logging
 from profit.lib.gui import UrlRequestor, makeUrlAction
-from profit.lib.core import SessionHandler, SettingsHandler
-from profit.lib.core import Settings, Signals, DataRoles
-from profit.workbench.centraltabs import displayClasses
+from profit.lib import SessionHandler, SettingsHandler
+from profit.lib import Settings, Signals, DataRoles
 from profit.workbench.widgets.ui_sessiontree import Ui_SessionTree
+
+
+displayClasses = {
+    'account' : 'profit.workbench.accountdisplay.AccountDisplay',
+    'connection' : 'profit.workbench.connectiondisplay.ConnectionDisplay',
+    'executions' : 'profit.workbench.executionsdisplay.ExecutionsDisplay',
+    'historical data' : 'profit.workbench.historicaldatadisplay.HistoricalDataDisplay',
+    'messages' : 'profit.workbench.messagedisplay.MessageDisplay',
+    'orders' : 'profit.workbench.orderdisplay.OrderDisplay',
+    'portfolio' : 'profit.workbench.portfoliodisplay.PortfolioDisplay',
+    'strategy' : 'profit.workbench.strategydisplay.StrategyDisplay',
+    'tickers' : 'profit.workbench.tickerdisplay.TickerDisplay',
+}
 
 
 iconNameMap = {
@@ -154,8 +166,10 @@ class SessionTreeModel(QStandardItemModel):
         root = self.invisibleRootItem()
         clsmap = dict.fromkeys([k for k in displayClasses], {})
         items = sorted(clsmap.items())
+        importRole = DataRoles.displayImportName
         for key, values in items:
             item = SessionTreeItem(key)
+            item.setData(QVariant(displayClasses[key]), importRole)
             root.appendRow(item)
         connect = self.connect
         connect(session, Signals.createdTicker, self.on_session_createdTicker)

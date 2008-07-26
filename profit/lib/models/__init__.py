@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import Qt, QModelIndex, QObject, QAbstractTableModel, QVariant, QAbstractItemModel
-from profit.lib.core import Signals
+from profit.lib import Signals
 
 
 class ListStorage(QObject):

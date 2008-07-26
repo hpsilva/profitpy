@@ -11,7 +11,7 @@ from urlparse import urlparse, urlunparse
 from PyQt4.QtCore import pyqtSignature, QEvent, QObject, Qt, QUrl
 from PyQt4.QtGui import QWidget
 
-from profit.lib.core import Signals
+from profit.lib import Signals
 from profit.lib.widgets.ui_webbrowser import Ui_WebBrowserDisplay
 
 

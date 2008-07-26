@@ -14,7 +14,7 @@ from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
 from ib.opt.message import messageTypeNames
 
 from profit.lib import defaults
-from profit.lib.core import SessionHandler, SettingsHandler, Slots
+from profit.lib import SessionHandler, SettingsHandler, Slots
 from profit.lib.gui import colorIcon
 from profit.lib.models.messages import MessagesTableModel
 from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay

@@ -8,7 +8,7 @@
 from functools import partial
 
 from profit.lib.breadfan import make_network
-from profit.lib.core import Signals, Slots
+from profit.lib import Signals, Slots
 
 from profit.lib.widgets.dock import Dock
 from profit.lib.widgets.shell import PythonShell

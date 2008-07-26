@@ -7,7 +7,7 @@
 from PyQt4.QtCore import QVariant, pyqtSignature
 from PyQt4.QtGui import QFrame
 
-from profit.lib.core import Settings, Signals
+from profit.lib import Settings, Signals
 from profit.lib.widgets.plot import Plot
 from profit.workbench.widgets.ui_tickerplotdisplay import Ui_TickerPlotDisplay
 

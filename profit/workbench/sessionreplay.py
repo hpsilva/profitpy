@@ -13,12 +13,12 @@
 # associated slider, and also a button to restart the session replay.
 ##
 
-import logging
 
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QDialog, QMessageBox
 
-from profit.lib.core import Signals
+from profit.lib import logging
+from profit.lib import Signals
 from profit.workbench.widgets.ui_sessionreplay import Ui_SessionReplayWidget
 
 
@@ -31,7 +31,7 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
     Clients should use 'exec_()' to display the dialog, not 'show'.
     """
     def __init__(self, interval=50, parent=None):
-        """ Constructor.
+        """ Initializer.
 
         @param interval=50 milliseconds between message delivery
         @param parent=None ancestor of this dialog
@@ -39,14 +39,17 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
         QDialog.__init__(self, parent)
         self.setupUi(self)
         self.interval = interval
-        self.session = self.filename = self.types = self.loader = \
-            self.importer = None
+        self.session = None
+        self.filename = None
+        self.types = None
+        self.loader = None
+        self.importer = None
         self.timer = QTimer()
 
     def exec_(self):
         """ Dialog main loop.
 
-        @return DialogCode result
+        @return QDialog.DialogCode result
         """
         connect = self.connect
         setInterval = self.timer.setInterval
@@ -96,12 +99,14 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
                         'Imported %s messages from file "%s".',
                         self.count, self.filename)
 
-    def setImport(self, session, filename, types):
-        self.session = session
-        self.filename = filename
-        self.types = types
-
     def importSession(self, session, filename, types):
+        """ Initiates session import.
+
+        @param session Session instance
+        @param filename name of file with serialized messages
+        @param types sequence of message types to import
+        @return None
+        """
         importer = session.importMessages(str(filename), types)
         loader = importer()
         try:
@@ -116,3 +121,16 @@ class SessionReplay(QDialog, Ui_SessionReplayWidget):
             self.importProgress.setMaximum(self.last)
             self.importer = importer
             self.loader = loader
+
+    def setImportParameters(self, session, filename, types):
+        """ Sets the parameters for the import (replay) of session messages.
+
+        @param session Session instance
+        @param filename name of file with serialized messages
+        @param types sequence of message types to import
+        @return None
+        """
+        self.session = session
+        self.filename = filename
+        self.types = types
+

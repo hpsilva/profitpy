@@ -11,8 +11,8 @@ from PyQt4.QtCore import Qt, QVariant, pyqtSignature
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel, QToolBar)
 
-from profit.lib.core import SessionHandler
-from profit.lib.core import Signals, tickerIdRole
+from profit.lib import SessionHandler
+from profit.lib import Signals, tickerIdRole
 from profit.lib.widgets.ui_breadfan_network import Ui_NetworkControlFrame
 
 

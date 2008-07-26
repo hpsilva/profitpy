@@ -15,7 +15,7 @@ from ib.ext.TickType import TickType
 from ib.opt.message import TickPrice
 
 from profit.lib import defaults
-from profit.lib.core import (SessionHandler, SettingsHandler, Signals,
+from profit.lib import (SessionHandler, SettingsHandler, Signals,
                              nameIn, DataRoles, instance)
 from profit.lib.gui import (UrlRequestor, ValueTableItem, separator,
                             makeUrlAction, )
@@ -260,7 +260,15 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, SessionHandler,
         except (KeyError, ):
             items = self.tickerItems[tid] = table.newItemsRow()
             symbols = self.session.strategy.symbols()
-            sym = dict([(b, a) for a, b in symbols.items()])[tid]
+            try:
+                sym = dict([(b, a) for a, b in symbols.items()])[tid]
+            except (KeyError, ):
+                ## something wrong -- we don't have data for the
+                ## ticker symbol.  this can happen if the connection
+                ## sends tick messages and we don't have a strategy
+                ## loaded with the symbol (tickerId) defined.  how can
+                ## this be fixed?
+                return
             items[0].setSymbol(sym)
             items[0].tickerId = tid
             for item in items[1:]:

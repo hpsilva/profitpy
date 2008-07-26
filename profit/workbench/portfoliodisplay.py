@@ -9,7 +9,7 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
-from profit.lib.core import SessionHandler, nameIn
+from profit.lib import SessionHandler, nameIn
 from profit.lib.gui import ValueTableItem
 from profit.workbench.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
 

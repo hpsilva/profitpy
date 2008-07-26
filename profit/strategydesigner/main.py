@@ -16,7 +16,7 @@ from PyQt4.QtGui import QStandardItemModel, QToolBar
 
 from profit.lib import series
 from profit.lib import defaults
-from profit.lib.core import Settings, Signals
+from profit.lib import Settings, Signals
 from profit.lib.widgets.syspathdialog import SysPathDialog
 from profit.strategydesigner.treeitems import (
     CallableItem, TickerItem, FieldItem, IndexItem, RunnerItem)

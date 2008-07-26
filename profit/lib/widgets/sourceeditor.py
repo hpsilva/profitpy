@@ -16,7 +16,7 @@ try:
 except (ImportError, ):
     QsciLexerPython = None
 
-from profit.lib.core import Signals
+from profit.lib import Signals
 
 
 class SourceEditor(QFrame, Editor):

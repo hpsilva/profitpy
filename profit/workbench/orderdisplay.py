@@ -9,8 +9,12 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib.core import SessionHandler, nameIn
+from profit.lib import SessionHandler, nameIn
 from profit.workbench.widgets.ui_orderdisplay import Ui_OrderDisplay
+
+## TODO: orders should be displayed in a parent/child relationship,
+## with the OpenOrder message as the parent and the related
+## OrderStatus messages as children.
 
 
 def replayOrderMessages(messages, openOrder, orderStatus):
@@ -33,7 +37,6 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         """ Initializer.
 
         @param parent ancestor of this object
-        @return None
         """
         QFrame.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -58,12 +61,7 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
 
     def on_session_OrderStatus(self, message):
         orderId = message.orderId
-        try:
-            items = self.orderItems[orderId]
-        except (KeyError, ):
-            ## status received before open order message received.
-            ## should log this.
-            return
+        items = self.getTableRowItems(orderId)
         table = self.orderTable
         items[3].setText(message.status)
         items[9].setText(message.filled)
@@ -78,12 +76,7 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
     def on_session_OpenOrder(self, message):
         order = message.order
         orderId = order.m_orderId
-        try:
-            items = self.orderItems[orderId]
-        except (KeyError, ):
-            table = self.orderTable
-            items = self.orderItems[orderId] = table.newItemsRow()
-            table.resizeRowsToContents()
+        items = self.getTableRowItems(orderId)
         contract = message.contract
         items[0].setText(str(orderId))
         items[1].setSymbol(contract.m_symbol)
@@ -98,3 +91,17 @@ class OrderDisplay(QFrame, Ui_OrderDisplay, SessionHandler):
         #items[10].setText('') # remaining
         for col in [0, 2, 6, 7, 9, 10, 11, 12, 13, 14, 15]:
             items[col].setValueAlign()
+
+    def makeTableRowItems(self, orderId):
+        table = self.orderTable
+        items = self.orderItems[orderId] = table.newItemsRow()
+        table.resizeRowsToContents()
+        return items
+
+    def getTableRowItems(self, orderId):
+        try:
+            items = self.orderItems[orderId]
+        except (KeyError, ):
+            items = self.makeTableRowItems(orderId)
+        return items
+

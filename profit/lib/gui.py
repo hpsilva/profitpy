@@ -9,7 +9,7 @@ from PyQt4.QtCore import Qt, QUrl, QVariant
 from PyQt4.QtGui import QAction, QBrush, QColor, QDesktopServices, QIcon, QMessageBox
 from PyQt4.QtGui import QPixmap, QTableWidgetItem, QStandardItem
 
-from profit.lib.core import DataRoles, Signals, valueAlign
+from profit.lib import DataRoles, Signals, valueAlign
 
 
 class ValueColorItem(object):
@@ -181,3 +181,11 @@ def makeUrlAction(text, url, toolTip='', parent=None):
     action.setData(QVariant(url))
     action.setToolTip(toolTip)
     return action
+
+
+def makeUrlItem(v):
+    item = QStandardItem(v)
+    item.setData(QVariant(v), DataRoles.url)
+    item.setData(QVariant(''), DataRoles.urlTitle)
+    return item
+

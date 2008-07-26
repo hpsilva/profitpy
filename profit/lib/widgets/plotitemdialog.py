@@ -16,7 +16,7 @@ from PyQt4.QtGui import QBrush, QColor, QColorDialog, QDialog, QIcon
 from PyQt4.QtGui import QPainter, QPen, QPixmap
 from PyQt4.Qwt5 import QwtPlot, QwtPlotCurve, QwtPlotMarker, QwtSymbol
 
-from profit.lib.core import Settings
+from profit.lib import Settings
 from profit.lib.gui import colorIcon, complementColor
 from profit.lib.widgets.ui_plotitemdialog import Ui_PlotItemDialog
 

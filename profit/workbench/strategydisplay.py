@@ -13,7 +13,7 @@ from PyQt4.QtGui import (QFrame, QIcon, QMessageBox, QPushButton,
                          QStandardItemModel, QFileDialog, )
 
 from profit.lib import defaults, logging
-from profit.lib.core import SessionHandler, SettingsHandler, Signals, DataRoles, instance
+from profit.lib import SessionHandler, SettingsHandler, Signals, DataRoles, instance
 from profit.lib.gui import StandardItem
 from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 

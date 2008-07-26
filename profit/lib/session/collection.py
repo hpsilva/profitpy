@@ -11,7 +11,7 @@ from cPickle import PicklingError, UnpicklingError, dump, load
 
 from PyQt4.QtCore import QObject, QThread
 from profit.lib import logging
-from profit.lib.core import Signals
+from profit.lib import Signals
 
 
 class DataCollection(QObject):

@@ -6,7 +6,7 @@
 
 from time import ctime
 from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
-from profit.lib.core import Signals
+from profit.lib import Signals
 
 
 class MessagesTableModel(QAbstractTableModel):

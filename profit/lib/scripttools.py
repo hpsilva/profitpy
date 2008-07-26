@@ -13,7 +13,7 @@ import time
 
 from PyQt4.QtCore import QCoreApplication, QThread
 
-from profit.lib.core import Signals
+from profit.lib import Signals
 from profit.lib.session import Session
 
 

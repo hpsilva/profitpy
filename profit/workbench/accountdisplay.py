@@ -7,17 +7,28 @@
 from PyQt4.QtCore import QAbstractTableModel, QSize, QVariant, Qt
 from PyQt4.QtGui import QFrame, QStandardItemModel, QStandardItem
 
-from profit.lib.core import SessionHandler, Signals, valueAlign
+from profit.lib import SessionHandler, Signals, valueAlign
 from profit.lib.gui import colorIcon, complementColor
 from profit.lib.series import Series
 from profit.lib.widgets.plot import PlotCurve, ControlTreeValueItem
 from profit.workbench.widgets.ui_accountdisplay import Ui_AccountDisplay
 
 
+## TODO:  clean up cross-wired signals if possible
+
+
 class AccountTableModel(QStandardItemModel):
-    columnTitles = ['Item', 'Currency', 'Value', 'Account',]
+    """ AccountTableModel -> item model of latest account data.
+
+    """
+    columnTitles = ['Item', 'Currency', 'Value', 'Account', ]
 
     def __init__(self, session, parent=None):
+        """ Initializer.
+
+        @param session Session instance
+        @param parent ancestor object
+        """
         QStandardItemModel.__init__(self, parent)
         self.setHorizontalHeaderLabels(self.columnTitles)
         self.items = {}
@@ -28,6 +39,11 @@ class AccountTableModel(QStandardItemModel):
         session.registerMeta(self)
 
     def on_session_UpdateAccountValue(self, message):
+        """ Changes model items to match latest account data.
+
+        @param message message instance
+        @return None
+        """
         key = (message.key, message.currency, message.accountName)
         try:
             items = self.items[key]
@@ -38,11 +54,11 @@ class AccountTableModel(QStandardItemModel):
 
 
 class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
-    """ Table view of an account.
+    """ AccountDisplay -> displays account data and associated plot controls.
 
     """
     def __init__(self, parent=None):
-        """ Constructor.
+        """ Initializer.
 
         @param parent ancestor object
         """
@@ -66,18 +82,23 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         plot.controlsTree.setModel(model)
         plot.controlsTree.header().show()
         for key, series in session.dataMaps.account.items():
-            self.newPlotSeries(
-                key, series, session.dataMaps.account.last.get(key, None))
+            value = session.dataMaps.account.last.get(key, None)
+            self.newPlotSeries(key, series, value)
         connect = self.connect
         connect(session, Signals.createdAccountData, self.newPlotSeries)
-        connect(
-            model, Signals.standardItemChanged,
-            plot.on_controlsTree_itemChanged)
-        connect(model, Signals.rowsInserted, self.modelRowsInserted)
+        connect(model, Signals.standardItemChanged, plot.on_controlsTree_itemChanged)
+        connect(model, Signals.rowsInserted, self.updateModelItems)
         plot.loadSelections()
-        self.plot.controlsTree.sortByColumn(0, Qt.AscendingOrder)
+        self.resizePlotControls()
 
     def newPlotSeries(self, key, series, value):
+        """ Called when the session creates a new series for account data.
+
+        @param key triple of account data key, currency, and account name
+        @param series newly created data series
+        @param value value for account data key; may be float or string
+        @return None
+        """
         cols = range(len(self.dataModel.columnTitles))
         items = [ControlTreeValueItem('') for i in cols[1:]]
         items[0].setText(key[1])
@@ -90,7 +111,23 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
             checkable = False
         self.plot.addSeries(key, series, items=items, checkable=checkable)
 
-    def modelRowsInserted(self, parent, start, end):
+    def resizePlotControls(self):
+        """ Adjusts column sizes and sort order.
+
+        @return None
+        """
+        for i in range(3): ## why 3 and not 4?
+            self.plot.controlsTree.resizeColumnToContents(i)
+        self.plot.controlsTree.sortByColumn(0, Qt.AscendingOrder)
+
+    def updateModelItems(self, parent, start, end):
+        """ Called when rows are inserted into the item model.
+
+        @param parent QModelIndex instance
+        @param start first row number
+        @param end last row number
+        @return None
+        """
         model = self.dataModel
         item = model.itemFromIndex(parent)
         if item:
@@ -98,8 +135,3 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
             key = tuple(str(i.text()) for i in (item, others[0], others[2]))
             model.items[key] = [item, ] + others
         self.resizePlotControls()
-        self.plot.controlsTree.sortByColumn(0, Qt.AscendingOrder)
-
-    def resizePlotControls(self):
-        for i in range(3):
-            self.plot.controlsTree.resizeColumnToContents(i)

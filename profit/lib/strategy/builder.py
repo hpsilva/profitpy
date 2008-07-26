@@ -11,7 +11,7 @@ from time import time, strftime
 
 from PyQt4.QtCore import QObject
 
-from profit.lib.core import Signals, instance
+from profit.lib import Signals, instance
 from profit.lib.series import Series, MACDHistogram
 
 from ib.ext.Contract import Contract
