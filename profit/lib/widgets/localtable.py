@@ -14,7 +14,7 @@ class LocalTable(QTableWidget):
         QTableWidget.__init__(self, parent)
         self.resizedColumns = []
 
-    def resizeColumnToContents(self, column):
+    def __resizeColumnToContents(self, column):
         if column not in self.resizedColumns:
             self.resizedColumns.append(column)
             QTableWidget.resizeColumnToContents(self, column)

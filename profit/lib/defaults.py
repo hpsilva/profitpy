@@ -68,3 +68,7 @@ def rightMainSplitterState():
     @return QByteArray suitable for use with QSplitter.restoreState
     """
     return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAAAiQAAAm8BAAAABgEAAAAB')
+
+
+def tickerDisplayFields():
+    return range(-3, 5)

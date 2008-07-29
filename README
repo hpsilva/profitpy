@@ -1,5 +1,14 @@
 == To Do for 0.2 ==
 
+1.  add buffer editor to shell panel.  perhaps update shell w/ code from eric4
+
+2.  add ticker field select widget to ticker display; make splitter like
+    the message display
+
+3.  fix method request/tickerId/contract handling.  allow for display
+    of tickerIds with symbol.  extend tickers display with contract
+    details.
+
 4.  add viewable historical data requests and plots
 
 5.  finish strategy design tool and its integration with the workbench

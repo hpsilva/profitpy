@@ -28,6 +28,7 @@ from profit.lib.session import Session
 
 from profit.lib.widgets.dock import Dock
 from profit.lib.widgets.output import OutputWidget
+from profit.lib.widgets.propertyeditor import PropertyEditor
 from profit.lib.widgets.shell import PythonShell
 
 from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
@@ -95,6 +96,27 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
             elif msg == QMessageBox.Save:
                 self.actionSaveSession.trigger()
         return check
+
+    def on_inspectWidget(self, checked=False, widget=None):
+        objectType, objectName = type(widget), widget.objectName()
+        self.propertyEditor.widget().setFromWidget(widget)
+
+    def contextMenuActions(self, event):
+        app = instance()
+        widget = app.widgetAt(event.globalPos())
+        if widget is None:
+            return
+        inspectCall = partial(self.on_inspectWidget, widget=widget)
+        actionText = 'Inspect %s:%s' % (type(widget).__name__, widget.objectName())
+        inspectAction = QAction(actionText, self)
+        self.connect(inspectAction, Signals.triggered, inspectCall)
+        return [inspectAction, ]
+
+    def contextMenuEvent(self, event):
+        menu = QMenu()
+        actions = self.contextMenuActions(event)
+        QMenu.exec_(actions, event.globalPos())
+        event.accept()
 
     def closeEvent(self, event):
         if self.checkClose():
@@ -387,8 +409,8 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         bottom = Qt.BottomDockWidgetArea
         tabify = self.tabifyDockWidget
         self.sessionDock = Dock('Session', self, SessionTree)
-        self.anyWidget = Dock('Empty', self, QFrame)
-        tabify(self.anyWidget, self.sessionDock)
+        self.propertyEditor = Dock('Property Editor', self, PropertyEditor)
+        tabify(self.propertyEditor, self.sessionDock)
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
         makeShell = partial(

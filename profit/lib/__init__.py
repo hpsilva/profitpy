@@ -180,6 +180,7 @@ class Settings(QSettings):
         winstate = 'State'
         ctabstate = 'CentralTabState'
         externalbrowser = 'ExternalBrowser'
+        tickerdisplay = 'TickerDisplay'
 
     def __init__(self):
         """ Initializer.
@@ -204,7 +205,8 @@ class Settings(QSettings):
         if v:
             try:
                 v = loads(str(v.toString()))
-            except:
+            except (Exception, ), exc:
+                logging.debug('Exception valueLoad: %s, %r', exc, exc)
                 v = default
         return v
 
@@ -238,6 +240,7 @@ class DataRoles:
     urlTitle = nextUserRole()
     strategyName = nextUserRole()
     displayImportName = nextUserRole()
+    tickerField = nextUserRole()
 
 
 class SessionHandler(object):
@@ -317,3 +320,7 @@ class SettingsHandler(object):
         self.settingsRef = value
 
     settings = property(settingsGetter, settingsSetter)
+
+
+class BasicHandler(SessionHandler, SettingsHandler):
+    pass

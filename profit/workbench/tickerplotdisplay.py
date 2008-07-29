@@ -93,7 +93,7 @@ class TickerPlotDisplay(QFrame, Ui_TickerPlotDisplay):
     def saveCount(self):
         settings = Settings()
         settings.beginGroup('Plots')
-        settings.beginGroup('%s' % self.sessionArgs[1])
+        settings.beginGroup('%s' % self.sessionArgs[1].__class__.__name__)
         settings.setValue('displaycount', len(self.plotWidgets))
 
     def setActionsEnabled(self):
