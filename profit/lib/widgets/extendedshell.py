@@ -17,7 +17,7 @@ class ExtendedPythonShell(QFrame, Ui_ExtendedShell):
         self.setupUi(self)
 
     @pyqtSignature('')
-    def on_execButton_clicked(self):
+    def on_actionExecute_triggered(self):
         source = str(self.editorWidget.text())
         self.shellWidget.runLines(source.split('\n'))
 
