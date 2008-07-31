@@ -17,10 +17,10 @@ from ib.opt.message import messageTypeNames
 
 from profit.lib import logging
 from profit.lib import Signals
-from profit.lib.session import collection
-from profit.lib.session.savethread import SaveThread
-from profit.lib.session.requestthread import RequestThread
-from profit.lib.strategy.builder import SessionStrategyBuilder
+from profit.session import collection
+from profit.session.savethread import SaveThread
+from profit.session.requestthread import RequestThread
+from profit.strategy.builder import SessionStrategyBuilder
 
 
 class DataMaps(object):

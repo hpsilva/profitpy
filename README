@@ -8,8 +8,6 @@ micro:
     of tickerIds with symbol.  extend tickers display with contract
     details.
 
-4.  un-nest profit/lib/ packages (leave widgets)
-
 macro:
 
 1.  add buffer editor to shell panel.  perhaps update shell w/ code from eric4

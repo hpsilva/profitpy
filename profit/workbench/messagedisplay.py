@@ -14,7 +14,7 @@ from ib.opt.message import messageTypeNames
 
 from profit.lib import BasicHandler, Slots, defaults
 from profit.lib.gui import colorIcon
-from profit.lib.models.messages import MessagesTableModel
+from profit.models.messages import MessagesTableModel
 from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay
 
 

@@ -62,24 +62,31 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="execButton" >
+          <widget class="QToolButton" name="toolButton" >
            <property name="text" >
             <string>Execute</string>
-           </property>
-           <property name="icon" >
-            <iconset resource="profit.qrc" >
-             <normaloff>:/images/icons/misc.png</normaloff>:/images/icons/misc.png</iconset>
            </property>
           </widget>
          </item>
         </layout>
        </item>
       </layout>
-      <zorder>editorWidget</zorder>
      </widget>
     </widget>
    </item>
   </layout>
+  <action name="actionExecute" >
+   <property name="icon" >
+    <iconset resource="profit.qrc" >
+     <normaloff>:/images/icons/misc.png</normaloff>:/images/icons/misc.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Execute</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+E</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -98,5 +105,22 @@
  <resources>
   <include location="profit.qrc" />
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>toolButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionExecute</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>355</x>
+     <y>363</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

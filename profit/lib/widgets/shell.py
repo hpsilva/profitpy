@@ -20,7 +20,7 @@ from os.path import exists, expanduser
 from traceback import extract_tb, format_exception_only, format_list
 
 from PyQt4.QtCore import Qt, QString
-from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit, QTextCharFormat
+from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QKeyEvent, QTextCursor, QTextEdit, QTextCharFormat
 
 from profit.lib import Settings, Signals, BasicHandler
 
@@ -209,9 +209,12 @@ class PythonShell(QTextEdit, BasicHandler):
         self.clearLine()
 
     def runLines(self, lines):
-        interp = self.interp
+        event = QKeyEvent(QKeyEvent.KeyPress, Qt.Key_Return, Qt.NoModifier)
         for line in lines:
-            interp.runsource(line)
+            self.lines.append(line+"\n")
+            self.keyPressEvent(event)
+        self.run()
+
 
     def clearLine(self):
         self.point = 0

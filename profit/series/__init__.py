@@ -10,8 +10,8 @@
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='numpy')
 
-from profit.lib.series.basic import *
+from profit.series.basic import *
 try:
-    from profit.lib.series.advanced import *
+    from profit.series.advanced import *
 except (ImportError, ):
     pass

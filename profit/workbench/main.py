@@ -24,14 +24,12 @@ from PyQt4.QtGui import QIcon, QDesktopServices, QFrame
 from profit.lib import defaults
 from profit.lib import Signals, Settings, instance
 from profit.lib.gui import ValueColorItem, warningBox
-from profit.lib.session import Session
-
 from profit.lib.widgets.dock import Dock
 from profit.lib.widgets.output import OutputWidget
 from profit.lib.widgets.propertyeditor import PropertyEditor
 from profit.lib.widgets.shell import PythonShell
-
 from profit.lib.widgets.extendedshell import ExtendedPythonShell
+from profit.session import Session
 
 from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
 from profit.workbench.sessiontree import SessionTree

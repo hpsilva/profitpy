@@ -24,7 +24,7 @@ from profit.lib import Signals
 from profit.lib.scripttools import defaults, check_duration, check_hms
 from profit.lib.scripttools import CollectorThread, WaitingThread
 
-from profit.lib.session import Session, SessionBuilder, Ticker, Order, Contract, Series
+from profit.session import Session, SessionBuilder, Ticker, Order, Contract, Series
 
 
 class LocalOption(optparse.Option):

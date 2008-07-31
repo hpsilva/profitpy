@@ -14,7 +14,7 @@ import time
 from PyQt4.QtCore import QCoreApplication, QThread
 
 from profit.lib import Signals
-from profit.lib.session import Session
+from profit.session import Session
 
 
 class defaults:

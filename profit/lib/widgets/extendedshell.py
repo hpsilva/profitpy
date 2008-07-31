@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import Qt, pyqtSignature
-from PyQt4.QtGui import QFrame, QKeyEvent
+from PyQt4.QtGui import QFrame
 from profit.lib.widgets.ui_extendedshell import Ui_ExtendedShell
 
 ## save/load splitter state
@@ -18,10 +18,9 @@ class ExtendedPythonShell(QFrame, Ui_ExtendedShell):
 
     @pyqtSignature('')
     def on_execButton_clicked(self):
-        shell = self.shellWidget
-        #shell.runLines(str(self.editorWidget.text()).split('\n'))
-        shell.insertPlainText(self.editorWidget.text())
-        e = QKeyEvent(QKeyEvent.KeyPress,
-                      Qt.Key_Return, Qt.NoModifier)
-        shell.keyPressEvent(e)
+        source = str(self.editorWidget.text())
+        self.shellWidget.runLines(source.split('\n'))
+
+
+
 
