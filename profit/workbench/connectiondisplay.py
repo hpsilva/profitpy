@@ -18,8 +18,7 @@ from PyQt4.QtGui import QFrame, QMessageBox, QFileDialog
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qwt5 import QwtThermo; QtGui.QwtThermo = QwtThermo
 
-from profit.lib import defaults, logging
-from profit.lib import SessionHandler, SettingsHandler, Signals
+from profit.lib import BasicHandler, Signals, defaults, logging
 from profit.workbench.widgets.ui_connectionwidget import Ui_ConnectionWidget
 
 
@@ -48,7 +47,7 @@ def commandStrings():
     return keyCmd, brokerCmd
 
 
-class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler, SettingsHandler):
+class ConnectionDisplay(QFrame, Ui_ConnectionWidget, BasicHandler):
     """ ConnectionDisplay -> widgets for managing broker connection.
 
     """
@@ -87,7 +86,7 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, SessionHandler, SettingsHan
         """
         session = self.session
         session.deregisterAll(self.updateLastMessage)
-        self.disconnect(session, Signals.connectedTWS, self.on_connectedTWS)
+        self.disconnect(session, Signals.tws.connected, self.on_connectedTWS)
 
     def on_session_ConnectionClosed(self, message):
         """ Resets various widgets after a connection closed message.

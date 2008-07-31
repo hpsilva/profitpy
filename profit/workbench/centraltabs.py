@@ -12,14 +12,14 @@ from PyQt4.QtCore import QTimer, QVariant, Qt, pyqtSignature
 from PyQt4.QtGui import QIcon, QTabWidget, QStandardItem
 
 from profit.lib import importItem, logging
-from profit.lib import SessionHandler, Signals, DataRoles, instance
+from profit.lib import BasicHandler, Signals, DataRoles, instance
 from profit.lib.gui import addCloseAction, makeUrlItem
 from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
 from profit.lib.widgets.webbrowser import WebBrowserDisplay
 from profit.workbench.tickerplotdisplay import TickerPlotDisplay
 
 
-class CentralTabs(QTabWidget, SessionHandler):
+class CentralTabs(QTabWidget, BasicHandler):
     """ CentralTabs -> tab widget with special powers
 
     """
@@ -39,7 +39,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         self.setCornerWidget(self.closeTabButton, Qt.TopRightCorner)
         self.setCornerWidget(self.detachTabButton, Qt.TopLeftCorner)
         app, connect = instance(), self.connect
-        connect(app, Signals.sessionItemActivated, self.createTab)
+        connect(app, Signals.itemActivated, self.createTab)
         connect(app, Signals.openUrl, self.createTab)
         connect(app, Signals.tickerClicked, self.createTab)
         connect(self.closeTabButton, Signals.clicked, self.closeTab)
@@ -94,7 +94,7 @@ class CentralTabs(QTabWidget, SessionHandler):
         if tickerIdValid:
             widget = TickerPlotDisplay(self)
             session = self.session
-            widget.setSessionPlot(session, session.dataMaps.ticker, tickerId)
+            widget.setSessionPlot(session, session.maps.ticker, tickerId)
             index = self.addTab(widget, symbol)
             icon = QIcon(item.data(Qt.DecorationRole))
             self.setTextIconCurrentTab(index, symbol, icon)

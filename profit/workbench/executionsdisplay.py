@@ -9,7 +9,7 @@ from time import strftime, strptime
 from PyQt4.QtCore import QAbstractTableModel, QVariant, Qt
 from PyQt4.QtGui import QFrame
 
-from profit.lib import SessionHandler, Signals, Slots, makeCheckNames, valueAlign
+from profit.lib import BasicHandler, Signals, Slots, makeCheckNames, valueAlign
 from profit.lib.gui import symbolIcon
 from profit.workbench.widgets.ui_executionsdisplay import Ui_ExecutionsDisplay
 
@@ -159,7 +159,7 @@ class ExecutionsTableModel(QAbstractTableModel):
         return len(self.columnTitles)
 
 
-class ExecutionsDisplay(QFrame, Ui_ExecutionsDisplay, SessionHandler):
+class ExecutionsDisplay(QFrame, Ui_ExecutionsDisplay, BasicHandler):
     """ Combines a filter bar and an exec details table.
 
     """

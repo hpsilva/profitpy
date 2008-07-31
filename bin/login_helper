@@ -141,6 +141,7 @@ def main(options):
             else:
                 logging.debug('input focus set successfully.')
                 for key in keys:
+                    time.sleep(0.125)
                     if not guitest.PressReleaseKey(key):
                         logging.debug('could not press key "%s".', key)
                         result = False

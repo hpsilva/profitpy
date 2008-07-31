@@ -13,7 +13,7 @@ from PyQt4.QtGui import (QFrame, QIcon, QMessageBox, QPushButton,
                          QStandardItemModel, QFileDialog, )
 
 from profit.lib import defaults, logging
-from profit.lib import SessionHandler, SettingsHandler, Signals, DataRoles, instance
+from profit.lib import BasicHandler, Signals, DataRoles, instance
 from profit.lib.gui import StandardItem
 from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
@@ -77,8 +77,7 @@ class StrategyDisplayModel(QStandardItemModel):
         ]
 
 
-class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
-                      SettingsHandler):
+class StrategyDisplay(QFrame, Ui_StrategyDisplay, BasicHandler):
     """
 
     """
@@ -117,8 +116,8 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
                 self.on_strategyTable_itemChanged)
         connect(view.selectionModel(), Signals.selectionChanged,
                 self.on_strategyTable_selectionChanged)
-        connect(self, Signals.strategyRequestActivate,
-                instance(), Signals.strategyRequestActivate)
+        connect(self, Signals.strategy.requestActivate,
+                instance(), Signals.strategy.requestActivate)
 
     def on_strategyTable_doubleClicked(self, index):
         """
@@ -157,7 +156,7 @@ class StrategyDisplay(QFrame, Ui_StrategyDisplay, SessionHandler,
                     return
             ## emit the signal for all activate/deactivate changes
             rowdict = self.strategyModel.rowToDict(item.row())
-            self.emit(Signals.strategyRequestActivate, rowdict, bool(checked))
+            self.emit(Signals.strategy.requestActivate, rowdict, bool(checked))
             ## house keeping common for all activate/deactivate
             other = self.strategyModel.item(item.row(), 1)
             other.setIcon(self.activeIcon if checked else self.inactiveIcon)

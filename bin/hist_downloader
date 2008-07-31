@@ -149,7 +149,7 @@ def main(options):
     sess = Session()
     sess.histdataQueue.put(('AAPL', 100))
 
-    sess.connect(sess, Signals.sessionStatus, logging.debug)
+    sess.connect(sess, Signals.session.status, logging.debug)
     sess.filename = options.output
     sess.connectTWS(
          options.host, options.port, options.clientid)

@@ -15,8 +15,7 @@ from PyQt4.QtGui import (QAction, QApplication, QDesktopServices,
 
 from profit.lib import defaults, logging
 from profit.lib.gui import UrlRequestor, makeUrlAction
-from profit.lib import SessionHandler, SettingsHandler
-from profit.lib import Settings, Signals, DataRoles
+from profit.lib import BasicHandler, Settings, Signals, DataRoles
 from profit.workbench.widgets.ui_sessiontree import Ui_SessionTree
 
 
@@ -203,8 +202,7 @@ formatHistDataFinish = mkHistDataFormatter('request %s (%s/%s) (finished)')
 formatHistDataError  = mkHistDataFormatter('request %s (%s/%s) (error)')
 
 
-class SessionTree(QFrame, Ui_SessionTree, SessionHandler,
-                  SettingsHandler, UrlRequestor):
+class SessionTree(QFrame, Ui_SessionTree, BasicHandler, UrlRequestor):
     """ Tree view of a Session object.
 
     """
@@ -222,14 +220,13 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler,
         app = QApplication.instance()
         connect = self.connect
         connect(self, Signals.openUrl, app, Signals.openUrl)
-        connect(self, Signals.sessionItemActivated,
-                app, Signals.sessionItemActivated)
+        connect(self, Signals.itemActivated, app, Signals.itemActivated)
         self.requestSession()
 
     def on_treeView_doubleClicked(self, index):
         #print '### index:', index
         ## set more data
-        self.emit(Signals.sessionItemActivated, index)
+        self.emit(Signals.itemActivated, index)
 
     def histDataItem(self):
         """ returns the 'historical data' item or None
@@ -290,6 +287,10 @@ class SessionTree(QFrame, Ui_SessionTree, SessionHandler,
         view = self.treeView
         view.setModel(model)
         session.registerMeta(self)
+        self.connect(session, Signals.histdata.start,
+                     self.on_session_historicalDataStart)
+        self.connect(session, Signals.histdata.finish,
+                     self.on_session_historicalDataFinish)
         if not session.messages:
             settings = self.settings
             settings.beginGroup(settings.keys.main)

@@ -22,7 +22,7 @@ from traceback import extract_tb, format_exception_only, format_list
 from PyQt4.QtCore import Qt, QString
 from PyQt4.QtGui import QApplication, QBrush, QColor, QFont, QTextCursor, QTextEdit, QTextCharFormat
 
-from profit.lib import Settings, Signals, SessionHandler
+from profit.lib import Settings, Signals, BasicHandler
 
 
 # disable the help function because it reads directly from stdin and
@@ -68,7 +68,7 @@ class PythonInterpreter(InteractiveInterpreter):
     def update(self, **kwds):
         self.locals.update(kwds)
 
-class PythonShell(QTextEdit, SessionHandler):
+class PythonShell(QTextEdit, BasicHandler):
     """ PythonShell(...) -> python shell widget
 
     """
@@ -82,12 +82,12 @@ class PythonShell(QTextEdit, SessionHandler):
     ps1 = '>>> '
     ps2 = '... '
 
-    def __init__(self, parent, stdout, stderr):
-        QTextEdit.__init__(self, parent)
-
+    def setStdOutErr(self, stdout, stderr):
         sys.stdout.extend([stdout, self])
         sys.stderr.extend([stderr, self])
 
+    def __init__(self, parent):
+        QTextEdit.__init__(self, parent)
         self.line = QString()
         self.lines = []
         self.history = []
@@ -208,6 +208,11 @@ class PythonShell(QTextEdit, SessionHandler):
             self.lines = []
         self.clearLine()
 
+    def runLines(self, lines):
+        interp = self.interp
+        for line in lines:
+            interp.runsource(line)
+
     def clearLine(self):
         self.point = 0
         self.line.truncate(0)
@@ -244,10 +249,7 @@ class PythonShell(QTextEdit, SessionHandler):
             return
         elif key in (Qt.Key_Return, Qt.Key_Enter):
             self.write('\n')
-            if self.reading:
-                self.reading = 0
-            else:
-                self.run()
+            self.run()
         elif key==Qt.Key_Tab:
             self.insertPlainText(text)
         elif key==Qt.Key_Backspace and self.point:
@@ -359,6 +361,7 @@ if not isinstance(sys.stderr, MultiCast):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = PythonShell(parent=None, stdout=sys.__stdout__, stderr=sys.__stderr__)
+    window = PythonShell(parent=None)
+    window.setStdOutErr(stdout=sys.__stdout__, stderr=sys.__stderr__)
     window.show()
     sys.exit(app.exec_())

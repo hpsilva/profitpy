@@ -9,7 +9,7 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
-from profit.lib import SessionHandler, makeCheckNames
+from profit.lib import BasicHandler, makeCheckNames
 from profit.lib.gui import ValueTableItem
 from profit.workbench.widgets.ui_portfoliodisplay import Ui_PortfolioDisplay
 
@@ -25,7 +25,7 @@ def replayPortfolio(messages, callback):
             break
 
 
-class PortfolioDisplay(QFrame, Ui_PortfolioDisplay, SessionHandler):
+class PortfolioDisplay(QFrame, Ui_PortfolioDisplay, BasicHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)

@@ -14,12 +14,12 @@ from PyQt4.QtCore import QObject, SIGNAL
 
 from ib.opt import ibConnection
 from ib.opt.message import messageTypeNames
-from ib.ext.ExecutionFilter import ExecutionFilter
 
 from profit.lib import logging
 from profit.lib import Signals
 from profit.lib.session import collection
 from profit.lib.session.savethread import SaveThread
+from profit.lib.session.requestthread import RequestThread
 from profit.lib.strategy.builder import SessionStrategyBuilder
 
 
@@ -30,6 +30,7 @@ class DataMaps(object):
         self.ticker = collection.TickerCollection(session)
         self.error = collection.ErrorDataCollection(session)
         self.order = collection.OrderDataCollection(session)
+        self.contract = collection.ContractDataCollection(session)
 
 
 class Session(QObject):
@@ -38,13 +39,15 @@ class Session(QObject):
     """
     def __init__(self, strategy=None):
         QObject.__init__(self)
+        self.requestThread = requestThread = RequestThread(self)
+        requestThread.start()
         self.strategy = strategy if strategy else SessionStrategyBuilder(self)
         self.connection = self.filename = None
         self.messages = []
         self.messagesBare = []
         self.messagesTyped = {}
         self.savedLength = 0
-        self.dataMaps = DataMaps(self)
+        self.maps = DataMaps(self)
 
     def __str__(self):
         """ x.__str__() <==> str(x)
@@ -167,7 +170,7 @@ class Session(QObject):
         con.enableLogging(enableLogging)
         con.connect()
         con.registerAll(self.receiveMessage)
-        self.emit(Signals.connectedTWS)
+        self.emit(Signals.tws.connected)
 
     def disconnectTWS(self):
         """ Disconnects this instance from TWS.
@@ -176,7 +179,13 @@ class Session(QObject):
         """
         if self.isConnected():
             self.connection.disconnect()
-            self.emit(Signals.disconnectedTWS)
+            self.emit(Signals.tws.disconnected)
+
+    def receiveObject(self, object):
+        """ Recieve an unknown object, usually during session load/import.
+
+        """
+        pass
 
     def receiveMessage(self, message, mtime=time):
         """ Receive a message from TWS and propagate it as a Qt signal.
@@ -208,7 +217,6 @@ class Session(QObject):
             for tickerId, contract in self.strategy.makeContracts():
                 connection.reqMktData(tickerId, contract, '', False)
                 connection.reqMktDepth(tickerId, contract, 1)
-        ## else queue for later?
 
     def requestAccount(self):
         """ Request account data.
@@ -226,14 +234,12 @@ class Session(QObject):
         """
         connection = self.connection
         if connection and connection.isConnected():
-            filt = ExecutionFilter()
-#            connection.reqExecutions(filt)
             connection.reqAllOpenOrders()
             connection.reqOpenOrders()
 
     def requestHistoricalData(self, params):
         ## we should msg the object instead
-        self.historicalDataCollection.begin(params)
+        self.maps.historical.begin(params)
 
     def saveFinished(self):
         """ Slot that updates this instance after a save thread has completed.
@@ -246,10 +252,13 @@ class Session(QObject):
             msg = 'Session file saved.  Wrote %s messages.' % count
         else:
             msg = 'Error saving file.'
-        self.emit(Signals.sessionStatus, msg)
+        self.emit(Signals.session.status, msg)
+
+    def extraObjects(self):
+        return []
 
     def exportFinished(self):
-        """ Slot that updates this instance after an export thread has completed.
+        """ Updates this instance after an export thread has completed.
 
         @return None
         """
@@ -258,21 +267,21 @@ class Session(QObject):
             msg = 'Session exported.  Wrote %s messages.' % count
         else:
             msg = 'Error exporting messages.'
-        self.emit(Signals.sessionStatus, msg)
+        self.emit(Signals.session.status, msg)
 
     def saveTerminated(self):
         """ Slot for handling a canceled save thread.
 
         @return None
         """
-        self.emit(Signals.sessionStatus, 'Session file save terminated.')
+        self.emit(Signals.session.status, 'Session file save terminated.')
 
     def exportTerminated(self):
         """ Slot for handling a canceled export thread.
 
         @return None
         """
-        self.emit(Signals.sessionStatus, 'Session export terminated.')
+        self.emit(Signals.session.status, 'Session export terminated.')
 
     def saveInProgress(self):
         """ Returns True if this instance has a running save thread
@@ -296,7 +305,7 @@ class Session(QObject):
         self.connect(thread, Signals.finished, self.saveFinished)
         self.connect(thread, Signals.terminated, self.saveTerminated)
         thread.start()
-        self.emit(Signals.sessionStatus, 'Started session file save.')
+        self.emit(Signals.session.status, 'Started session file save.')
 
     def load(self, filename):
         """ Restores session messages from file.
@@ -318,9 +327,14 @@ class Session(QObject):
             try:
                 messages = load(handle)
                 yield len(messages)
-                for index, (mtime, message) in enumerate(messages):
-                    self.receiveMessage(message, mtime)
-                    yield index
+                for obj in enumerate(messages):
+                    try:
+                        index, (mtime, message) = obj
+                    except (TypeError, ValueError, ):
+                        self.receiveObject(obj)
+                    else:
+                        self.receiveMessage(message, mtime)
+                        yield index
             except (UnpicklingError, ):
                 pass
             finally:
@@ -384,7 +398,7 @@ class Session(QObject):
         self.connect(thread, Signals.finished, self.exportFinished)
         self.connect(thread, Signals.terminated, self.exportTerminated)
         thread.start()
-        self.emit(Signals.sessionStatus, 'Started session export.')
+        self.emit(Signals.session.status, 'Started session export.')
 
     def iterMessageTypes(self, *types):
         for key in types:

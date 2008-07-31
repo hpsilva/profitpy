@@ -11,7 +11,7 @@ from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel)
 
-from profit.lib import SessionHandler
+from profit.lib import BasicHandler
 from profit.lib import Signals, tickerIdRole
 from profit.lib.widgets.ui_breadfan_train import Ui_BreadFanTrainTree
 

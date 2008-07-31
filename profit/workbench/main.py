@@ -31,6 +31,8 @@ from profit.lib.widgets.output import OutputWidget
 from profit.lib.widgets.propertyeditor import PropertyEditor
 from profit.lib.widgets.shell import PythonShell
 
+from profit.lib.widgets.extendedshell import ExtendedPythonShell
+
 from profit.workbench.widgets.ui_main import Ui_ProfitWorkbenchWindow
 from profit.workbench.sessiontree import SessionTree
 
@@ -61,12 +63,12 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         self.readSettings()
         self.setWindowTitle('%s (0.2 alpha)' % applicationName())
         app = instance()
-        sessreq = lambda :app.emit(Signals.sessionReference, self.session)
+        sessreq = lambda :app.emit(Signals.session.reference, self.session)
         connect = self.connect
-        connect(app, Signals.sessionRequest, sessreq)
+        connect(app, Signals.session.request, sessreq)
         connect(app, Signals.lastWindowClosed, self.writeSettings)
         connect(self, Signals.openUrl, app, Signals.openUrl)
-        connect(self, Signals.sessionCreated, app, Signals.sessionCreated)
+        connect(self, Signals.session.created, app, Signals.session.created)
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
         self.createSession()
@@ -138,9 +140,9 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     def createSession(self):
         self.session = session = Session()
         app = instance()
-        app.emit(Signals.sessionCreated, session)
+        app.emit(Signals.session.created, session)
         bar = self.statusBar()
-        self.connect(session, Signals.sessionStatus, bar.showMessage)
+        self.connect(session, Signals.session.status, bar.showMessage)
 
     @pyqtSignature('')
     def on_actionAboutProfitWorkbench_triggered(self):
@@ -413,10 +415,11 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         tabify(self.propertyEditor, self.sessionDock)
         self.stdoutDock = Dock('Standard Output', self, OutputWidget, bottom)
         self.stderrDock = Dock('Standard Error', self, OutputWidget, bottom)
-        makeShell = partial(
-            PythonShell,
-            stdout=self.stdoutDock.widget(),
-            stderr=self.stderrDock.widget())
+        def makeShell(p):
+            shell = ExtendedPythonShell(p)
+            shell.shellWidget.setStdOutErr(stdout=self.stdoutDock.widget(),
+                               stderr=self.stderrDock.widget())
+            return shell
         self.shellDock = Dock('Python Shell', self, makeShell, bottom)
         tabify(self.shellDock, self.stdoutDock)
         tabify(self.stdoutDock, self.stderrDock)
@@ -465,7 +468,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
                 for action in self.menuFile.actions():
                     trayMenu.addAction(action)
                     trayIcon.setContextMenu(trayMenu)
-                self.connect(trayIcon, Signals.activated,
+                self.connect(trayIcon, Signals.trayIconActivated,
                              self.on_trayIcon_activated)
             trayIcon.show()
         else:

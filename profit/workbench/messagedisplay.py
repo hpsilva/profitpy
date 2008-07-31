@@ -12,7 +12,7 @@ from PyQt4.QtGui import (QBrush, QColor, QColorDialog, QIcon, QFrame,
 
 from ib.opt.message import messageTypeNames
 
-from profit.lib import SessionHandler, SettingsHandler, Slots, defaults
+from profit.lib import BasicHandler, Slots, defaults
 from profit.lib.gui import colorIcon
 from profit.lib.models.messages import MessagesTableModel
 from profit.workbench.widgets.ui_messagedisplay import Ui_MessageDisplay
@@ -84,7 +84,7 @@ class MessagesFilter(QSortFilterProxyModel):
         self.reset()
 
 
-class MessageDisplay(QFrame, Ui_MessageDisplay, SessionHandler, SettingsHandler):
+class MessageDisplay(QFrame, Ui_MessageDisplay, BasicHandler):
     """ MessageDisplay -> table view of session messages with nifty controls
 
     """

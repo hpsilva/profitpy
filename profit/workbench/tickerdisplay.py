@@ -4,9 +4,6 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-# TODO: cache previous values on column drop and reuse on add.
-# TODO: support id, symbol, position and value fields
-
 from functools import partial
 from itertools import ifilter
 from string import Template
@@ -16,14 +13,12 @@ from PyQt4.QtGui import QAction, QFrame, QIcon, QMenu
 
 from ib.opt.message import TickPrice
 
-from profit.lib import (BasicHandler, DataRoles, Signals, defaults,
-                        instance, makeCheckNames, )
-
-from profit.lib.gui import (UrlRequestor, ValueTableItem, separator,
-                            makeUrlAction, )
-
-from profit.lib.widgets.tickfieldselect import (fieldIds, itemTickField,
-                                                setItemTickField, )
+from profit.lib import (
+    BasicHandler, DataRoles, Signals, defaults, instance, makeCheckNames, )
+from profit.lib.gui import (
+    UrlRequestor, ValueTableItem, separator, makeUrlAction, )
+from profit.lib.widgets.tickfieldselect import (
+    ExField, fieldIds, itemTickField, setItemTickField, )
 
 from profit.workbench.portfoliodisplay import replayPortfolio
 from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
@@ -43,7 +38,7 @@ def replayTickerMessages(messages, symbols, callback):
             def pred((t, m)):
                 return isMsg(m) and m.field==field and m.tickerId==tickerId
             for time, message in ifilter(pred, reversed(messages)):
-                callback(message)
+                callback(message, replay=True)
                 break
 
 
@@ -58,6 +53,9 @@ def fakeTickerMessages(tickerId):
         yield tick(field=field)
 
 
+valueCache = {}
+
+
 class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
     """ TickerDisplay -> shows ticker data in a nice table.
 
@@ -70,8 +68,13 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         """
         QFrame.__init__(self, parent)
         self.setupUi(self)
-        self.headerItemColumnMap = {}
         self.tickerIds = {}
+        self.extraFieldItemSetups = {
+            ExField.tid : self.setIdItem,
+            ExField.sym : self.setSymbolItem,
+            ExField.pos : self.setPositionItem,
+            ExField.val : self.setPositionValueItem,
+        }
         self.setupWidgets()
         self.requestSession()
 
@@ -94,18 +97,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         connect(self, Signals.tickerClicked, app, Signals.tickerClicked)
         self.tickerTable.verticalHeader().hide()
 
-    def on_splitter_splitterMoved(self, pos, index):
-        """ Signal handler for splitter move; saves state to user settings.
-
-        @param pos ignored
-        @param index ignored
-        @return None
-        """
-        settings = self.settings
-        settings.beginGroup(self.__class__.__name__)
-        settings.setValue(settings.keys.splitstate, self.splitter.saveState())
-        settings.endGroup()
-
     def setSession(self, session):
         """ Configures this instance for a session.
 
@@ -114,14 +105,14 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         """
         self.session = session
         symbols = session.strategy.symbols()
-        replayTickerMessages(session.messages, symbols,
-                             self.on_session_TickPrice_TickSize)
-        replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
+        #replayTickerMessages(session.messages, symbols,
+        #                     self.on_session_TickPrice_TickSize)
+        #replayPortfolio(session.messages, self.on_session_UpdatePortfolio)
         session.registerMeta(self)
-        if not session.messages:
-            for tickerId in symbols.values():
-                for msg in fakeTickerMessages(tickerId):
-                    self.on_session_TickPrice_TickSize(msg)
+#        if not session.messages:
+#            for tickerId in symbols.values():
+#                for msg in fakeTickerMessages(tickerId):
+#                    self.on_session_TickPrice_TickSize(msg)
 
     def basicActions(self, index):
         """ Creates action and separator list suitable for a context menu.
@@ -150,27 +141,6 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         """
         print '## close position order dialog'
 
-    def urlActions(self, symbol):
-        """
-
-        """
-        actions = []
-        settings = self.settings
-        settings.beginGroup(self.settings.keys.urls)
-        urls = settings.value(settings.keys.tickerurls, defaults.tickerUrls())
-        settings.endGroup()
-        urls = [str(s) for s in defaults.tickerUrls()]
-        for url in urls:
-            try:
-                name, url = str(url).split(':', 1)
-                url = Template(url).substitute(symbol=symbol)
-            except (KeyError, ValueError, ):
-                continue
-            act = makeUrlAction(name, url, toolTip='%s %s' % (symbol, name))
-            self.connect(act, Signals.triggered, partial(self.requestUrl, action=act))
-            actions.append(act)
-        return actions
-
     def closePositionAction(self, row):
         """ Creates an action for closing a position.
 
@@ -188,6 +158,90 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
                 act = QAction('Close %s shares...' % abs(pos), None)
                 self.connect(act, Signals.triggered, self.closePosition)
         return act
+
+    def fieldColumn(self, field, default=None):
+        """ Returns the ticker table column number for the given field.
+
+        This method could move to a TickerTable(QTableWidget) class.
+
+        @param field TickType field
+        @param default=None value returned if column not found
+        """
+        table = self.tickerTable
+        for col in range(table.columnCount()):
+            if field == itemTickField(table.horizontalHeaderItem(col)):
+                return col
+        return default
+
+    def makeTickerColumn(self, field, label):
+        """ Constructs a new column and a header for the ticker table.
+
+        @param field TickType field
+        @param label header label
+        @return new column number
+        """
+        table = self.tickerTable
+        column = table.columnCount()
+        table.insertColumn(column)
+        header = ValueTableItem()
+        header.setText(label)
+        setItemTickField(header, field)
+        table.setHorizontalHeaderItem(column, header)
+        return column
+
+    def makeTickerColumnItems(self, column):
+        """ Creates ticker table items for (new) column.
+
+        @param column table column
+        @return None
+        """
+        table = self.tickerTable
+        for row in range(table.rowCount()):
+            item = ValueTableItem()
+            item.setValueAlign()
+            table.setItem(row, column, item)
+
+    def setupFieldColumn(self, field, column):
+        """ Configures column items as much as possible.
+
+        This method maps existing ticker fields to items at the given
+        column.  We don't mix this behavior with the column
+        construction (makeTickerColumnItems) because that would muddle the
+        behavior.
+
+        @param field TickType field
+        @param column table column
+        @return None
+        """
+        extraFieldItemSetups = self.extraFieldItemSetups
+        tickerTable = self.tickerTable
+        for tickerId, row in self.tickerIds.items():
+            item = tickerTable.item(row, column)
+            if item:
+                if field in extraFieldItemSetups:
+                    extraFieldItemSetups[field](item, tickerId)
+                else:
+                    value = valueCache.get(tickerId, {}).get(field, '')
+                    item.setValue(value)
+
+    def makeTickerRow(self, tickerId):
+        """ Creates a ticker table row for the given tickerId.
+
+        @param tickerId yes, that
+        @return id of new row
+
+        """
+        table = self.tickerTable
+        items = table.newItemsRow()
+        extraFieldItemSetups = self.extraFieldItemSetups
+        for col, item in enumerate(items):
+            item.setValueAlign()
+            field = itemTickField(table.horizontalHeaderItem(col))
+            if field in extraFieldItemSetups:
+                extraFieldItemSetups[field](item, tickerId)
+        table.resizeColumnsToContents()
+        table.resizeRowsToContents()
+        return table.rowCount()
 
     @pyqtSignature('')
     def on_actionChart_triggered(self):
@@ -211,46 +265,79 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         """
         print '## order for ', self.actionOrder.data().toString()
 
-    def tickerTableColumns(self):
-        t = self.tickerTable
-        return [(c, t.horizontalHeaderItem(c))
-                for c in range(t.columnCount())]
-
-    def tickerTableColumnField(self, field):
-        t = self.tickerTable
-        for c in range(t.columnCount()):
-            i = t.horizontalHeaderItem(c)
-            if field == itemTickField(i):
-                return c
-
     def on_fieldsList_itemChanged(self, item):
         """ Add/drop a column when a field is checked/unchecked.
 
         """
-        headerItemColumnMap = self.headerItemColumnMap
-        tickerTable = self.tickerTable
-        userItems = self.tickFieldSelect.checkedItems()
+        table = self.tickerTable
         field = itemTickField(item)
-
         if item.checkState():
-            col = tickerTable.columnCount()
-            tickerTable.insertColumn(col)
-            header = headerItemColumnMap[field] = ValueTableItem()
-            header.setText(item.text())
-            setItemTickField(header, field)
-            tickerTable.setHorizontalHeaderItem(col, header)
-            for r in range(tickerTable.rowCount()):
-                tickerTable.setItem(r, col, TickerTableItem())
+            col = self.makeTickerColumn(field, item.text())
+            self.makeTickerColumnItems(col)
+            self.setupFieldColumn(field, col)
+            table.resizeColumnToContents(col)
         else:
-            headers = self.tickerTableColumns()
-            col = [c for c, i in headers if itemTickField(i)==field][0]
-            tickerTable.removeColumn(col)
-            del(headerItemColumnMap[field])
+            table.removeColumn(self.fieldColumn(field))
+        self.saveFieldSelections()
 
+    def on_session_UpdatePortfolio(self, message):
+        """ Updates the position and market value columns in the ticker table.
+
+        """
+
+        ## TODO: fix references, i.e., make contract lookup precise,
+        ## and also locate column by contract (or
+        ## by message.contract symbol+secType+expiry+etc)
+
+        sym = message.contract.m_symbol
+        symbols = self.session.strategy.symbols()
+        try:
+            tid = symbols[sym]
+            row = self.tickerIds[tid]
+        except (KeyError, ):
+            return
+        items = ((ExField.val, message.marketValue),
+                 (ExField.pos, message.position),
+                 )
+        table = self.tickerTable
+        for field, value in items:
+            col = self.fieldColumn(field)
+            if col is not None:
+                item = table.item(row, col)
+                if item:
+                    item.setValue(value)
+
+    def on_session_TickPrice_TickSize(self, message):
+        """ Updates size and price columns in the ticker table.
+        Creates rows as needed.
+
+        """
+        field = message.field
+        value = (message.price if hasattr(message, 'price') else message.size)
+        tickerTable = self.tickerTable
+        tickerId = message.tickerId
+        valueCache.setdefault(tickerId, {})[field] = value
+        col = self.fieldColumn(field)
+        if col is None:
+            return
+        try:
+            row = self.tickerIds[tickerId]
+        except (KeyError, ):
+            row = self.tickerIds[tickerId] = self.makeTickerRow(tickerId)
+        item = tickerTable.item(row, col)
+        if item:
+            item.setValue(value)
+
+    def on_splitter_splitterMoved(self, pos, index):
+        """ Signal handler for splitter move; saves state to user settings.
+
+        @param pos ignored
+        @param index ignored
+        @return None
+        """
         settings = self.settings
         settings.beginGroup(self.__class__.__name__)
-        saveFields = [itemTickField(i) for i in userItems]
-        settings.setValueDump('selectedFields', saveFields)
+        settings.setValue(settings.keys.splitstate, self.splitter.saveState())
         settings.endGroup()
 
     def on_tickerTable_customContextMenuRequested(self, pos):
@@ -292,86 +379,67 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
             elif  (2 < col < 9):
                 self.emit(Signals.tickerClicked, item, col)
 
-    def on_session_UpdatePortfolio(self, message):
-        """ Updates the position and market value columns in the ticker table.
+    def saveFieldSelections(self):
+        """ Saves the selected fields.
 
         """
-        sym = message.contract.m_symbol
+        settings = self.settings
+        settings.beginGroup(self.__class__.__name__)
+        userItems = self.tickFieldSelect.checkedItems()
+        saveFields = [itemTickField(i) for i in userItems]
+        settings.setValueDump('selectedFields', saveFields)
+        settings.endGroup()
+
+    def urlActions(self, symbol):
+        """ Returns a list of actions for the given symbol.
+
+        """
+        actions = []
+        settings = self.settings
+        settings.beginGroup(self.settings.keys.urls)
+        urls = settings.value(settings.keys.tickerurls, defaults.tickerUrls())
+        settings.endGroup()
+        urls = [str(s) for s in defaults.tickerUrls()]
+        for url in urls:
+            try:
+                name, url = str(url).split(':', 1)
+                url = Template(url).substitute(symbol=symbol)
+            except (KeyError, ValueError, ):
+                continue
+            act = makeUrlAction(name, url, toolTip='%s %s' % (symbol, name))
+            request = partial(self.requestUrl, action=act)
+            self.connect(act, Signals.triggered, request)
+            actions.append(act)
+        return actions
+
+    ## table item setter-uppers
+
+    def setIdItem(self, item, tickerId):
+        """ Configures an item for the 'Id' column.
+
+        """
+        item.setText(tickerId)
+        item.setValueAlign(Qt.AlignLeft|Qt.AlignVCenter)
+
+    def setSymbolItem(self, item, tickerId):
+        """ Configures an item for the 'Symbol' column.
+
+        """
         symbols = self.session.strategy.symbols()
         try:
-            tid = symbols[sym]
-            items = self.tickerIds[tid]
+            sym = dict([(b, a) for a, b in symbols.items()])[tickerId]
         except (KeyError, ):
             pass
         else:
-            items[1].setValue(message.position)
-            items[2].setValue(message.marketValue)
+            item.setSymbol(sym)
+            item.setValueAlign(Qt.AlignLeft|Qt.AlignVCenter)
 
-    def on_session_TickPrice_TickSize(self, message):
-        """ Updates size and price columns in the ticker table.
-        Creates rows as needed.
+    def setPositionItem(self, item, tickerId):
+        """ Configures an item for the 'Position' column.
 
         """
-        table = self.tickerTable
-        if not table.columnCount():
-            return
-        tickerId = message.tickerId
-        value = (message.price if hasattr(message, 'price') else message.size)
-        try:
-            row = self.tickerIds[tickerId]
-        except (KeyError, ):
-            items = table.newItemsRow()
-            #for item in items:
-            #    item.setValueAlign()
-            row = self.tickerIds[tickerId] = items[0].row()
-        col = self.tickerTableColumnField(message.field)
-        if col is None:
-            return
-        item = table.item(row, col)
-        if not hasattr(item, 'setValue'):
-            return
-        if item:
-            item.setValue(value)
 
+    def setPositionValueItem(self, item, tickerId):
+        """ Configures an item for the 'Value' column.
 
-class TickerTableItem(ValueTableItem):
-    """ Automatically aligned value table items.
-
-    """
-    def __init__(self):
-        ValueTableItem.__init__(self)
-        self.setValueAlign()
-
-
-
-
-
-
-            #table.resizeColumnsToContents()
-            #table.resizeRowsToContents()
-
-if 0:
-    if 0:
-        if 0:
-            symbols = self.session.strategy.symbols()
-            try:
-                sym = dict([(b, a) for a, b in symbols.items()])[tickerId]
-            except (KeyError, ):
-                ## something wrong -- we don't have data for the
-                ## ticker symbol.  this can happen if the connection
-                ## sends tick messages and we don't have a strategy
-                ## loaded with the symbol (tickerId) defined.  how can
-                ## this be fixed?
-                return
-
-
-
-
-#            items[0].setSymbol(sym)
-#            items[0].tickerId = tid
-#            for item in items[1:]:
-#                item.setValueAlign()
-#            table.sortItems(0)
-#            table.resizeColumnsToContents()
-#            table.resizeRowsToContents()
-
+        """

@@ -9,7 +9,7 @@ from itertools import ifilter
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
-from profit.lib import SessionHandler, makeCheckNames
+from profit.lib import BasicHandler, makeCheckNames
 from profit.lib.gui import ValueTableItem
 from profit.workbench.widgets.ui_historicaldatadisplay import Ui_HistoricalDataDisplay
 
@@ -22,7 +22,7 @@ def replayHistoricalData(messages, callback):
         callback(message)
 
 
-class HistoricalDataDisplay(QFrame, Ui_HistoricalDataDisplay, SessionHandler):
+class HistoricalDataDisplay(QFrame, Ui_HistoricalDataDisplay, BasicHandler):
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)

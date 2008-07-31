@@ -40,7 +40,8 @@ class SaveThread(QThread):
             pass
         else:
             last = len(session.messages)
-            messages = session.messages[0:last]
+            extras = session.extraObjects()
+            messages = session.messages[0:last] + extras
             types = self.types
             if types:
                 def messageFilter((mtime, message)):

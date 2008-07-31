@@ -14,8 +14,47 @@ from profit.lib import DataRoles
 from profit.lib.widgets.ui_tickfieldselect import Ui_TickFieldSelect
 
 
+class ExField(object):
+    """ Namespace for our 'extra' fields, i.e., fields not in TickType.
+
+    The extra fields are all negative so as to not conflict with those
+    in TickType.
+    """
+    tid, sym, pos, val = enum = range(-4, 0)
+    labels = ['id', 'symbol', 'position', 'value']
+    all = zip(enum, labels)
+
+
+def extraFieldSpecs():
+    """ Generates sequence of dictionaries that describe our extra fields.
+
+    """
+    for field, label in ExField.all:
+        yield dict(value=field, sort=field, name=label, title=label.title())
+
+
+def fieldIds():
+    """ Generates sequence of tick field identifiers.
+
+    Refer to the TickType class for actual attributes and values.
+    """
+    for field in fieldSpecs():
+        yield field['value']
+
+
+def fieldSpecs():
+    """ Yields one description dictionary for every TickType field.
+
+    """
+    values = [getattr(TickType, k) for k in dir(TickType)]
+    for value in [v for v in values if isinstance(v, int)]:
+        name = TickType.getField(value)
+        title = tickFieldTitle(name)
+        yield dict(sort=value, value=value, name=name, title=title)
+
+
 def itemTickField(item):
-    """ Returns the tick field from the item's data
+    """ Returns the tick field from the item's data.  May be invalid.
 
     """
     return item.data(DataRoles.tickerField).toInt()[0]
@@ -26,26 +65,6 @@ def setItemTickField(item, field):
 
     """
     item.setData(DataRoles.tickerField, QVariant(field))
-
-
-def fieldIds():
-    """ Generates sequence of tick field identifiers.  Refer to the
-    TickType class for concrete list.
-
-    """
-    for field in fieldSpecs():
-        yield field['value']
-
-
-def fieldSpecs():
-    """ Yields one description dict for every TickType field.
-
-    """
-    values = [getattr(TickType, k) for k in dir(TickType)]
-    for value in [v for v in values if isinstance(v, int)]:
-        name = TickType.getField(value)
-        title = tickFieldTitle(name)
-        yield dict(sort=value, value=value, name=name, title=title)
 
 
 def tickFieldTitle(name):
@@ -59,16 +78,8 @@ def tickFieldTitle(name):
         words = rxsplit('([a-z]+)', name)
     ## title case each word in the word list if the word isn't already
     ## all upper case.
-    words = [(word.title() if not word.upper()==word else word)
-         for word in words if word]
+    words = [(w if w.upper()==w else w.title()) for w in words if w]
     return str.join(' ', words)
-
-
-def extraFieldSpecs():
-    yield dict(sort=-4, value=-4, name='id', title='Id')
-    yield dict(sort=-3, value=-3, name='symbol', title='Symbol')
-    yield dict(sort=-2, value=-2, name='position', title='Position')
-    yield dict(sort=-1, value=-1, name='value', title='Value')
 
 
 class TickFieldSelect(QFrame, Ui_TickFieldSelect):
@@ -90,10 +101,9 @@ class TickFieldSelect(QFrame, Ui_TickFieldSelect):
         """
         fieldsList = self.fieldsList
         fieldsList.clear()
-        allFields = sorted(list(extraFieldSpecs()) + list(fieldSpecs()),
-                           key=lambda d:d['sort'])
+        allFields = list(extraFieldSpecs()) + list(fieldSpecs())
+        allFields = sorted(allFields, key=lambda d:d['sort'])
         self.allTickFields = allFields
-
         for rowId, fieldDesc in enumerate(allFields):
             fieldsList.addItem(fieldDesc['title'])
             item = fieldsList.item(rowId)

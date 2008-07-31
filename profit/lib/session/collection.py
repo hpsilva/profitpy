@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 # Copyright 2007 Troy Melhase, Yichun Wei
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
@@ -67,6 +68,21 @@ class AccountCollection(DataCollection):
         self.last[key] = iv
 
 
+class ContractDataCollection(DataCollection):
+    sessionResendSignals = [Signals.contract.added, ]
+
+    def __setitem__(self, tickerId, contract):
+        ## maybe enforce types?
+        DataCollection.__setitem__(self, tickerId, contract)
+        self.emit(Signals.contract.added, tickerId, contract)
+
+    def on_session_TickPrice_TickSize(self, message):
+        tickerId = message.tickerId
+        if tickerId not in self:
+            contract = self[tickerId] = self.session.strategy.makeContract(symbol='')
+            self.emit(Signals.contract.added, tickerId, contract)
+
+
 class TickerCollection(DataCollection):
     sessionResendSignals = [Signals.createdSeries, Signals.createdTicker, ]
 
@@ -100,8 +116,8 @@ class TickerCollection(DataCollection):
 
 
 class HistoricalDataCollection(DataCollection):
-    sessionResendSignals = [Signals.historicalDataStart,
-                            Signals.historicalDataFinish]
+    sessionResendSignals = [Signals.histdata.start,
+                            Signals.histdata.finish]
 
     def __init__(self, session):
         DataCollection.__init__(self, session)
@@ -112,13 +128,13 @@ class HistoricalDataCollection(DataCollection):
             reqData = self.setdefault(reqId, {})
             histMsgs = self.session.messagesTyped['HistoricalData']
             reqData['messages'] = self.historyMessages(reqId, histMsgs)
-            self.emit(Signals.historicalDataFinish, reqId)
+            self.emit(Signals.histdata.finish, reqId)
 
     def begin(self, params):
         reqId = params['tickerId']
         reqData = self.setdefault(reqId, {})
         reqData.update(params)
-        self.emit(Signals.historicalDataStart, reqId, reqData)
+        self.emit(Signals.histdata.start, reqId, reqData)
         self.session.connection.reqHistoricalData(**reqData)
 
     @staticmethod
@@ -139,4 +155,3 @@ class OrderDataCollection(DataCollection):
 class ErrorDataCollection(DataCollection):
     def on_session_Error(self, message):
         logging.debug(str(message))
-

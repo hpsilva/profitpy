@@ -79,7 +79,7 @@ class CollectorThread(QThread):
 
         self.session = session = Session(strategy=False)
         session.filename = options.output
-        self.connect(session, Signals.sessionStatus, logging.debug)
+        self.connect(session, Signals.session.status, logging.debug)
 
         session.connectTWS(
             options.host, options.port, options.clientid)

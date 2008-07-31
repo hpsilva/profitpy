@@ -123,7 +123,7 @@ class AccountSummaryModel(QStandardItemModel):
         self.valueCache = {}
         self.setHorizontalHeaderLabels(['Item', 'Currency', 'Value'])
         if parent:
-            self.connect(parent.window(), Signals.sessionCreated,
+            self.connect(parent.window(), Signals.session.created,
                          self.setSession)
 
     def setAccountKeyDisplay(self, key, currency, show, view):

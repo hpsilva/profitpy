@@ -11,7 +11,7 @@ from PyQt4.QtCore import QVariant
 from PyQt4.QtGui import (QApplication, QFrame, QIcon,
                          QStandardItem, QStandardItemModel)
 
-from profit.lib import SessionHandler
+from profit.lib import BasicHandler
 from profit.lib import Signals, tickerIdRole
 
 from profit.neuralnetdesigner.widgets.ui_test import Ui_TestTree
@@ -117,9 +117,9 @@ class BreadFanTestTree(QFrame, Ui_TestTree):
         tree.header().hide()
         tree.setAnimated(True)
         app = QApplication.instance()
-        connect(tree, Signals.modelClicked, app, Signals.sessionItemSelected)
+        connect(tree, Signals.modelClicked, app, Signals.session.itemSelected)
         connect(tree, Signals.modelDoubleClicked,
-                app, Signals.sessionItemActivated)
+                app, Signals.session.itemActivated)
 
 
     def setSession(self, session):

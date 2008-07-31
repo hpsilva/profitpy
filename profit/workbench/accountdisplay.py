@@ -7,7 +7,7 @@
 from PyQt4.QtCore import QAbstractTableModel, QSize, QVariant, Qt
 from PyQt4.QtGui import QFrame, QStandardItemModel, QStandardItem
 
-from profit.lib import SessionHandler, Signals, valueAlign
+from profit.lib import BasicHandler, Signals, valueAlign
 from profit.lib.gui import colorIcon, complementColor
 from profit.lib.series import Series
 from profit.lib.widgets.plot import PlotCurve, ControlTreeValueItem
@@ -53,7 +53,7 @@ class AccountTableModel(QStandardItemModel):
             items[2].setText(message.value)
 
 
-class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
+class AccountDisplay(QFrame, Ui_AccountDisplay, BasicHandler):
     """ AccountDisplay -> displays account data and associated plot controls.
 
     """
@@ -77,12 +77,12 @@ class AccountDisplay(QFrame, Ui_AccountDisplay, SessionHandler):
         self.dataModel = model = AccountTableModel(session, self)
         plot = self.plot
         plot.plotButton.setVisible(False)
-        plot.setSessionPlot(session, session.dataMaps.account, 'account')
+        plot.setSessionPlot(session, session.maps.account, 'account')
         plot.controlsTreeModel = model
         plot.controlsTree.setModel(model)
         plot.controlsTree.header().show()
-        for key, series in session.dataMaps.account.items():
-            value = session.dataMaps.account.last.get(key, None)
+        for key, series in session.maps.account.items():
+            value = session.maps.account.last.get(key, None)
             self.newPlotSeries(key, series, value)
         connect = self.connect
         connect(session, Signals.createdAccountData, self.newPlotSeries)

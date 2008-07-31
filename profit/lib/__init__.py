@@ -64,7 +64,7 @@ def importItem(name, reloaded=False):
     """
     names = name.split('.')
     modname, itemname = names[0:-1], names[-1]
-    mod = importName(str.join('.', modname), reloaded=True)
+    mod = importName(str.join('.', modname), reloaded=reloaded)
     return getattr(mod, itemname)
 
 
@@ -72,33 +72,24 @@ class Signals:
     """ Contains SIGNAL attributes for easy and consistent reference.
 
     """
-    activated = SIGNAL('activated(QSystemTrayIcon::ActivationReason)')
     clicked = SIGNAL('clicked()')
-    connectedTWS = SIGNAL('connectedTWS')
     createdAccountData = SIGNAL('createdAccountData')
     createdSeries = SIGNAL('createdSeries')
     createdTicker = SIGNAL('createdTicker')
-    currentChanged = SIGNAL('currentChanged(int)')
     currentIndexChanged = SIGNAL('currentIndexChanged(int)')
-    customContextMenuRequested = SIGNAL(
-        'customContextMenuRequested(const QPoint &)')
-    dataChanged = SIGNAL(
-        'dataChanged(const QModelIndex &, const QModelIndex &)')
+    dataChanged = SIGNAL('dataChanged(const QModelIndex &, const QModelIndex &)')
     dialogFinished = SIGNAL('finished(int)')
-    disconnectedTWS = SIGNAL('disconnectedTWS')
     doubleValueChanged = SIGNAL('valueChanged(double)')
     editingFinished = SIGNAL('editingFinished()')
     enableCurve = SIGNAL('enableCurve')
+    highlightSelections = SIGNAL('highlightSelections')
     finished = SIGNAL('finished()')
     headerDataChanged = SIGNAL('headerDataChanged(Qt::Orientation, int, int)')
-    highlightSelections = SIGNAL('highlightSelections')
-    historicalDataStart = SIGNAL('historicalDataStart')
-    historicalDataFinish = SIGNAL('historicalDataFinish')
-
-    iconChanged = SIGNAL('iconChanged()')
     intValueChanged = SIGNAL('valueChanged(int)')
+    itemActivated = SIGNAL('itemActivated (const QModelIndex &)')
     itemChanged = SIGNAL('itemChanged(QStandardItem *)')
     itemDoubleClicked = SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)')
+    itemSelected = SIGNAL('itemSelected (const QModelIndex &)')
     lastWindowClosed = SIGNAL('lastWindowClosed()')
     layoutChanged = SIGNAL('layoutChanged()')
     loadFinished = SIGNAL('loadFinished(bool)')
@@ -107,40 +98,43 @@ class Signals:
     modelReset = SIGNAL('modelReset()')
     modified = SIGNAL('modified')
     openUrl = SIGNAL('openUrl(PyQt_PyObject)')
-    processFinished = SIGNAL('finished(int, QProcess::ExitStatus)')
-    requestedHistoricalData = SIGNAL('requestedHistoricalData')
     rowsInserted = SIGNAL('rowsInserted(const QModelIndex &, int, int)')
-    selectionChanged = SIGNAL(
-        'selectionChanged(const QItemSelection &, const QItemSelection &)')
-    sessionCreated = SIGNAL('sessionCreated(PyQt_PyObject)')
-    sessionItemSelected = SIGNAL('itemSelected (const QModelIndex &)')
-    sessionItemActivated = SIGNAL('itemActivated (const QModelIndex &)')
-    sessionReference = SIGNAL('sessionReference(PyQt_PyObject)')
-    sessionRequest = SIGNAL('sessionRequest')
-    sessionStatus = SIGNAL('sessionStatus')
+    selectionChanged = SIGNAL('selectionChanged(const QItemSelection &, const QItemSelection &)')
     settingsChanged = SIGNAL('settingsChanged')
     splitterMoved = SIGNAL('splitterMoved(int, int)')
     standardItemChanged = SIGNAL('itemChanged(QStandardItem *)')
-
-    strategyRequestActivate = SIGNAL('strategyActivated(PyQt_PyObject, bool)')
-
-    strategyLoaded = SIGNAL('strategyLoaded(PyQt_PyObject)')
-    strategyLoadFailed = SIGNAL('strategyLoadFaield(PyQt_PyObject)')
-    strategyFileUpdated = SIGNAL('strategyFileUpdated(PyQt_PyObject)')
     terminated = SIGNAL('terminated()')
     textChanged = SIGNAL('textChanged(const QString &)')
     textChangedEditor = SIGNAL('textChanged()')
     tickerClicked = SIGNAL('tickerClicked')
     timeout = SIGNAL('timeout()')
+    trayIconActivated = SIGNAL('activated(QSystemTrayIcon::ActivationReason)')
     triggered = SIGNAL('triggered()')
     triggeredBool = SIGNAL('triggered(bool)')
     zoomed = SIGNAL('zoomed(const QwtDoubleRect &)')
 
-    neuralNetworkCreated = SIGNAL('neuralNetworkCreated')
-    threadStarted = SIGNAL('started()')
-    threadRunning = SIGNAL('running')
-    threadFinished = SIGNAL('finished()')
-    collectorActivate = SIGNAL('collectorActivate(PyQt_PyObject)')
+    class contract:
+        added = SIGNAL('contractAdded(int, PyQt_PyObject)')
+
+    class histdata:
+        start = SIGNAL('historicalDataStart')
+        finish = SIGNAL('historicalDataFinish')
+
+    class session:
+        created = SIGNAL('sessionCreated(PyQt_PyObject)')
+        reference = SIGNAL('sessionReference(PyQt_PyObject)')
+        request = SIGNAL('sessionRequest')
+        status = SIGNAL('sessionStatus')
+
+    class strategy:
+        loaded = SIGNAL('strategyLoaded(PyQt_PyObject)')
+        loadFailed = SIGNAL('strategyLoadFaield(PyQt_PyObject)')
+        fileUpdated = SIGNAL('strategyFileUpdated(PyQt_PyObject)')
+        requestActivate = SIGNAL('strategyActivated(PyQt_PyObject, bool)')
+
+    class tws:
+        connected = SIGNAL('connectedTWS')
+        disconnected = SIGNAL('disconnectedTWS')
 
 
 class Slots:
@@ -280,7 +274,7 @@ class SessionHandler(object):
         @return None
         """
         self.disconnect(
-            instance(), Signals.sessionReference, self.existingSession)
+            instance(), Signals.session.reference, self.existingSession)
         if session is not self.session:
             self.setSession(session)
 
@@ -291,10 +285,10 @@ class SessionHandler(object):
         """
         app = instance()
         connect = self.connect
-        connect(app, Signals.sessionCreated, self.setSession)
-        connect(app, Signals.sessionReference, self.existingSession)
-        connect(self, Signals.sessionRequest, app, Signals.sessionRequest)
-        self.emit(Signals.sessionRequest)
+        connect(app, Signals.session.created, self.setSession)
+        connect(app, Signals.session.reference, self.existingSession)
+        connect(self, Signals.session.request, app, Signals.session.request)
+        self.emit(Signals.session.request)
 
     def setSession(self, session):
         """ Default implementation sets session as attribute.

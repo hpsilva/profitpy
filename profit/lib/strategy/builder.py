@@ -41,11 +41,12 @@ class SessionStrategyBuilder(QObject):
         self.threads = []
         self.tickers = []
         app = instance()
-        connect = self.connect
-        connect(app, Signals.strategyFileUpdated,
-                self.externalFileUpdated)
-        connect(app, Signals.strategyRequestActivate,
-                self.requestActivation)
+        if app:
+            connect = self.connect
+            connect(app, Signals.strategy.fileUpdated,
+                    self.externalFileUpdated)
+            connect(app, Signals.strategy.requestActivate,
+                    self.requestActivation)
 
     @classmethod
     def paramsHistoricalData(cls, **kwds):
@@ -133,10 +134,10 @@ class SessionStrategyBuilder(QObject):
             call = getattr(self, 'from%s' % origintype.title())
             okay, message = call(**params)
             self.loadMessage = message
-            signal = Signals.strategyLoaded if okay else \
-                     Signals.strategyLoadFailed
+            signal = Signals.strategy.loaded if okay else \
+                     Signals.strategy.loadFailed
             self.emit(signal, message)
             if okay and params.get('reload', False):
                 self.emit(signal, 'Strategy reloaded')
         except (Exception, ), ex:
-            self.emit(Signals.strategyLoadFailed, str(ex))
+            self.emit(Signals.strategy.loadFailed, str(ex))

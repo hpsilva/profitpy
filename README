@@ -1,13 +1,18 @@
 == To Do for 0.2 ==
 
-1.  add buffer editor to shell panel.  perhaps update shell w/ code from eric4
+micro:
 
-2.  add ticker field select widget to ticker display; make splitter like
-    the message display
+2.  clean up signals and slots where possible
 
 3.  fix method request/tickerId/contract handling.  allow for display
     of tickerIds with symbol.  extend tickers display with contract
     details.
+
+4.  un-nest profit/lib/ packages (leave widgets)
+
+macro:
+
+1.  add buffer editor to shell panel.  perhaps update shell w/ code from eric4
 
 4.  add viewable historical data requests and plots
 
