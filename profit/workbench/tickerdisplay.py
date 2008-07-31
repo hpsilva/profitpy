@@ -87,7 +87,7 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         defaultFields = defaults.tickerDisplayFields()
         userFields = settings.valueLoad('selectedFields', defaultFields)
         self.tickFieldSelect.setCheckedFields(userFields)
-        defaultState = defaults.rightMainSplitterState()
+        defaultState = defaults.rightSplitterState()
         splitState = settings.value(settings.keys.splitstate, defaultState)
         self.splitter.restoreState(splitState.toByteArray())
         settings.endGroup()

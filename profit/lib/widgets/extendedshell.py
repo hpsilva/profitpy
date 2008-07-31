@@ -7,20 +7,47 @@
 
 from PyQt4.QtCore import Qt, pyqtSignature
 from PyQt4.QtGui import QFrame
+
+from profit.lib import BasicHandler, defaults
 from profit.lib.widgets.ui_extendedshell import Ui_ExtendedShell
 
-## save/load splitter state
 
-class ExtendedPythonShell(QFrame, Ui_ExtendedShell):
+class ExtendedPythonShell(QFrame, Ui_ExtendedShell, BasicHandler):
+    """ A shell widget extended with an editor widget.
+
+    """
     def __init__(self, parent=None):
         QFrame.__init__(self, parent)
         self.setupUi(self)
+        self.setupWidgets()
+
+    def setupWidgets(self):
+        """ Make our widgets like we like.
+
+        """
+        settings = self.settings
+        settings.beginGroup(self.__class__.__name__)
+        defaultState = defaults.leftSplitterState()
+        splitState = settings.value(settings.keys.splitstate, defaultState)
+        self.splitter.restoreState(splitState.toByteArray())
+        settings.endGroup()
+
+    def on_splitter_splitterMoved(self, pos, index):
+        """ Signal handler for splitter move; saves state to user settings.
+
+        @param pos ignored
+        @param index ignored
+        @return None
+        """
+        settings = self.settings
+        settings.beginGroup(self.__class__.__name__)
+        settings.setValue(settings.keys.splitstate, self.splitter.saveState())
+        settings.endGroup()
 
     @pyqtSignature('')
     def on_actionExecute_triggered(self):
-        source = str(self.editorWidget.text())
-        self.shellWidget.runLines(source.split('\n'))
+        """ Execute the source code in the shell.
 
-
-
-
+        """
+        lines = str(self.editorWidget.text()).split('\n')
+        self.shellWidget.runLines(lines)

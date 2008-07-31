@@ -62,12 +62,20 @@ def minorGridPen():
     return pen
 
 
-def rightMainSplitterState():
+def rightSplitterState():
     """ Resonable default for splitter state with primary widget on the right.
 
     @return QByteArray suitable for use with QSplitter.restoreState
     """
     return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAAAiQAAAm8BAAAABgEAAAAB')
+
+
+def leftSplitterState():
+    """ Resonable default for splitter state with primary widget on the left.
+
+    @return QByteArray suitable for use with QSplitter.restoreState
+    """
+    return QByteArray.fromBase64('AAAA/wAAAAAAAAACAAADQwAAAaUBAAAABgEAAAAB')
 
 
 def tickerDisplayFields():

@@ -107,7 +107,7 @@ class MessageDisplay(QFrame, Ui_MessageDisplay, BasicHandler):
         """
         settings = self.settings
         settings.beginGroup(settings.keys.messages)
-        self.splitter.restoreState(defaults.rightMainSplitterState())
+        self.splitter.restoreState(defaults.rightSplitterState())
         messageDetail = self.messageDetail
         messageDetail.verticalHeader().hide()
         horizHeader = messageDetail.horizontalHeader()
