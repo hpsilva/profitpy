@@ -198,3 +198,29 @@ class ValueTableItem(QTableWidgetItem, ValueColorItem):
 
     def setText(self, text):
         QTableWidgetItem.setText(self, str(text))
+
+
+class WaitMessageBox(QMessageBox):
+    """ Runs a callable until it returns true, or until the user aborts.
+
+    """
+    def __init__(self, callback, parent):
+        """ Initializer.
+
+        @param callback callable to run in a timer
+        @param parent ancestor widget
+        """
+        QMessageBox.__init__(self, parent)
+        self.callback = callback
+        self.setIcon(self.Information)
+        self.addButton(self.Abort)
+        self.setWindowModality(Qt.NonModal)
+        self.startTimer(500)
+
+    def timerEvent(self, event):
+        """ Runs the callback and closes this dialog when it's true.
+
+        """
+        if self.callback():
+            self.killTimer(event.timerId())
+            self.accept()

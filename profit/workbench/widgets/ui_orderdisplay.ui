@@ -23,102 +23,19 @@
     <widget class="FilterBar" native="1" name="widget" />
    </item>
    <item>
-    <widget class="LocalTable" name="orderTable" >
-     <property name="frameShape" >
-      <enum>QFrame::NoFrame</enum>
+    <widget class="QTreeView" name="orderView" >
+     <property name="editTriggers" >
+      <set>QAbstractItemView::NoEditTriggers</set>
      </property>
-     <property name="frameShadow" >
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="selectionMode" >
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior" >
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <property name="sortingEnabled" >
+     <property name="showDropIndicator" stdset="0" >
       <bool>false</bool>
      </property>
-     <column>
-      <property name="text" >
-       <string>Order Id</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Symbol</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Size</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Status</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Action</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Type</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Limit Price</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Aux Price</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Open Close</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Filled</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Remaining</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Average Fill Price</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Last Fill Price</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Parent Id</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Client Id</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Perm Id</string>
-      </property>
-     </column>
+     <property name="alternatingRowColors" >
+      <bool>true</bool>
+     </property>
+     <property name="animated" >
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
   </layout>
@@ -128,11 +45,6 @@
    <class>FilterBar</class>
    <extends>QWidget</extends>
    <header location="global" >profit.lib.widgets.filterbar.h</header>
-  </customwidget>
-  <customwidget>
-   <class>LocalTable</class>
-   <extends>QTableWidget</extends>
-   <header location="global" >profit.lib.widgets.localtable.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

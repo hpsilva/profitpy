@@ -10,11 +10,7 @@ from PyQt4.QtGui import QFrame, QStandardItemModel, QStandardItem
 from profit.lib import BasicHandler, Signals, valueAlign
 from profit.lib.gui import colorIcon, complementColor
 from profit.lib.widgets.plot import PlotCurve, ControlTreeValueItem
-from profit.series import Series
 from profit.workbench.widgets.ui_accountdisplay import Ui_AccountDisplay
-
-
-## TODO:  clean up cross-wired signals if possible
 
 
 class AccountTableModel(QStandardItemModel):

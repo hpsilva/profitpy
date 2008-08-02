@@ -5,61 +5,85 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from PyQt4.QtCore import Qt, QModelIndex, QObject, QAbstractTableModel, QVariant, QAbstractItemModel
-from profit.lib import Signals
+from PyQt4.QtCore import Qt, QModelIndex, QVariant, QAbstractItemModel
 
 
-class ListStorage(QObject):
-    def __init__(self, parent):
-        QObject.__init__(self, parent)
-        self.storage = []
+class BasicItem(object):
+    """
 
-    def __contains__(self, item):
-        return item in self.storage
+    """
+    def __init__(self, data, parent=None):
+        self.data = data
+        self.parent = parent
+        self.children = []
 
-    def __getitem__(self, index):
-        return self.storage[index]
+    def __getitem__(self, column):
+        return self.data[column]
 
-    def __setitem__(self, index, value):
-        self.storage[index] = value
-
-    def __str__(self):
-        return str(self.storage)
-
-    def __len__(self):
-        return len(self.storage)
+    def __setitem__(self, column, value):
+        self.data[column] = value
 
     def append(self, item):
-        self.storage.append(item)
+        self.children.append(item)
+
+    def child(self, row):
+        return self.children[row]
+
+    def childCount(self):
+        return len(self.children)
+
+    def itemCount(self):
+        return len(self.data)
+
+    def row(self):
+        if self.parent:
+            return self.parent.children.index(self)
+        return 0
 
 
-class BasicModelMixin(object):
-    horizontalLabels = []
-    verticalLabels = []
-    sessionResendSignals = []
+class BasicItemModel(QAbstractItemModel):
+    """
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
-            return QVariant(self.horizontalLabels[section])
-        elif (orientation == Qt.Vertical) and (role == Qt.DisplayRole):
-            return QVariant(self.verticallabels[section])
+    """
+    def __init__(self, root, parent=None):
+        QAbstractItemModel.__init__(self, parent)
+        self.invisibleRootItem = root
+
+    def indexItem(self, index):
+        valid = index.isValid()
+        return (index.internalPointer() if valid else self.invisibleRootItem)
+
+    def columnCount(self, index):
+        return self.indexItem(index).itemCount()
+
+    def flags(self, index):
+        if index.isValid():
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled
+
+    def headerData(self, section, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            header = self.invisibleRootItem[section]
+            return self.invisibleRootItem[section]
         return QVariant()
 
-    def columnCount(self, parent=QModelIndex()):
-        return len(self.horizontalLabels)
+    def index(self, row, column, parent):
+        item = self.indexItem(parent)
+        child = item.child(row)
+        if child:
+            return self.createIndex(row, column, child)
+        return QModelIndex()
 
-    def rowCount(self, parent=QModelIndex()):
-        if parent.isValid():
+    def parent(self, index):
+        if not index.isValid():
+            return QModelIndex()
+        parent = index.internalPointer().parent
+        if parent is self.invisibleRootItem:
+            return QModelIndex()
+        return self.createIndex(parent.row(), 0, parent)
+
+    def rowCount(self, index):
+        if index.column() > 0:
             return 0
-        return len(self)
-
-
-class BasicModel(QAbstractItemModel, BasicModelMixin):
-    def __init__(self, parent=None):
-        QAbstractItemModel.__init__(self, parent)
-
-
-class BasicTableModel(QAbstractTableModel, BasicModelMixin):
-    def __init__(self, parent=None):
-        QAbstractTableModel.__init__(self, parent)
+        return self.indexItem(index).childCount()
 

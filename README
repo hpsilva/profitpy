@@ -1,4 +1,4 @@
-== To Do for 0.2 ==
+== TODO for 0.2 ==
 
 micro:
 
@@ -10,13 +10,9 @@ micro:
 
 macro:
 
-1.  add buffer editor to shell panel.  perhaps update shell w/ code from eric4
-
 4.  add viewable historical data requests and plots
 
 5.  finish strategy design tool and its integration with the workbench
-
-6.  finish neural network design tool and its integration
 
 7.  write the README (this file) and release the code
 
@@ -30,3 +26,77 @@ macro:
 3.  fix bugs, like the zoom bugs
 
 4.  add peer-to-peer discovery and trade data exchange
+
+6.  finish neural network design tool and its integration
+
+
+Model Usage Survey
+==================
+
+
+accountdisplay.py
+    AccountTableModel(QStandardItemModel)
+        on_session_UpdateAccountValue
+	    -> adds message values to local dict (called "items")
+
+    AccountDisplay
+        connect(session, Signals.createdAccountData, newPlotSeries)
+        connect(model, Signals.standardItemChanged, plot.on_controlsTree_itemChanged)
+        connect(model, Signals.rowsInserted, self.updateModelItems)
+
+centraltabs.py
+    CentralTabs(QTabWidget)
+        connect(app, Signals.itemActivated, self.createTab)
+	connect(app, Signals.openUrl, self.createTab)
+        connect(app, Signals.tickerClicked, self.createTab)
+
+executionsdisplay.py
+	ExecutionsTableModel(QAbstractTableModel)
+            on_session_ExecDetails
+	        > adds message index to local list (called "messageIndexes")
+	ExecutionsDisplay
+
+orderdisplay.py
+	OrderDisplay(QFrame)
+	    on_session_OrderStatus -> updates self.orderTable
+	    on_session_OpenOrder -> updates self.orderTable
+
+
+plotdatadialog.py
+    CurveDataTableModel(QAbstractTableModel)
+
+portfoliodisplay.py
+	PortfolioDisplay ->
+            on_session_UpdatePortfolio -> updates self.portfolioTable
+
+
+sessiontree.py
+    SessionTreeModel(QStandardItemModel)
+        on_strategy_createdTicker
+        on_session_createdTicker
+
+    SessionTree
+        connect(self, Signals.openUrl, app, Signals.openUrl)
+        connect(self, Signals.itemActivated, app, Signals.itemActivated)
+
+strategydisplay.py
+    StrategyDisplayModel(QStandardItemModel)
+    StrategyDisplay
+        connect(model, Signals.itemChanged,
+                self.on_strategyTable_itemChanged)
+        connect(view.selectionModel(), Signals.selectionChanged,
+                self.on_strategyTable_selectionChanged)
+        connect(self, Signals.strategy.requestActivate,
+                instance(), Signals.strategy.requestActivate)
+
+tickerdisplay.py
+    TickerDisplay(QFrame)
+        connect(self, Signals.openUrl, app, Signals.openUrl)
+        connect(self, Signals.tickerClicked, app, Signals.tickerClicked)
+
+    on_session_UpdatePortfolio
+    on_session_TickPrice_TickSize
+
+
+
+

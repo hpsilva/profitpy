@@ -6,7 +6,7 @@
 # Author: Troy Melhase <troy@gci.net>
 
 from PyQt4.QtCore import Qt, pyqtSignature
-from PyQt4.QtGui import QFrame
+from PyQt4.QtGui import QFrame, QToolBar
 
 from profit.lib import BasicHandler, defaults
 from profit.lib.widgets.ui_extendedshell import Ui_ExtendedShell
@@ -25,6 +25,10 @@ class ExtendedPythonShell(QFrame, Ui_ExtendedShell, BasicHandler):
         """ Make our widgets like we like.
 
         """
+        self.tb = QToolBar(self.editorFrame)
+        self.tb.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.verticalLayout.insertWidget(0, self.tb)
+        self.tb.addAction(self.actionExecute)
         settings = self.settings
         settings.beginGroup(self.__class__.__name__)
         defaultState = defaults.leftSplitterState()

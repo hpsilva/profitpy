@@ -18,8 +18,14 @@ class ImportExportDialog(QDialog, Ui_ImportExportDialog):
         self.setWindowTitle(str(self.windowTitle()) % typeText)
         self.promptText.setText(str(self.promptText.text()) % typeText)
 
+    def allTypes(self):
+        """ Returns list of all type names (as strings)
+
+        """
+        return self.messageTypeDisplay.allTypes()
+
     def selectedTypes(self):
-        """ Delegate lookup of selected message types to the display widget.
+        """ Returns list of seleected type names (as strings)
 
         """
         return self.messageTypeDisplay.selectedTypes()

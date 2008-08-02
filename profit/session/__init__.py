@@ -22,6 +22,8 @@ from profit.session.savethread import SaveThread
 from profit.session.requestthread import RequestThread
 from profit.strategy.builder import SessionStrategyBuilder
 
+from profit.models.orders import OrdersModel
+
 
 class DataMaps(object):
     def __init__(self, session):
@@ -31,6 +33,11 @@ class DataMaps(object):
         self.error = collection.ErrorDataCollection(session)
         self.order = collection.OrderDataCollection(session)
         self.contract = collection.ContractDataCollection(session)
+
+
+class DataModels(object):
+    def __init__(self, session):
+        self.orders = OrdersModel(session)
 
 
 class Session(QObject):
@@ -48,6 +55,7 @@ class Session(QObject):
         self.messagesTyped = {}
         self.savedLength = 0
         self.maps = DataMaps(self)
+        self.models = DataModels(self)
 
     def __str__(self):
         """ x.__str__() <==> str(x)

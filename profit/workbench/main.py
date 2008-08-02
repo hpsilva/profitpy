@@ -7,10 +7,11 @@
 
 from functools import partial
 try:
-    from os import P_NOWAIT, getpgrp, killpg, popen, spawnvp
+    from os import P_NOWAIT, getpgrp, killpg, spawnvp
     from signal import SIGQUIT
 except (ImportError, ):
     pass
+from os import environ
 from os.path import abspath, basename
 from subprocess import Popen
 from sys import argv, executable
@@ -23,7 +24,7 @@ from PyQt4.QtGui import QIcon, QDesktopServices, QFrame
 
 from profit.lib import defaults
 from profit.lib import Signals, Settings, instance
-from profit.lib.gui import ValueColorItem, warningBox
+from profit.lib.gui import ValueColorItem, WaitMessageBox, warningBox
 from profit.lib.widgets.dock import Dock
 from profit.lib.widgets.output import OutputWidget
 from profit.lib.widgets.propertyeditor import PropertyEditor
@@ -496,6 +497,14 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         self.recentSeparator.setVisible(count > 0)
 
     def warningOpenTabs(self):
+        """ Returns true if it's okay to have open tabs.  Maybe prompts user.
+
+        """
+        try:
+            if int(environ.get('WORKBENCH_IGNORE_TABS', 0)):
+                return True
+        except (ValueError, ):
+            pass
         if self.centralTabs.count():
             buttons = QMessageBox.Ignore|QMessageBox.Abort|QMessageBox.Close
             button = QMessageBox.warning(self, 'Warning',
@@ -508,9 +517,15 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         return True
 
     def centralTabState(self):
+        """ Returns a list of open tab names.
+
+        """
         return [s for s in self.centralTabs.pageMap()]
 
     def writeSettings(self):
+        """ Saves some main window settings.
+
+        """
         settings = Settings()
         settings.beginGroup(settings.keys.main)
         settings.setValue(settings.keys.size, self.size())
@@ -519,18 +534,3 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         settings.setValue(settings.keys.winstate, self.saveState())
         settings.setValueDump(settings.keys.ctabstate, self.centralTabState())
         settings.endGroup()
-
-
-class WaitMessageBox(QMessageBox):
-    def __init__(self, callback, parent):
-        QMessageBox.__init__(self, parent)
-        self.callback = callback
-        self.setIcon(self.Information)
-        self.addButton(self.Abort)
-        self.setWindowModality(Qt.NonModal)
-        self.startTimer(500)
-
-    def timerEvent(self, event):
-        if self.callback():
-            self.killTimer(event.timerId())
-            self.accept()

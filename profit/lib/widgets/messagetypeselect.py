@@ -43,6 +43,12 @@ class MessageTypeSelect(QFrame, Ui_MessageTypeSelect):
         listWidget = self.typesList
         return [listWidget.item(r) for r in range(listWidget.count())]
 
+    def allTypes(self):
+        """ Returns list of all type names (as strings)
+
+        """
+        return [str(i.text()) for i in self.listItems()]
+
     def selectedTypes(self):
         """ Returns list of seleected type names (as strings)
 
