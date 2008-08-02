@@ -297,8 +297,8 @@ class SessionTree(QFrame, Ui_SessionTree, BasicHandler, UrlRequestor):
             tabstate = settings.valueLoad(settings.keys.ctabstate, [])
             settings.endGroup()
             connection = 'connection'
-            if connection not in tabstate:
-                tabstate.append(connection)
+            #if connection not in tabstate:
+            #    tabstate.append(connection)
             for tabname in tabstate:
                 try:
                     item = model.findItems(tabname)[0]

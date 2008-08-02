@@ -56,10 +56,10 @@ executionsdisplay.py
 	        > adds message index to local list (called "messageIndexes")
 	ExecutionsDisplay
 
+
 orderdisplay.py
 	OrderDisplay(QFrame)
-	    on_session_OrderStatus -> updates self.orderTable
-	    on_session_OpenOrder -> updates self.orderTable
+	    orderView -> session.models.orders
 
 
 plotdatadialog.py

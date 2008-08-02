@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>461</width>
-    <height>326</height>
+    <width>659</width>
+    <height>532</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -23,63 +23,7 @@
     <widget class="FilterBar" native="1" name="filterBar" />
    </item>
    <item>
-    <widget class="LocalTable" name="portfolioTable" >
-     <property name="frameShape" >
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow" >
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="selectionMode" >
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior" >
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <property name="gridStyle" >
-      <enum>Qt::DotLine</enum>
-     </property>
-     <column>
-      <property name="text" >
-       <string>Symbol</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Position</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Market Price</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Market Value</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Average Cost</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Unrealized Profit</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Realized Profit</string>
-      </property>
-     </column>
-     <column>
-      <property name="text" >
-       <string>Account</string>
-      </property>
-     </column>
-    </widget>
+    <widget class="QTreeView" name="portfolioView" />
    </item>
   </layout>
  </widget>
@@ -88,11 +32,6 @@
    <class>FilterBar</class>
    <extends>QWidget</extends>
    <header location="global" >profit.lib.widgets.filterbar.h</header>
-  </customwidget>
-  <customwidget>
-   <class>LocalTable</class>
-   <extends>QTableWidget</extends>
-   <header location="global" >profit.lib.widgets.localtable.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

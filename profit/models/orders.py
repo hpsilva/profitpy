@@ -28,15 +28,16 @@ class OrdersModel(BasicItemModel):
             return QVariant()
         item = index.internalPointer()
         data = QVariant()
-        if (role == Qt.DecorationRole and index.column() == 1):
+        column = index.column()
+        if (role == Qt.DecorationRole and column == 1):
             data = QVariant(self.symbolIcon(item.symbol()))
         elif role in (Qt.DisplayRole, Qt.ToolTipRole):
-            data = QVariant(item[index.column()])
+            data = QVariant(item[column])
         elif role in (Qt.TextAlignmentRole, ):
             try:
-                float(item[index.column()])
+                float(item[column])
                 data = QVariant(valueAlign)
-            except:
+            except (ValueError, TypeError, ):
                 pass
         return data
 

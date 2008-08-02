@@ -15,8 +15,6 @@ from profit.lib import importItem, logging
 from profit.lib import BasicHandler, Signals, DataRoles, instance
 from profit.lib.gui import addCloseAction, makeUrlItem
 from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
-from profit.lib.widgets.webbrowser import WebBrowserDisplay
-from profit.workbench.tickerplotdisplay import TickerPlotDisplay
 
 
 class CentralTabs(QTabWidget, BasicHandler):
@@ -65,6 +63,7 @@ class CentralTabs(QTabWidget, BasicHandler):
         @param value string or model item
         @return True if display widget created, otherwise None
         """
+        from profit.lib.widgets.webbrowser import WebBrowserDisplay
         if isinstance(item, (basestring, )):
             item = makeUrlItem(item)
         if item.data(DataRoles.url).isValid():
@@ -87,6 +86,7 @@ class CentralTabs(QTabWidget, BasicHandler):
         @param value string or model item
         @return True if display widget created, otherwise None
         """
+        from profit.workbench.tickerplotdisplay import TickerPlotDisplay
         tickerId, tickerIdValid = item.data(DataRoles.tickerId).toInt()
         symbol = str(item.data(DataRoles.tickerSymbol).toString())
         if tickerIdValid and self.setCurrentLabel(symbol):

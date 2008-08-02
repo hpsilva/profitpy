@@ -23,6 +23,7 @@ from profit.session.requestthread import RequestThread
 from profit.strategy.builder import SessionStrategyBuilder
 
 from profit.models.orders import OrdersModel
+from profit.models.portfolio import PortfolioModel
 
 
 class DataMaps(object):
@@ -38,7 +39,7 @@ class DataMaps(object):
 class DataModels(object):
     def __init__(self, session):
         self.orders = OrdersModel(session)
-
+        self.portfolio = PortfolioModel(session)
 
 class Session(QObject):
     """ This is the big-honkin Session class.
