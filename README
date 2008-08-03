@@ -2,19 +2,23 @@
 
 micro:
 
+1.  covert standard item models to profit.models.BasicItemModel where
+    possible; remove all session.maps objects and references.
+
 2.  clean up signals and slots where possible
 
-3.  fix method request/tickerId/contract handling.  allow for display
-    of tickerIds with symbol.  extend tickers display with contract
-    details.
+3.  fix method request/tickerId/contract handling.
+
+4.  extend tickers display with contract details.
+
 
 macro:
 
-4.  add viewable historical data requests and plots
+1.  add viewable historical data requests and plots
 
-5.  finish strategy design tool and its integration with the workbench
+2.  finish strategy design tool and its integration with the workbench
 
-7.  write the README (this file) and release the code
+3.  write the README (this file) and release the code
 
 
 == 0.3 and Beyond ==
@@ -27,7 +31,7 @@ macro:
 
 4.  add peer-to-peer discovery and trade data exchange
 
-6.  finish neural network design tool and its integration
+5.  finish neural network design tool and its integration
 
 
 Model Usage Survey
@@ -56,19 +60,12 @@ executionsdisplay.py
 	        > adds message index to local list (called "messageIndexes")
 	ExecutionsDisplay
 
-
-orderdisplay.py
-	OrderDisplay(QFrame)
-	    orderView -> session.models.orders
-
-
 plotdatadialog.py
     CurveDataTableModel(QAbstractTableModel)
 
 portfoliodisplay.py
 	PortfolioDisplay ->
             on_session_UpdatePortfolio -> updates self.portfolioTable
-
 
 sessiontree.py
     SessionTreeModel(QStandardItemModel)
@@ -88,15 +85,3 @@ strategydisplay.py
                 self.on_strategyTable_selectionChanged)
         connect(self, Signals.strategy.requestActivate,
                 instance(), Signals.strategy.requestActivate)
-
-tickerdisplay.py
-    TickerDisplay(QFrame)
-        connect(self, Signals.openUrl, app, Signals.openUrl)
-        connect(self, Signals.tickerClicked, app, Signals.tickerClicked)
-
-    on_session_UpdatePortfolio
-    on_session_TickPrice_TickSize
-
-
-
-

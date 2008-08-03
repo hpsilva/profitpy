@@ -5,61 +5,65 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>578</width>
-    <height>404</height>
+    <width>645</width>
+    <height>558</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Ticker Display</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout" >
+  <layout class="QVBoxLayout" name="verticalLayout_2" >
    <item>
-    <widget class="QSplitter" name="splitter" >
-     <property name="orientation" >
-      <enum>Qt::Horizontal</enum>
+    <widget class="QFrame" name="frame" >
+     <property name="frameShape" >
+      <enum>QFrame::StyledPanel</enum>
      </property>
-     <widget class="TickFieldSelect" native="1" name="tickFieldSelect" />
-     <widget class="QFrame" name="frame" >
-      <property name="frameShape" >
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow" >
-       <enum>QFrame::Raised</enum>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout" >
-       <item>
-        <widget class="FilterBar" native="1" name="filterBar" />
-       </item>
-       <item>
-        <widget class="LocalTable" name="tickerTable" >
-         <property name="contextMenuPolicy" >
-          <enum>Qt::CustomContextMenu</enum>
-         </property>
-         <property name="frameShape" >
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="frameShadow" >
-          <enum>QFrame::Plain</enum>
-         </property>
-         <property name="alternatingRowColors" >
-          <bool>true</bool>
-         </property>
-         <property name="selectionMode" >
-          <enum>QAbstractItemView::SingleSelection</enum>
-         </property>
-         <property name="showGrid" >
-          <bool>true</bool>
-         </property>
-         <property name="gridStyle" >
-          <enum>Qt::DotLine</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTreeView" name="tickersView" />
-       </item>
-      </layout>
-     </widget>
+     <property name="frameShadow" >
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout" >
+      <item>
+       <widget class="FilterBar" native="1" name="filterBar" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Minimum" hsizetype="Preferred" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTreeView" name="tickersView" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
+          <horstretch>0</horstretch>
+          <verstretch>3</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="frameShape" >
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="editTriggers" >
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="showDropIndicator" stdset="0" >
+         <bool>false</bool>
+        </property>
+        <property name="alternatingRowColors" >
+         <bool>true</bool>
+        </property>
+        <property name="selectionBehavior" >
+         <enum>QAbstractItemView::SelectItems</enum>
+        </property>
+        <property name="rootIsDecorated" >
+         <bool>false</bool>
+        </property>
+        <property name="itemsExpandable" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
@@ -87,17 +91,6 @@
    <class>FilterBar</class>
    <extends>QWidget</extends>
    <header location="global" >profit.lib.widgets.filterbar.h</header>
-  </customwidget>
-  <customwidget>
-   <class>LocalTable</class>
-   <extends>QTableWidget</extends>
-   <header location="global" >profit.lib.widgets.localtable.h</header>
-  </customwidget>
-  <customwidget>
-   <class>TickFieldSelect</class>
-   <extends>QWidget</extends>
-   <header location="global" >profit.lib.widgets.tickfieldselect</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

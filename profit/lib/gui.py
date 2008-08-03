@@ -136,9 +136,10 @@ class ValueColorItem(object):
 
     @classmethod
     def setColors(cls, increase, neutral, decrease):
-        cls.increase = QBrush(increase)
-        cls.neutral = QBrush(neutral)
-        cls.decrease = QBrush(decrease)
+        compMap = cls.compMap
+        cls.increase = compMap[1] = QBrush(increase)
+        cls.neutral = compMap[0] = QBrush(neutral)
+        cls.decrease = compMap[-1] = QBrush(decrease)
 
 
 class ValueTableItem(QTableWidgetItem, ValueColorItem):

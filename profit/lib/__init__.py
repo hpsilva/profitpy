@@ -108,6 +108,7 @@ class Signals:
     textChangedEditor = SIGNAL('textChanged()')
     tickerClicked = SIGNAL('tickerClicked')
     timeout = SIGNAL('timeout()')
+    toggled = SIGNAL('toggled(bool)')
     trayIconActivated = SIGNAL('activated(QSystemTrayIcon::ActivationReason)')
     triggered = SIGNAL('triggered()')
     triggeredBool = SIGNAL('triggered(bool)')

@@ -185,7 +185,7 @@ class SessionTreeModel(QStandardItemModel):
         tickers.appendRow(item)
 
     def on_session_createdTicker(self, tickerId, tickerData):
-        print '## new session tree ticker', tickerId, tickerData
+        ##print '## new session tree ticker', tickerId, tickerData
         if 0:
             call = self.itemMakers.get(key, mkItem)
             for subkey, subval in sorted(values.items()):

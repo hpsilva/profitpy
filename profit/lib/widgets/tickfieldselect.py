@@ -5,10 +5,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from re import split as rxsplit
-
 from PyQt4.QtCore import Qt, QVariant, pyqtSignature
 from PyQt4.QtGui import QFrame, QStandardItem
-
 from ib.ext.TickType import TickType
 from profit.lib import DataRoles
 from profit.lib.widgets.ui_tickfieldselect import Ui_TickFieldSelect
