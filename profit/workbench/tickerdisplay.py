@@ -16,11 +16,11 @@ from ib.opt.message import TickPrice
 from profit.lib import (
     BasicHandler, DataRoles, Signals, defaults, instance, makeCheckNames, )
 from profit.lib.gui import (
-    UrlRequestor, ValueTableItem, separator, makeUrlAction, )
+    UrlRequestor, ValueTableItem, separator, makeUrlAction, symbolIcon, )
 from profit.lib.widgets.tickfieldselect import (
     ExField, fieldIds, itemTickField, setItemTickField, )
 
-from profit.workbench.portfoliodisplay import replayPortfolio
+#from profit.workbench.portfoliodisplay import replayPortfolio
 from profit.workbench.widgets.ui_tickerdisplay import Ui_TickerDisplay
 
 
@@ -104,6 +104,11 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         @return None
         """
         self.session = session
+        model = session.models.tickers
+        model.symbolIcon = symbolIcon
+        #self.connect(model, Signals.modelReset, self.resizeTree)
+        self.tickersView.setModel(model)
+
         symbols = session.strategy.symbols()
         #replayTickerMessages(session.messages, symbols,
         #                     self.on_session_TickPrice_TickSize)

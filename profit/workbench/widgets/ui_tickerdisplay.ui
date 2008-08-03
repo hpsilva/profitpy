@@ -55,6 +55,9 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QTreeView" name="tickersView" />
+       </item>
       </layout>
      </widget>
     </widget>

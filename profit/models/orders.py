@@ -29,7 +29,7 @@ class OrdersModel(BasicItemModel):
         item = index.internalPointer()
         data = QVariant()
         column = index.column()
-        if (role == Qt.DecorationRole and column == 1):
+        if role == Qt.DecorationRole and column == 1:
             data = QVariant(self.symbolIcon(item.symbol()))
         elif role in (Qt.DisplayRole, Qt.ToolTipRole):
             data = QVariant(item[column])

@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # Author: Troy Melhase <troy@gci.net>
 
-from PyQt4.QtCore import Qt, QModelIndex, QVariant, QAbstractItemModel
+from PyQt4.QtCore import Qt, QModelIndex, QObject, QVariant, QAbstractItemModel
 
 
 class BasicItem(object):
@@ -87,3 +87,27 @@ class BasicItemModel(QAbstractItemModel):
             return 0
         return self.indexItem(index).childCount()
 
+
+
+class MiniDict(QObject):
+    def __init__(self):
+        QObject.__init__(self)
+        self.data = {}
+
+    def __contains__(self, item):
+        return item in self.data
+
+    def __getitem__(self, name):
+        return self.data[name]
+
+    def __setitem__(self, name, value):
+        self.data[name] = value
+
+    def keys(self):
+        return self.data.keys()
+
+    def items(self):
+        return self.data.items()
+
+    def setdefault(self, key, default):
+        return self.data.setdefault(key, default)

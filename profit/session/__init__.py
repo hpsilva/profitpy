@@ -24,6 +24,7 @@ from profit.strategy.builder import SessionStrategyBuilder
 
 from profit.models.orders import OrdersModel
 from profit.models.portfolio import PortfolioModel
+from profit.models.tickers import TickersModel
 
 
 class DataMaps(object):
@@ -40,6 +41,8 @@ class DataModels(object):
     def __init__(self, session):
         self.orders = OrdersModel(session)
         self.portfolio = PortfolioModel(session)
+        self.tickers = TickersModel(session)
+
 
 class Session(QObject):
     """ This is the big-honkin Session class.
