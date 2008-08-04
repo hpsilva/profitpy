@@ -116,6 +116,7 @@ class Signals:
 
     class contract:
         added = SIGNAL('contractAdded(int, PyQt_PyObject)')
+        created = SIGNAL('createdContract')
 
     class histdata:
         start = SIGNAL('historicalDataStart')
@@ -132,6 +133,9 @@ class Signals:
         loadFailed = SIGNAL('strategyLoadFaield(PyQt_PyObject)')
         fileUpdated = SIGNAL('strategyFileUpdated(PyQt_PyObject)')
         requestActivate = SIGNAL('strategyActivated(PyQt_PyObject, bool)')
+
+    class ticker:
+        created = SIGNAL('tickerCreated_')
 
     class tws:
         connected = SIGNAL('connectedTWS')

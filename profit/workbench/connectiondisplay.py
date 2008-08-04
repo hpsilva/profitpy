@@ -121,8 +121,14 @@ class ConnectionDisplay(QFrame, Ui_ConnectionWidget, BasicHandler):
                     session.connection.TwsConnectionTime())
         else:
             logging.warn('Exception during connect')
-            QMessageBox.critical(
-                self, 'Connection Error', 'Unable to connect.')
+            port = self.portNumberSpin.value()
+            if port == session.specialPortNo:
+                port = 7496
+            host = self.hostNameEdit.text()
+            text = 'Unable to connect.\n\nEnsure TWS is running'
+            text += ' on %s and is configured to accept socket ' % host
+            text += 'connections on port %s.' % port
+            QMessageBox.critical(self, 'Connection Error', text)
             self.setConnectControlsEnabled(True, False)
 
     @pyqtSignature('')

@@ -17,6 +17,8 @@ from profit.lib import BasicHandler, Signals, DataRoles, instance
 from profit.lib.gui import StandardItem
 from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
+## This model can be (almost) easily replaced with an abstract item
+## model.  Use profit.models.BasicItemModel.
 
 class StrategyDisplayModel(QStandardItemModel):
     """ Model for strategy display table.

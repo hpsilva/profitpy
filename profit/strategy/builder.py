@@ -11,8 +11,8 @@ from time import time, strftime
 
 from PyQt4.QtCore import QObject
 
-from profit.lib import Signals, instance
-from profit.series import Series, MACDHistogram
+from profit.lib import Signals, instance, logging
+from profit.series import Series, MACDHistogram, EMA
 
 from ib.ext.Contract import Contract
 from ib.ext.Order import Order
@@ -91,6 +91,7 @@ class SessionStrategyBuilder(QObject):
 
     def makeTickerSeries(self, tickerId, field):
         s = Series()
+        s.addIndex('ema-40', EMA, s, 40)
         return s
 
     def symbols(self):
@@ -112,7 +113,12 @@ class SessionStrategyBuilder(QObject):
             try:
                 call(item)
             except (TypeError, ):
-                pass
+                logging.debug('Could not load strategy item: %s', item)
+        for tickerId, contract in self.makeContracts():
+            self.emit(Signals.contract.created, tickerId, contract)
+
+    def load_RunnerItem(self, item):
+        pass
 
     def load_TickerItem(self, item):
         self.tickerItems.append(item)
@@ -123,7 +129,11 @@ class SessionStrategyBuilder(QObject):
         if activate:
             if filename:
                 self.load(filename)
+                ## cheater!
                 self.parent().requestTickers()
+        else:
+            ## must deactivate somehow
+            pass
 
     def externalFileUpdated(self, filename):
         print '## strategy external file updated'

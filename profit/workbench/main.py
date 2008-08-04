@@ -87,7 +87,7 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
                 text += ' and is connected and receiving messages.'
             else:
                 text += '.'
-            text += '\nDo you want to save your changes?'
+            text += '\n\nDo you want to save your changes?'
             msg = QMessageBox.question(
                 self, applicationName(), text, buttons, QMessageBox.Save)
             if msg == QMessageBox.Discard:

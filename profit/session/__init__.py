@@ -60,6 +60,8 @@ class Session(QObject):
         self.savedLength = 0
         self.maps = DataMaps(self)
         self.models = DataModels(self)
+        self.connect(self.strategy, Signals.contract.created,
+                     self, Signals.contract.created)
 
     def __str__(self):
         """ x.__str__() <==> str(x)
@@ -227,6 +229,7 @@ class Session(QObject):
         connection = self.connection
         if connection and connection.isConnected():
             for tickerId, contract in self.strategy.makeContracts():
+                self.emit(Signals.contract.created, tickerId, contract)
                 connection.reqMktData(tickerId, contract, '', False)
                 connection.reqMktDepth(tickerId, contract, 1)
 
@@ -422,11 +425,12 @@ class Session(QObject):
                 yield msgTimeIndex
 
 
-    def testContract(self, orderId, price=30.0, symbol='MSFT'):
+    def testContract(self, orderId, price=30.0, symbol='MSFT',
+                     orderType='MKT'):
         strategy = self.strategy
         contract = strategy.makeContract(symbol)
         order = strategy.makeOrder(action='SELL',
-                                   orderType='MKT',
+                                   orderType=orderType,
                                    totalQuantity='100',
                                    openClose='O',
                                    )

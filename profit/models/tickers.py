@@ -7,6 +7,7 @@
 from re import split as rxsplit
 from PyQt4.QtCore import Qt, QModelIndex, QObject, QVariant, QString
 from ib.ext.TickType import TickType
+from ib.opt.message import TickPrice
 from profit.lib import valueAlign
 from profit.models import BasicItem, BasicItemModel
 
@@ -72,6 +73,20 @@ class TickersModel(BasicItemModel):
 
         """
         return self.tickerIdItemMap.get(tickerId, None)
+
+    def on_session_createdContract(self, tickerId, contract):
+        """ Called when the session creates a contract object.
+
+        @param tickerId id associated with data request
+        @param contract ib.opt.Contract
+        """
+        item = self.findTicker(tickerId)
+        if not item:
+            root = self.invisibleRootItem
+            item = TickersItem.fromContract(tickerId, contract, root)
+            self.tickerIdItemMap[tickerId] = item
+            root.append(item)
+            self.reset()
 
     def on_session_TickPrice_TickSize(self, message):
         """ Called with new ticker size or price.
@@ -169,6 +184,21 @@ class TickersItem(BasicItem):
         BasicItem.__init__(self, data, parent)
         self.message = message
         self.previousValues = {}
+
+    @classmethod
+    def fromContract(cls, tickerId, contract, parent):
+        """ New instance from a contract (probably created elsewhere)
+
+        @param cls class object
+        @param tickerId id associated with data request
+        @param contract ib.opt.Contract
+        @param parent parent of this item
+        @return new instance of cls
+        """
+        message = TickPrice(tickerId=tickerId, field=0, price=0)
+        values = [tickerId, contract.m_symbol] + \
+                 ['' for spec in cls.columnLookups][2:]
+        return cls(values, parent, message)
 
     @classmethod
     def fromMessage(cls, message, parent):
