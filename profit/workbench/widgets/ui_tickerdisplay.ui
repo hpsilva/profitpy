@@ -14,7 +14,29 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" >
    <item>
+    <widget class="InfoBar" name="frame_2" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Minimum" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="frameShape" >
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Raised</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QFrame" name="frame" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>1</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShape" >
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -91,6 +113,12 @@
    <class>FilterBar</class>
    <extends>QWidget</extends>
    <header location="global" >profit.lib.widgets.filterbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>InfoBar</class>
+   <extends>QFrame</extends>
+   <header location="global" >profit.lib.widgets.infobar.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

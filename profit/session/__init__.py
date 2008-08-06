@@ -15,16 +15,16 @@ from PyQt4.QtCore import QObject, SIGNAL
 from ib.opt import ibConnection
 from ib.opt.message import messageTypeNames
 
-from profit.lib import logging
-from profit.lib import Signals
+from profit.lib import Signals, logging, instance
+from profit.models.executions import ExecutionsModel
+from profit.models.orders import OrdersModel
+from profit.models.portfolio import PortfolioModel
+from profit.models.strategy import StrategyModel
+from profit.models.tickers import TickersModel
 from profit.session import collection
 from profit.session.savethread import SaveThread
 from profit.session.requestthread import RequestThread
 from profit.strategy.builder import SessionStrategyBuilder
-
-from profit.models.orders import OrdersModel
-from profit.models.portfolio import PortfolioModel
-from profit.models.tickers import TickersModel
 
 
 class DataMaps(object):
@@ -39,8 +39,10 @@ class DataMaps(object):
 
 class DataModels(object):
     def __init__(self, session):
+        self.executions = ExecutionsModel(session)
         self.orders = OrdersModel(session)
         self.portfolio = PortfolioModel(session)
+        self.strategy = StrategyModel(session)
         self.tickers = TickersModel(session)
 
 
@@ -60,8 +62,11 @@ class Session(QObject):
         self.savedLength = 0
         self.maps = DataMaps(self)
         self.models = DataModels(self)
+        app = instance()
         self.connect(self.strategy, Signals.contract.created,
                      self, Signals.contract.created)
+        self.connect(self.models.strategy, Signals.strategy.requestActivate,
+                     app, Signals.strategy.requestActivate)
 
     def __str__(self):
         """ x.__str__() <==> str(x)
@@ -426,10 +431,10 @@ class Session(QObject):
 
 
     def testContract(self, orderId, price=30.0, symbol='MSFT',
-                     orderType='MKT'):
+                     orderType='MKT', action='SELL'):
         strategy = self.strategy
         contract = strategy.makeContract(symbol)
-        order = strategy.makeOrder(action='SELL',
+        order = strategy.makeOrder(action=action,
                                    orderType=orderType,
                                    totalQuantity='100',
                                    openClose='O',

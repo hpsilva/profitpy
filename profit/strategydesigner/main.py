@@ -14,7 +14,7 @@ from PyQt4.QtGui import QLabel, QMainWindow, QMessageBox
 from PyQt4.QtGui import QSizePolicy, QSpinBox, QStandardItem
 from PyQt4.QtGui import QStandardItemModel, QToolBar
 
-from profit.lib import series
+from profit import series
 from profit.lib import defaults
 from profit.lib import Settings, Signals
 from profit.lib.widgets.syspathdialog import SysPathDialog

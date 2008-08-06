@@ -23,26 +23,7 @@
     <widget class="FilterBar" native="1" name="filterBar" />
    </item>
    <item>
-    <widget class="QTableView" name="executionsTable" >
-     <property name="frameShape" >
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow" >
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="alternatingRowColors" >
-      <bool>true</bool>
-     </property>
-     <property name="selectionMode" >
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior" >
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <property name="gridStyle" >
-      <enum>Qt::DotLine</enum>
-     </property>
-    </widget>
+    <widget class="QTreeView" name="executionsView" />
    </item>
   </layout>
  </widget>

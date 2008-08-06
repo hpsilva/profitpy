@@ -125,6 +125,7 @@ class SessionStrategyBuilder(QObject):
         self.emit(Signals.createdTicker, item['tickerId'], item)
 
     def requestActivation(self, strategy, activate=False):
+        print '## ding ding requestActivation', strategy
         filename = strategy.get('filename', None)
         if activate:
             if filename:

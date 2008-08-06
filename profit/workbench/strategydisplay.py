@@ -10,17 +10,198 @@ from PyQt4.QtCore import (Qt, QModelIndex, QVariant, pyqtSignature,
 
 from PyQt4.QtGui import (QFrame, QIcon, QMessageBox, QPushButton,
                          QItemDelegate, QStandardItem,
-                         QStandardItemModel, QFileDialog, )
+                         QFileDialog, )
 
 from profit.lib import defaults, logging
 from profit.lib import BasicHandler, Signals, DataRoles, instance
 from profit.lib.gui import StandardItem
 from profit.workbench.widgets.ui_strategydisplay import Ui_StrategyDisplay
 
-## This model can be (almost) easily replaced with an abstract item
-## model.  Use profit.models.BasicItemModel.
 
-class StrategyDisplayModel(QStandardItemModel):
+class StrategyDisplay(QFrame, Ui_StrategyDisplay, BasicHandler):
+    """ StrategyDisplay -> a nice panel to manage strategies.
+
+    """
+    confirmActivateKey = 'confirmActivate'
+
+    def __init__(self, parent=None):
+        """ Initializer.
+
+        @param parent ancestor of this object
+        """
+        QFrame.__init__(self, parent)
+        self.setupUi(self)
+        self.setupWidgets()
+        self.requestSession()
+
+    def setupWidgets(self):
+        self.inactiveIcon = QIcon(':/images/icons/connect_no.png')
+        self.activeIcon = QIcon(':/images/icons/connect_established.png')
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        confirm = settings.value(self.confirmActivateKey, True)
+        confirmActivate = Qt.Checked if confirm.toBool() else Qt.Unchecked
+        self.confirmActivate.setCheckState(confirmActivate)
+        settings.endGroup()
+
+
+    def on_strategyView_selectionChanged(self, selected, deselected):
+        loaded = any(i.internalPointer().data[0] or
+                     i.internalPointer().data[1]
+                     for i in selected.indexes())
+        self.editButton.setEnabled(not loaded)
+        self.removeButton.setEnabled(not loaded)
+
+    def setSession(self, session):
+        self.session = session
+        model = session.models.strategy
+        model.iconMap = {False:self.inactiveIcon, True:self.activeIcon}
+        self.strategyView.setModel(model)
+        ## this has to happen after the model is set, not during init.
+        connect = self.connect
+        connect(self.strategyView.selectionModel(),
+                Signals.selectionChanged,
+                self.on_strategyView_selectionChanged)
+#        connect(self, Signals.strategy.requestActivate,
+#                instance(), Signals.strategy.requestActivate)
+
+
+    def __on_strategyView_doubleClicked(self, index):
+        """
+
+        """
+        if (not index.isValid()) or (index.column() != 2):
+            return
+        row = index.internalPointer().data
+        if not (row[0] or row[1]):
+            self.editButton.click()
+
+    def __on_strategyView_clicked(self, index):
+        if not index.isValid():
+            active = False
+        else:
+            row = index.internalPointer().data
+            active = row[0] or row[1]
+        self.editButton.setEnabled(not active)
+        self.removeButton.setEnabled(not active)
+
+    def __on_strategyTable_itemChanged(self, item):
+        """
+
+        """
+        if item.column() == 0:
+            checked = item.checkState()
+            if checked and self.confirmActivate.isChecked():
+                button = QMessageBox.warning(self, 'Confirm',
+                         'Confirm activate strategy.',
+                          QMessageBox.Yes|QMessageBox.No)
+                if button == QMessageBox.No:
+                    ## this causes a single indirect recursion.
+                    item.setCheckState(Qt.Unchecked)
+                    return
+            ## emit the signal for all activate/deactivate changes
+            rowdict = self.strategyModel.rowToDict(item.row())
+            self.emit(Signals.strategy.requestActivate, rowdict, bool(checked))
+            ## house keeping common for all activate/deactivate
+            other = self.strategyModel.item(item.row(), 1)
+            other.setIcon(self.activeIcon if checked else self.inactiveIcon)
+            other.setText('active' if checked else 'inactive')
+            labels = self.strategyModel.labels
+            for col in [labels.index('Status'), labels.index('File'), ]:
+                self.strategyModel.item(item.row(), col).setEnabled(checked)
+            self.editButton.setEnabled(not checked)
+            self.removeButton.setEnabled(not checked)
+
+    @pyqtSignature('bool')
+    def on_enableAll_clicked(self, checked):
+        if checked:
+            if self.confirmActivate.isChecked():
+                button = QMessageBox.warning(self, 'Confirm',
+                                             'Confirm activate strategy manager.',
+                                             QMessageBox.Yes|QMessageBox.No)
+                if button == QMessageBox.No:
+                    ## again, this causes a single indirect recursion
+                    self.enableAll.setChecked(Qt.Unchecked)
+                    return
+            ## emit enable-all signal
+            pass
+        else:
+            ## emit disable-all signal
+            pass
+
+    @pyqtSignature('bool')
+    def on_confirmActivate_clicked(self, v):
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        settings.setValue(self.confirmActivateKey, v)
+        settings.endGroup()
+
+    @pyqtSignature('')
+    def on_editButton_clicked(self):
+        """
+
+        """
+        from profit.strategydesigner.main import StrategyDesigner
+        indexes = self.strategyView.selectedIndexes()
+        try:
+            index = [i for i in indexes if i.isValid()][0]
+        except (IndexError, ):
+            pass
+        else:
+            item = index.internalPointer()
+            filename = item[item.filenameIdx]
+            win = StrategyDesigner(filename=filename, parent=self)
+            win.show()
+
+    @pyqtSignature('')
+    def on_loadButton_clicked(self):
+        """
+
+        """
+        fn = QFileDialog.getOpenFileName(self, 'Select Strategy File', '')
+        if fn:
+            view = self.strategyView
+            view.model().appendRowFromData(filename=fn)
+            ##self.saveSettings()
+
+    @pyqtSignature('')
+    def on_removeButton_clicked(self):
+        """
+
+        """
+        view = self.strategyView
+        model = view.model()
+        indexes = view.selectedIndexes()
+        rows = set(i.row() for i in indexes if i.isValid())
+        for row in reversed(sorted(list(rows))):
+            model.removeRow(row)
+        view.clearSelection()
+        self.editButton.setEnabled(False)
+        self.removeButton.setEnabled(False)
+#        self.saveSettings()
+
+    def readSettings(self):
+        """ Load saved strategies and send them to the model.
+
+        """
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        model = self.strategyModel
+        for row in model.decodeRows(settings.valueLoad('strategies', [])):
+            model.appendRow(row)
+        settings.endGroup()
+
+    def saveSettings(self):
+        """
+
+        """
+        settings = self.settings
+        settings.beginGroup(settings.keys.strategy)
+        settings.setValueDump('strategies', self.strategyModel.encodeRows())
+        settings.endGroup()
+
+
+class StrategyDisplayModel:
     """ Model for strategy display table.
 
     This model doesn't make any attempt to identify a strategy by a
@@ -79,181 +260,3 @@ class StrategyDisplayModel(QStandardItemModel):
         ]
 
 
-class StrategyDisplay(QFrame, Ui_StrategyDisplay, BasicHandler):
-    """
-
-    """
-    confirmActivateKey = 'confirmActivate'
-
-    def __init__(self, parent=None):
-        QFrame.__init__(self, parent)
-        self.setupUi(self)
-        self.inactiveIcon = QIcon(':/images/icons/connect_no.png')
-        self.activeIcon = QIcon(':/images/icons/connect_established.png')
-        settings = self.settings
-        settings.beginGroup(settings.keys.strategy)
-        confirm = settings.value(self.confirmActivateKey, True)
-        self.confirmActivate.setCheckState(Qt.Checked if confirm.toBool()
-                                           else Qt.Unchecked)
-        settings.endGroup()
-        self.requestSession()
-
-    def setSession(self, session):
-        """
-
-        """
-        self.session = session
-        connect = self.connect
-        try:
-            self.strategyModel = model = session.strategy.displayModel
-        except (AttributeError, ):
-            self.strategyModel = model = session.strategy.displayModel = \
-                                 StrategyDisplayModel(session, self)
-            self.readSettings()
-        view = self.strategyTable
-        view.setModel(model)
-        view.verticalHeader().hide()
-        view.resizeColumnsToContents()
-        connect(model, Signals.itemChanged,
-                self.on_strategyTable_itemChanged)
-        connect(view.selectionModel(), Signals.selectionChanged,
-                self.on_strategyTable_selectionChanged)
-        connect(self, Signals.strategy.requestActivate,
-                instance(), Signals.strategy.requestActivate)
-
-    def on_strategyTable_doubleClicked(self, index):
-        """
-
-        """
-        # don't check item state because the click function does
-        # nothing if the button is disabled.
-        self.editButton.click()
-
-    def on_strategyTable_selectionChanged(self, selected, deselected):
-        """
-
-        """
-        try:
-            item = self.strategyModel.itemFromIndex(selected.indexes()[0])
-        except (IndexError, ):
-            pass
-        else:
-            active = item.checkState()
-            self.editButton.setEnabled(not active)
-            self.removeButton.setEnabled(not active)
-
-    def on_strategyTable_itemChanged(self, item):
-        """
-
-        """
-        if item.column() == 0:
-            checked = item.checkState()
-            if checked and self.confirmActivate.isChecked():
-                button = QMessageBox.warning(self, 'Confirm',
-                         'Confirm activate strategy.',
-                          QMessageBox.Yes|QMessageBox.No)
-                if button == QMessageBox.No:
-                    ## this causes a single indirect recursion.
-                    item.setCheckState(Qt.Unchecked)
-                    return
-            ## emit the signal for all activate/deactivate changes
-            rowdict = self.strategyModel.rowToDict(item.row())
-            self.emit(Signals.strategy.requestActivate, rowdict, bool(checked))
-            ## house keeping common for all activate/deactivate
-            other = self.strategyModel.item(item.row(), 1)
-            other.setIcon(self.activeIcon if checked else self.inactiveIcon)
-            other.setText('active' if checked else 'inactive')
-            labels = self.strategyModel.labels
-            for col in [labels.index('Status'), labels.index('File'), ]:
-                self.strategyModel.item(item.row(), col).setEnabled(checked)
-            self.editButton.setEnabled(not checked)
-            self.removeButton.setEnabled(not checked)
-
-    @pyqtSignature('bool')
-    def on_enableAll_clicked(self, checked):
-        if checked:
-            if self.confirmActivate.isChecked():
-                button = QMessageBox.warning(self, 'Confirm',
-                                             'Confirm activate strategy manager.',
-                                             QMessageBox.Yes|QMessageBox.No)
-                if button == QMessageBox.No:
-                    ## again, this causes a single indirect recursion
-                    self.enableAll.setChecked(Qt.Unchecked)
-                    return
-            ## emit enable-all signal
-            pass
-        else:
-            ## emit disable-all signal
-            pass
-
-    @pyqtSignature('bool')
-    def on_confirmActivate_clicked(self, v):
-        settings = self.settings
-        settings.beginGroup(settings.keys.strategy)
-        settings.setValue(self.confirmActivateKey, v)
-        settings.endGroup()
-
-    @pyqtSignature('')
-    def on_editButton_clicked(self):
-        """
-
-        """
-        from profit.strategydesigner.main import StrategyDesigner
-        indexes = self.strategyTable.selectedIndexes()
-        try:
-            row = [i.row() for i in indexes if i.isValid()][0]
-        except (IndexError, ):
-            pass
-        else:
-            item = self.strategyModel.item(row, 0)
-            other = self.strategyModel.item(row, 2)
-            filename = other.text()
-            win = StrategyDesigner(filename=filename, parent=self)
-            win.show()
-
-
-    @pyqtSignature('')
-    def on_loadButton_clicked(self):
-        """
-
-        """
-        fn = QFileDialog.getOpenFileName(self, 'Select Strategy File', '')
-        if fn:
-            self.strategyModel.appendRowFromData(filename=fn,
-                                                 icon=self.inactiveIcon)
-            self.strategyTable.resizeColumnsToContents()
-            self.saveSettings()
-
-    @pyqtSignature('')
-    def on_removeButton_clicked(self):
-        """
-
-        """
-        indexes = self.strategyTable.selectedIndexes()
-        rows = set(i.row() for i in indexes if i.isValid())
-        for row in reversed(sorted(list(rows))):
-            self.strategyModel.takeRow(row)
-        self.strategyTable.clearSelection()
-        self.editButton.setEnabled(False)
-        self.removeButton.setEnabled(False)
-        self.saveSettings()
-
-    def readSettings(self):
-        """ Load saved strategies and send them to the model.
-
-        """
-        settings = self.settings
-        settings.beginGroup(settings.keys.strategy)
-        model = self.strategyModel
-        for row in model.decodeRows(settings.valueLoad('strategies', [])):
-            model.appendRow(row)
-        settings.endGroup()
-
-    def saveSettings(self):
-        """
-
-        """
-        settings = self.settings
-        settings.beginGroup(settings.keys.strategy)
-        settings.setValueDump('strategies', self.strategyModel.encodeRows())
-        settings.endGroup()
