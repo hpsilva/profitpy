@@ -12,7 +12,7 @@ from time import time, strftime
 from PyQt4.QtCore import QObject
 
 from profit.lib import BasicHandler, Signals, instance, logging
-from profit.series import Series, MACDHistogram, EMA
+from profit.series import Series, KAMA
 
 from ib.ext.Contract import Contract
 from ib.ext.Order import Order
@@ -92,7 +92,7 @@ class SessionStrategyBuilder(QObject, BasicHandler):
 
     def makeTickerSeries(self, tickerId, field):
         s = Series()
-        s.addIndex('ema-40', EMA, s, 40)
+        s.addIndex('ema-40', KAMA, s, 40)
         return s
 
     def symbols(self):
