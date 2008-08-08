@@ -119,6 +119,7 @@ class Signals:
         created = SIGNAL('createdContract')
 
     class histdata:
+        request = SIGNAL('historicalDataRequest')
         start = SIGNAL('historicalDataStart')
         finish = SIGNAL('historicalDataFinish')
 
@@ -321,5 +322,14 @@ class SettingsHandler(object):
     settings = property(settingsGetter, settingsSetter)
 
 
-class BasicHandler(SessionHandler, SettingsHandler):
+class InstanceReflector(object):
+    def reflectSignal(self, signal):
+        app = instance()
+        if app:
+            self.connect(self, signal, app, signal)
+        else:
+            logging.warn('No application instance to connect %s', signal)
+
+
+class BasicHandler(SessionHandler, SettingsHandler, InstanceReflector):
     pass

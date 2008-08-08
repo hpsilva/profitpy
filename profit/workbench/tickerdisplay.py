@@ -46,10 +46,8 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         userFields = settings.valueLoad('selectedFields', defaultFields)
         #self.tickFieldSelect.setCheckedFields(userFields)
         settings.endGroup()
-        app = instance()
-        connect = self.connect
-        connect(self, Signals.openUrl, app, Signals.openUrl)
-        connect(self, Signals.tickerClicked, app, Signals.tickerClicked)
+        self.reflectSignal(Signals.openUrl)
+        self.reflectSignal(Signals.tickerClicked)
 
     def setSession(self, session):
         """ Configures this instance for a session.

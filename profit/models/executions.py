@@ -17,7 +17,6 @@ class ExecutionsModel(BasicItemModel):
     """
     def __init__(self, session=None, parent=None):
         BasicItemModel.__init__(self, RootExecutionsItem(), parent)
-        self.symbolIcon = lambda x:None
         self.session = session
         if session is not None:
             session.registerMeta(self)

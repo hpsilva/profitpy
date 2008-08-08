@@ -10,16 +10,8 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QFrame, QIcon
 
 from profit.lib import BasicHandler, makeCheckNames
-from profit.lib.gui import ValueTableItem
+from profit.lib.gui import ValueTableItem, symbolIcon
 from profit.workbench.widgets.ui_historicaldatadisplay import Ui_HistoricalDataDisplay
-
-
-def replayHistoricalData(messages, callback):
-    isHistMessage = makeCheckNames('HistoricalData')
-    def pred((t, m)):
-        return isHistMessage(m)
-    for time, message in ifilter(pred, reversed(messages)):
-        callback(message)
 
 
 class HistoricalDataDisplay(QFrame, Ui_HistoricalDataDisplay, BasicHandler):
@@ -30,9 +22,7 @@ class HistoricalDataDisplay(QFrame, Ui_HistoricalDataDisplay, BasicHandler):
 
     def setSession(self, session):
         self.session = session
-        replayHistoricalData(session.messages, self.on_session_HistoricalData)
+        model = session.models.histdata
+        model.symbolIcon = symbolIcon
+        self.histDataView.setModel(model)
         session.registerMeta(self)
-
-
-    def on_session_HistoricalData(self, message):
-        pass

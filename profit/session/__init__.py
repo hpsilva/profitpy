@@ -15,8 +15,9 @@ from PyQt4.QtCore import QObject, SIGNAL
 from ib.opt import ibConnection
 from ib.opt.message import messageTypeNames
 
-from profit.lib import Signals, logging, instance
+from profit.lib import Signals, logging
 from profit.models.executions import ExecutionsModel
+from profit.models.histdata import HistoricalDataModel
 from profit.models.orders import OrdersModel
 from profit.models.portfolio import PortfolioModel
 from profit.models.strategy import StrategyModel
@@ -30,16 +31,14 @@ from profit.strategy.builder import SessionStrategyBuilder
 class DataMaps(object):
     def __init__(self, session):
         self.account = collection.AccountCollection(session)
-        self.historical = collection.HistoricalDataCollection(session)
         self.ticker = collection.TickerCollection(session)
-        self.error = collection.ErrorDataCollection(session)
-        self.order = collection.OrderDataCollection(session)
-        self.contract = collection.ContractDataCollection(session)
+        self.historical = collection.HistoricalDataCollection(session)
 
 
 class DataModels(object):
     def __init__(self, session):
         self.executions = ExecutionsModel(session)
+        self.histdata = HistoricalDataModel(session)
         self.orders = OrdersModel(session)
         self.portfolio = PortfolioModel(session)
         self.strategy = StrategyModel(session)
@@ -62,11 +61,6 @@ class Session(QObject):
         self.savedLength = 0
         self.maps = DataMaps(self)
         self.models = DataModels(self)
-        app = instance()
-        self.connect(self.strategy, Signals.contract.created,
-                     self, Signals.contract.created)
-        self.connect(self.models.strategy, Signals.strategy.requestActivate,
-                     app, Signals.strategy.requestActivate)
 
     def __str__(self):
         """ x.__str__() <==> str(x)
@@ -259,7 +253,7 @@ class Session(QObject):
 
     def requestHistoricalData(self, params):
         ## we should msg the object instead
-        self.maps.historical.begin(params)
+        self.models.histdata.begin(params)
 
     def saveFinished(self):
         """ Slot that updates this instance after a save thread has completed.

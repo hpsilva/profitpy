@@ -11,7 +11,7 @@ from time import time, strftime
 
 from PyQt4.QtCore import QObject
 
-from profit.lib import Signals, instance, logging
+from profit.lib import BasicHandler, Signals, instance, logging
 from profit.series import Series, MACDHistogram, EMA
 
 from ib.ext.Contract import Contract
@@ -23,7 +23,7 @@ class StrategyBuilderTicker(object):
         self.series = {}
 
 
-class SessionStrategyBuilder(QObject):
+class SessionStrategyBuilder(QObject, BasicHandler):
     default_paramsHistoricalData = {
         ## change to use datetime
         "endDateTime"       :   strftime("%Y%m%d %H:%M:%S PST", (2007,1,1,0,0,0,0,0,0)),
@@ -40,6 +40,7 @@ class SessionStrategyBuilder(QObject):
         self.isActive = self.loadMessage = False
         self.threads = []
         self.tickers = []
+        self.reflectSignal(Signals.contract.created)
         app = instance()
         if app:
             connect = self.connect

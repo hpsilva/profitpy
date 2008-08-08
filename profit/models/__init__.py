@@ -48,6 +48,7 @@ class BasicItemModel(QAbstractItemModel):
     def __init__(self, root, parent=None):
         QAbstractItemModel.__init__(self, parent)
         self.invisibleRootItem = root
+        self.symbolIcon = lambda x:None
 
     def indexItem(self, index):
         valid = index.isValid()

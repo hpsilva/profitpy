@@ -17,7 +17,6 @@ class TickerModel(BasicItemModel):
     """
     def __init__(self, session=None, parent=None):
         BasicItemModel.__init__(self, TickerRootItem(), parent)
-        self.symbolIcon = lambda x:None
         self.session = session
         self.data = {}
         if session is not None:

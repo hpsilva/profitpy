@@ -5,24 +5,26 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from PyQt4.QtCore import Qt, QModelIndex, QVariant, QSize, QString
-from profit.lib import Signals, valueAlign, SettingsHandler
+from profit.lib import Signals, valueAlign, BasicHandler
 from profit.models import BasicItem, BasicItemModel
 
 
-class StrategyModel(BasicItemModel, SettingsHandler):
+class StrategyModel(BasicItemModel, BasicHandler):
     """ Model for strategies.
 
     """
     def __init__(self, session=None, parent=None):
         """ Initializer.
 
+        @param session=None session reference or None
+        @param parent=None ancestor of this object or None
         """
         BasicItemModel.__init__(self, RootStrategyItem(), parent)
-        self.symbolIcon = lambda x:None
         self.iconMap = {}
         self.session = session
         if session is not None:
             session.registerMeta(self)
+        self.reflectSignal(Signals.strategy.requestActivate)
         self.readSettings()
 
     def data(self, index, role=Qt.DisplayRole):
