@@ -8,16 +8,16 @@
 from functools import partial
 from sys import platform
 
-from PyQt4.QtCore import QTimer, QVariant, Qt, pyqtSignature
-from PyQt4.QtGui import QIcon, QTabWidget, QStandardItem
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QIcon, QStandardItem
 
 from profit.lib import importItem, logging
 from profit.lib import BasicHandler, Signals, DataRoles, instance
-from profit.lib.gui import addCloseAction, makeUrlItem
-from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
+from profit.lib.gui import makeUrlItem
+from profit.lib.widgets.localtabwidget import LocalTabWidget
 
 
-class CentralTabs(QTabWidget, BasicHandler):
+class CentralTabs(LocalTabWidget, BasicHandler):
     """ CentralTabs -> tab widget with special powers
 
     """
@@ -26,22 +26,16 @@ class CentralTabs(QTabWidget, BasicHandler):
 
         @param parent ancestor of this widget
         """
-        QTabWidget.__init__(self, parent)
+        LocalTabWidget.__init__(self, parent)
         self.createHandlers = [
             self.createBrowserTab,
             self.createTickerPlotTab,
             self.createDisplayTab
         ]
-        self.closeTabButton = CloseTabButton(self)
-        self.detachTabButton = DetachTabButton(self)
-        self.setCornerWidget(self.closeTabButton, Qt.TopRightCorner)
-        self.setCornerWidget(self.detachTabButton, Qt.TopLeftCorner)
         app, connect = instance(), self.connect
         connect(app, Signals.itemActivated, self.createTab)
         connect(app, Signals.openUrl, self.createTab)
         connect(app, Signals.tickerClicked, self.createTab)
-        connect(self.closeTabButton, Signals.clicked, self.closeTab)
-        connect(self.detachTabButton, Signals.clicked, self.detachTab)
         self.requestSession()
 
     def createTab(self, value):
@@ -124,50 +118,6 @@ class CentralTabs(QTabWidget, BasicHandler):
         @return mapping of tab name to tab index
         """
         return dict([(str(self.tabText(i)), i) for i in range(self.count())])
-
-    def closeTab(self):
-        """ Closes the current tab.
-
-        """
-        index = self.currentIndex()
-        widget = self.widget(index)
-        if widget:
-            self.removeTab(index)
-            widget.setAttribute(Qt.WA_DeleteOnClose)
-            widget.close()
-
-    def closeTabs(self):
-        """ Closes all tabs.
-
-        """
-        while self.pageMap():
-            self.closeTab()
-
-    def detachTab(self):
-        """ Deatches the current tab and makes it a top-level window.
-
-        @return None
-        """
-        index = self.currentIndex()
-        text = str(self.tabText(index))
-        widget = self.widget(index)
-        widget.setWindowIcon(self.tabIcon(index))
-        try:
-            widget.setWindowTitle(str(widget.windowTitle()) % text)
-        except (TypeError, ):
-            pass
-        addCloseAction(widget)
-        if platform.startswith('win'):
-            def show():
-                widget.setParent(QApplication.desktop())
-                widget.setWindowFlags(Qt.Dialog)
-                widget.show()
-        else:
-            def show():
-                widget.setParent(self.window())
-                widget.setWindowFlags(Qt.Window)
-                widget.show()
-        QTimer.singleShot(100, show)
 
     def resetBrowserTab(self, okay, browser=None):
         """ Reconfigures a tab based on a web browser widget state.

@@ -4,13 +4,9 @@
 # Copyright 2007 Troy Melhase <troy@gci.net>
 # Distributed under the terms of the GNU General Public License v2
 
-from itertools import ifilter
-
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QFrame, QIcon
-
-from profit.lib import BasicHandler, makeCheckNames
-from profit.lib.gui import ValueTableItem, symbolIcon
+from PyQt4.QtGui import QFrame
+from profit.lib import BasicHandler
+from profit.lib.gui import symbolIcon
 from profit.workbench.widgets.ui_historicaldatadisplay import Ui_HistoricalDataDisplay
 
 
@@ -24,5 +20,20 @@ class HistoricalDataDisplay(QFrame, Ui_HistoricalDataDisplay, BasicHandler):
         self.session = session
         model = session.models.histdata
         model.symbolIcon = symbolIcon
-        self.histDataView.setModel(model)
+        view = self.requestsView
+        view.verticalHeader().hide()
+        view.setModel(model)
         session.registerMeta(self)
+
+
+    def on_requestsView_doubleClicked(self, index):
+        if not index.isValid():
+            return
+        reqId = index.internalPointer()[0]
+        print '##', reqId
+
+
+
+    def createTab(self, requestId):
+        pass
+

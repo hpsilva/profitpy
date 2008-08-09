@@ -17,7 +17,7 @@ from ib.opt.message import messageTypeNames
 
 from profit.lib import Signals, logging
 from profit.models.executions import ExecutionsModel
-from profit.models.histdata import HistoricalDataModel
+from profit.models.histdata import HistDataRequestModel
 from profit.models.orders import OrdersModel
 from profit.models.portfolio import PortfolioModel
 from profit.models.strategy import StrategyModel
@@ -38,7 +38,7 @@ class DataMaps(object):
 class DataModels(object):
     def __init__(self, session):
         self.executions = ExecutionsModel(session)
-        self.histdata = HistoricalDataModel(session)
+        self.histdata = HistDataRequestModel(session)
         self.orders = OrdersModel(session)
         self.portfolio = PortfolioModel(session)
         self.strategy = StrategyModel(session)

@@ -13,8 +13,155 @@ from profit.models import BasicItem, BasicItemModel
 ## object list.
 
 
-class HistoricalDataModel(BasicItemModel):
-    """ HistoricalDataModel -> model of hist data requests and responses
+##
+## First is the parent model and it's items.
+##
+
+class HistDataRequestModel(BasicItemModel):
+    """ HistDataRequestModel -> logical parent of individual hist data models
+
+    This class receives, queues, and submits historical data requests.
+    As new requests are received (or when un-requested historical data
+    messages are received), instances create child models of type HistDataModel.
+
+    """
+    def __init__(self, session=None, parent=None):
+        """ Initializer.
+
+        @param session=None session reference or None
+        @param parent=None ancestor of this object or None
+        """
+        BasicItemModel.__init__(self, RootHistDataRequestItem(), parent)
+        self.session = session
+        if session is not None:
+            session.registerMeta(self)
+        self.startTimer(1000)
+
+    def data(self, index, role):
+        """ Framework hook to retreive data stored at index for given role.
+
+        @param index QModelIndex instance
+        @param role Qt.DisplayRole flags
+        @return QVariant instance
+        """
+        if not index.isValid():
+            return QVariant()
+        item = index.internalPointer()
+        data = QVariant()
+        column = index.column()
+        if role == Qt.DecorationRole and column==2:
+            data = QVariant(self.symbolIcon(item.symbol()))
+        elif role in (Qt.DisplayRole, Qt.ToolTipRole):
+            data = QVariant(item[column])
+        elif role in (Qt.TextAlignmentRole, ):
+            try:
+                float(item[column])
+                data = QVariant(valueAlign)
+            except (TypeError, ValueError, ):
+                pass
+        return data
+
+    def findHistDataRequest(self, reqId):
+        """ Returns the item for the given hist data message, or None.
+
+        """
+        items = self.invisibleRootItem.children
+        try:
+            return [i for i in items if i.reqId==reqId][0]
+        except (IndexError, ):
+            pass
+
+    def on_session_HistoricalData(self, message):
+        """ Called when the session receives a HistoricalData message.
+
+        @param message ib.opt.message instance
+        """
+        reqId = message.reqId
+        item = self.findHistDataRequest(reqId)
+        if item:
+            if message.date.startswith('finished-'):
+                item[1] = 'Finished'
+                self.reset()
+        else:
+            root = self.invisibleRootItem
+            root.append(HistDataRequestItem.fromMessage(reqId, message, root, {}))
+            ## cheater
+            self.reset()
+
+    def on_session_historicalDataRequest(self, params):
+        """ Called when a request for historical data is made.
+
+        """
+        reqId = params['tickerId']
+        requests = self.requests
+        if reqId in requests:
+            logging.warn('Ignoring duplicate hist data request %s', reqId)
+            return
+        requests[reqId] = params.copy()
+        root = self.invisibleRootItem
+        root.append(HistDataRequestItem.fromRequest(reqId, params, root))
+        self.reset()
+
+
+class HistDataRequestItem(BasicItem):
+    columnLookups = [
+        ('Request Id', None),
+        ('Status', None),
+        ('Symbol', None),
+        ('Security Type', None),
+        ('Expiry', None),
+        ('Right', None),
+    ]
+
+    def __init__(self, values, parent=None):
+        BasicItem.__init__(self, values, parent)
+
+    @classmethod
+    def fromRequest(cls, reqId, req, parent):
+        values = [None for i in cls.columnLookups]
+        values[0] = reqId
+        values[1] = 'Queued'
+        item = cls(values, parent)
+        item.reqId = reqId
+        item.req = req
+        return item
+
+    @classmethod
+    def fromMessage(cls, reqId, message, parent, req):
+        values = [None for i in cls.columnLookups]
+        values[0] = reqId
+        values[1] = 'Queued'
+        item = cls(values, parent)
+        item.reqId = reqId
+        item.req = req
+        return item
+
+    def symbol(self):
+        """ Returns the symbol for this item or ''
+
+        """
+        try:
+            return self.message.contract.m_symbol
+        except (AttributeError, ):
+            return ''
+
+class RootHistDataRequestItem(HistDataRequestItem):
+    def __init__(self):
+        HistDataRequestItem.__init__(self, self.horizontalLabels())
+
+    def horizontalLabels(self):
+        """ Generates list of horizontal header values.
+
+        """
+        return map(QVariant, [label for label, lookup in self.columnLookups])
+
+
+##
+## Next is the model and items for an individual request and it's messages.
+##
+
+class HistDataModel(BasicItemModel):
+    """ HistDataModel -> model of hist data requests and responses
 
     This model supports online and offline processing of messages.  In
     the case of missing requests (as in when messages are read from
@@ -28,7 +175,7 @@ class HistoricalDataModel(BasicItemModel):
         @param session=None session reference or None
         @param parent=None ancestor of this object or None
         """
-        BasicItemModel.__init__(self, RootHistoricalDataItem(), parent)
+        BasicItemModel.__init__(self, RootHistDataItem(), parent)
         self.requests = {}
         self.session = session
         if session is not None:
@@ -83,13 +230,13 @@ class HistoricalDataModel(BasicItemModel):
         req = self.requests.get(reqId, {})
         item = self.findHistDataItem(reqId)
         if item:
-            item.append(HistoricalDataItem.fromMessage(reqId, message, item, req))
+            item.append(HistDataItem.fromMessage(reqId, message, item, req))
             if message.date.startswith('finished'):
                 item.setStatus('Finished')
                 self.emit(Signals.histdata.finish, reqId)
         else:
             root = self.invisibleRootItem
-            root.append(HistoricalDataItem.fromMessage(reqId, message, root, req))
+            root.append(HistDataItem.fromMessage(reqId, message, root, req))
             self.emit(Signals.histdata.start, reqId)
         ## cheater
         self.reset()
@@ -105,7 +252,7 @@ class HistoricalDataModel(BasicItemModel):
             return
         requests[reqId] = params.copy()
         root = self.invisibleRootItem
-        root.append(HistoricalDataItem.fromRequest(reqId, params, root))
+        root.append(HistDataItem.fromRequest(reqId, params, root))
         self.reset()
 
     def busy(self):
@@ -136,7 +283,7 @@ class States(object):
     }
 
 
-class HistoricalDataItem(BasicItem):
+class HistDataItem(BasicItem):
     """ Base class for items in the portfolio model.
 
     """
@@ -227,12 +374,12 @@ class HistoricalDataItem(BasicItem):
                 pass
 
 
-class RootHistoricalDataItem(HistoricalDataItem):
-    """ HistoricalData model item with automatic values (for horizontal headers).
+class RootHistDataItem(HistDataItem):
+    """ HistData model item with automatic values (for horizontal headers).
 
     """
     def __init__(self):
-        HistoricalDataItem.__init__(self, self.horizontalLabels())
+        HistDataItem.__init__(self, self.horizontalLabels())
 
     def horizontalLabels(self):
         """ Generates list of horizontal header values.

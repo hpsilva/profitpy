@@ -29,15 +29,6 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s')
 
 
-def makeCheckNames(*names):
-    def checkNames(obj):
-        try:
-            return obj.typeName in names
-        except (AttributeError, ):
-            return False
-    return checkNames
-
-
 def importName(name, reloaded=False):
     """ import and return a module by name in dotted form
 
