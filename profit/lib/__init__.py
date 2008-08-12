@@ -59,7 +59,42 @@ def importItem(name, reloaded=False):
     return getattr(mod, itemname)
 
 
-class Signals:
+def maybeFloat(value, default=None):
+    """ Returns the given value as a float, or default if doesn't float.
+
+    """
+    try:
+        return float(value)
+    except (ValueError, ):
+        return default
+
+
+def generateUserRoles():
+    """ Yields Qt.UserRoles sequentially.
+
+    """
+    i = Qt.UserRole
+    while True:
+        yield i
+        i += 1
+nextUserRole = generateUserRoles().next
+
+
+class DataRoles(object):
+    """ Namespace for our user data roles.
+
+    """
+    tickerId = nextUserRole()
+    tickerSymbol = nextUserRole()
+    histDataReqId = nextUserRole()
+    url = nextUserRole()
+    urlTitle = nextUserRole()
+    strategyName = nextUserRole()
+    displayImportName = nextUserRole()
+    tickerField = nextUserRole()
+
+
+class Signals(object):
     """ Contains SIGNAL attributes for easy and consistent reference.
 
     """
@@ -105,36 +140,36 @@ class Signals:
     triggeredBool = SIGNAL('triggered(bool)')
     zoomed = SIGNAL('zoomed(const QwtDoubleRect &)')
 
-    class contract:
+    class contract(object):
         added = SIGNAL('contractAdded(int, PyQt_PyObject)')
         created = SIGNAL('createdContract')
 
-    class histdata:
+    class histdata(object):
         request = SIGNAL('historicalDataRequest')
         start = SIGNAL('historicalDataStart')
         finish = SIGNAL('historicalDataFinish')
 
-    class session:
+    class session(object):
         created = SIGNAL('sessionCreated(PyQt_PyObject)')
         reference = SIGNAL('sessionReference(PyQt_PyObject)')
         request = SIGNAL('sessionRequest')
         status = SIGNAL('sessionStatus')
 
-    class strategy:
+    class strategy(object):
         loaded = SIGNAL('strategyLoaded(PyQt_PyObject)')
         loadFailed = SIGNAL('strategyLoadFaield(PyQt_PyObject)')
         fileUpdated = SIGNAL('strategyFileUpdated(PyQt_PyObject)')
         requestActivate = SIGNAL('strategyActivated(PyQt_PyObject, bool)')
 
-    class ticker:
+    class ticker(object):
         created = SIGNAL('tickerCreated_')
 
-    class tws:
+    class tws(object):
         connected = SIGNAL('connectedTWS')
         disconnected = SIGNAL('disconnectedTWS')
 
 
-class Slots:
+class Slots(object):
     """ Contains SLOT attributes for easy and consistent reference.
 
     """
@@ -189,17 +224,13 @@ class Settings(QSettings):
         QSettings.setValue(self, key, QVariant(value))
 
     def setValueDump(self, key, value):
-        self.setValue(key, dumps(value))
+        """ Sets value of setting as a pickled string.
 
-    def valueLoad(self, key, default=None):
-        v = self.value(key, default=default)
-        if v:
-            try:
-                v = loads(str(v.toString()))
-            except (Exception, ), exc:
-                logging.debug('Exception valueLoad: %s, %r', exc, exc)
-                v = default
-        return v
+        @param key setting key as string
+        @param value anything supported by pickle.dumps
+        @return None
+        """
+        self.setValue(key, dumps(value))
 
     def value(self, key, default=None):
         """ Returns value for key, or default if key doesn't exist.
@@ -214,24 +245,21 @@ class Settings(QSettings):
             default = QVariant(default)
         return QSettings.value(self, key, default)
 
+    def valueLoad(self, key, default=None):
+        """ Returns unpickled value for key, or default.
 
-def generateUserRoles():
-    i = Qt.UserRole
-    while True:
-        yield i
-        i += 1
-nextUserRole = generateUserRoles().next
-
-
-class DataRoles:
-    tickerId = nextUserRole()
-    tickerSymbol = nextUserRole()
-    histDataReqId = nextUserRole()
-    url = nextUserRole()
-    urlTitle = nextUserRole()
-    strategyName = nextUserRole()
-    displayImportName = nextUserRole()
-    tickerField = nextUserRole()
+        @param key setting key as string
+        @param default value returned if key does not exist
+        @return value of key or default
+        """
+        v = self.value(key, default=default)
+        if v:
+            try:
+                v = loads(str(v.toString()))
+            except (Exception, ), exc:
+                logging.debug('Exception valueLoad: %s, %r', exc, exc)
+                v = default
+        return v
 
 
 class SessionHandler(object):
@@ -244,9 +272,15 @@ class SessionHandler(object):
     sessionRef = None
 
     def sessionGetter(self):
+        """ Returns the session or None.
+
+        """
         return self.sessionRef
 
     def sessionSetter(self, value):
+        """ Sets the 'session' attribute on this instance.
+
+        """
         session = self.sessionRef
         if session:
             for child in self.children() + [self, ]:
@@ -270,8 +304,8 @@ class SessionHandler(object):
         @param session Session instance
         @return None
         """
-        self.disconnect(
-            instance(), Signals.session.reference, self.existingSession)
+        app = instance()
+        self.disconnect(app, Signals.session.reference, self.existingSession)
         if session is not self.session:
             self.setSession(session)
 
@@ -302,25 +336,50 @@ class SettingsHandler(object):
     settingsRef = None
 
     def settingsGetter(self):
-         settingsRef = self.settingsRef
-         if not settingsRef:
-             self.settingsRef = settingsRef = Settings()
-         return settingsRef
+        """ Returns the settings or None.
+
+        """
+        settingsRef = self.settingsRef
+        if not settingsRef:
+            self.settingsRef = settingsRef = Settings()
+        return settingsRef
 
     def settingsSetter(self, value):
+        """ Sets the 'setting' attribute on this instance.
+
+        """
         self.settingsRef = value
 
     settings = property(settingsGetter, settingsSetter)
 
 
 class InstanceReflector(object):
-    def reflectSignal(self, signal):
-        app = instance()
-        if app:
-            self.connect(self, signal, app, signal)
+    """ Provides clients a method to resend signals via the application.
+
+    """
+    def reflectSignals(self, *signals, **kwds):
+        """ Bounce the signals from this instance to the app.
+
+        @param *signals sequence of signals to reflect
+        @param **kwds supports target=other reflection target.
+        default is the application instance.
+        @return None
+        """
+        if 'target' in kwds:
+            target = kwds['target']
         else:
-            logging.warn('No application instance to connect %s', signal)
+            target = instance()
+        if target:
+            for signal in signals:
+                self.connect(self, signal, target, signal)
+        else:
+            msg = 'No target object to connect signal(s): %s'
+            logging.warn(msg, (signals, ))
 
 
-class BasicHandler(SessionHandler, SettingsHandler, InstanceReflector):
-    pass
+class BasicHandler(InstanceReflector, SessionHandler, SettingsHandler, ):
+    """ Clients should use this class as a one-stop mixin-shop.
+
+    """
+
+

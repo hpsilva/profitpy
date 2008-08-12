@@ -32,7 +32,6 @@ class DataMaps(object):
     def __init__(self, session):
         self.account = collection.AccountCollection(session)
         self.ticker = collection.TickerCollection(session)
-        self.historical = collection.HistoricalDataCollection(session)
 
 
 class DataModels(object):

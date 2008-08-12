@@ -52,6 +52,9 @@
         </widget>
        </item>
        <item>
+        <widget class="QTreeView" name="controlsView" />
+       </item>
+       <item>
         <layout class="QHBoxLayout" >
          <property name="spacing" >
           <number>6</number>
@@ -81,6 +84,9 @@
             <iconset resource="profit.qrc" >
              <normaloff>:/images/icons/kchart.png</normaloff>:/images/icons/kchart.png</iconset>
            </property>
+           <property name="flat" >
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -91,6 +97,9 @@
            <property name="icon" >
             <iconset resource="profit.qrc" >
              <normaloff>:/images/icons/kcontrol.png</normaloff>:/images/icons/kcontrol.png</iconset>
+           </property>
+           <property name="flat" >
+            <bool>true</bool>
            </property>
           </widget>
          </item>

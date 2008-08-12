@@ -40,7 +40,7 @@ class SessionStrategyBuilder(QObject, BasicHandler):
         self.isActive = self.loadMessage = False
         self.threads = []
         self.tickers = []
-        self.reflectSignal(Signals.contract.created)
+        self.reflectSignals(Signals.contract.created)
         app = instance()
         if app:
             connect = self.connect

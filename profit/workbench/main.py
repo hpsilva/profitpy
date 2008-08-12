@@ -67,7 +67,6 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
         connect(app, Signals.session.request, sessreq)
         connect(app, Signals.lastWindowClosed, self.writeSettings)
         connect(self, Signals.openUrl, app, Signals.openUrl)
-        connect(self, Signals.histdata.request, app, Signals.histdata.request)
         connect(self, Signals.session.created, app, Signals.session.created)
         connect(self, Signals.settingsChanged, self.setupColors)
         connect(self, Signals.settingsChanged, self.setupSysTray)
@@ -182,16 +181,6 @@ class ProfitWorkbenchWindow(QMainWindow, Ui_ProfitWorkbenchWindow):
     @pyqtSignature('')
     def on_actionBrowserTwsHome_triggered(self):
         self.emit(Signals.openUrl, self.twsUrl)
-
-    @pyqtSignature('')
-    def on_actionHistoricalData_triggered(self):
-        from profit.lib.widgets.historicaldatadialog import HistoricalDataDialog
-        dlg = HistoricalDataDialog(self)
-        if dlg.exec_() != dlg.Accepted:
-            return
-        params = dlg.historicalRequestParameters()
-        ## cheater!
-        self.session.emit(Signals.histdata.request, params)
 
     @pyqtSignature('')
     def on_actionExportSession_triggered(self, filename=None):

@@ -168,7 +168,7 @@ class TickersItem(BasicItem):
     columnLookups = list(extraFieldSpecs()) + list(fieldSpecs())
     valueLookups = {
         ExtraFields.tid : lambda m:m.tickerId,
-        ## tie value lookups to the portfolio model ????
+        ## TODO: tie value lookups to the portfolio model
         ExtraFields.sym : lambda m:None,
         ExtraFields.pos : lambda m:None,
         ExtraFields.val : lambda m:None,

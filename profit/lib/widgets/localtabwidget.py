@@ -16,7 +16,14 @@ from profit.lib.widgets.buttons import CloseTabButton, DetachTabButton
 
 
 class LocalTabWidget(QTabWidget):
+    """ LocalTabWidget -> tab widget with special powers
+
+    """
     def __init__(self, parent=None):
+        """ Initializer.
+
+        @param parent ancestor of this widget
+        """
         QTabWidget.__init__(self, parent)
         self.closeTabButton = CloseTabButton(self)
         self.detachTabButton = DetachTabButton(self)
@@ -69,3 +76,33 @@ class LocalTabWidget(QTabWidget):
                 widget.setWindowFlags(Qt.Window)
                 widget.show()
         QTimer.singleShot(100, show)
+
+    def pageMap(self):
+        """ Makes a mapping like {'connection':1, 'account':3, ...}
+
+        @return mapping of tab name to tab index
+        """
+        return dict([(str(self.tabText(i)), i) for i in range(self.count())])
+
+    def setCurrentLabel(self, label):
+        """ Sets current tab by name if possible.
+
+        @param label text of tab to make current
+        @return True if successful, otherwise None
+        """
+        index = self.pageMap().get(label)
+        if index is not None:
+            self.setCurrentIndex(index)
+            return True
+
+    def setTextIconCurrentTab(self, index, text, icon):
+        """ Sets tab text and icon, and makes tab current.
+
+        @param index index of tab to modify and display
+        @param text text for tab
+        @param icon icon for tab
+        @return None
+        """
+        self.setTabText(index, text)
+        self.setTabIcon(index, icon)
+        self.setCurrentIndex(index)

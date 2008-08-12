@@ -49,8 +49,6 @@
     </property>
     <addaction name="actionStrategyDesigner" />
     <addaction name="actionSettings" />
-    <addaction name="separator" />
-    <addaction name="actionHistoricalData" />
    </widget>
    <widget class="QMenu" name="menuHelp" >
     <property name="title" >
@@ -310,11 +308,6 @@
    </property>
    <property name="text" >
     <string>Status Bar</string>
-   </property>
-  </action>
-  <action name="actionHistoricalData" >
-   <property name="text" >
-    <string>Historical Data...</string>
    </property>
   </action>
   <action name="actionProfitPyHome" >

@@ -6,25 +6,28 @@
     <x>0</x>
     <y>0</y>
     <width>553</width>
-    <height>161</height>
+    <height>206</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" >
+   <property name="spacing" >
+    <number>0</number>
+   </property>
+   <property name="margin" >
+    <number>0</number>
+   </property>
    <item>
     <widget class="QSplitter" name="splitter" >
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="" >
+     <widget class="QWidget" name="layoutWidget" >
       <layout class="QVBoxLayout" name="verticalLayout" >
        <item>
         <widget class="QTableView" name="requestsView" >
-         <property name="frameShape" >
-          <enum>QFrame::NoFrame</enum>
-         </property>
          <property name="editTriggers" >
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -61,9 +64,33 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton" >
+          <widget class="QPushButton" name="newRequestButton" >
            <property name="text" >
-            <string>New Request...</string>
+            <string>New...</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="../../lib/widgets/profit.qrc" >
+             <normaloff>:/images/icons/filenew.png</normaloff>:/images/icons/filenew.png</iconset>
+           </property>
+           <property name="flat" >
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="exportButton" >
+           <property name="enabled" >
+            <bool>false</bool>
+           </property>
+           <property name="text" >
+            <string>Export...</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="../../lib/widgets/profit.qrc" >
+             <normaloff>:/images/icons/filesaveas.png</normaloff>:/images/icons/filesaveas.png</iconset>
+           </property>
+           <property name="flat" >
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -72,40 +99,12 @@
       </layout>
      </widget>
      <widget class="LocalTabWidget" name="requestTabs" >
-      <property name="currentIndex" >
-       <number>0</number>
+      <property name="tabPosition" >
+       <enum>QTabWidget::South</enum>
       </property>
-      <widget class="QWidget" name="protoTab" >
-       <property name="geometry" >
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>174</width>
-         <height>114</height>
-        </rect>
-       </property>
-       <attribute name="title" >
-        <string>Tab 1</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3" >
-        <item>
-         <widget class="QTableView" name="histDataView" />
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_2" >
-       <property name="geometry" >
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>174</width>
-         <height>114</height>
-        </rect>
-       </property>
-       <attribute name="title" >
-        <string>Tab 2</string>
-       </attribute>
-      </widget>
+      <property name="currentIndex" >
+       <number>-1</number>
+      </property>
      </widget>
     </widget>
    </item>
@@ -119,6 +118,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../lib/widgets/profit.qrc" />
+ </resources>
  <connections/>
 </ui>

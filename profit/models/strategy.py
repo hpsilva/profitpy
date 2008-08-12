@@ -24,7 +24,7 @@ class StrategyModel(BasicItemModel, BasicHandler):
         self.session = session
         if session is not None:
             session.registerMeta(self)
-        self.reflectSignal(Signals.strategy.requestActivate)
+        self.reflectSignals(Signals.strategy.requestActivate)
         self.readSettings()
 
     def data(self, index, role=Qt.DisplayRole):

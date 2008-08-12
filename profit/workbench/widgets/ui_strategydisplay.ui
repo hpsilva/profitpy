@@ -158,6 +158,9 @@
                <iconset resource="../../lib/widgets/profit.qrc" >
                 <normaloff>:/images/icons/kedit.png</normaloff>:/images/icons/kedit.png</iconset>
               </property>
+              <property name="flat" >
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -172,6 +175,9 @@
                <iconset resource="../../lib/widgets/profit.qrc" >
                 <normaloff>:/images/icons/editdelete.png</normaloff>:/images/icons/editdelete.png</iconset>
               </property>
+              <property name="flat" >
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -182,6 +188,9 @@
               <property name="icon" >
                <iconset resource="../../lib/widgets/profit.qrc" >
                 <normaloff>:/images/icons/filenew.png</normaloff>:/images/icons/filenew.png</iconset>
+              </property>
+              <property name="flat" >
+               <bool>true</bool>
               </property>
              </widget>
             </item>

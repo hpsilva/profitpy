@@ -13,12 +13,12 @@ from PyQt4.QtGui import QIcon, QStandardItem
 
 from profit.lib import importItem, logging
 from profit.lib import BasicHandler, Signals, DataRoles, instance
-from profit.lib.gui import makeUrlItem
+from profit.lib.gui import makeUrlItem, symbolIcon
 from profit.lib.widgets.localtabwidget import LocalTabWidget
 
 
 class CentralTabs(LocalTabWidget, BasicHandler):
-    """ CentralTabs -> tab widget with special powers
+    """ CentralTabs -> tab widget with extra special powers
 
     """
     def __init__(self, parent=None):
@@ -30,12 +30,13 @@ class CentralTabs(LocalTabWidget, BasicHandler):
         self.createHandlers = [
             self.createBrowserTab,
             self.createTickerPlotTab,
+            self.createTickerPlotFromView,
             self.createDisplayTab
         ]
-        app, connect = instance(), self.connect
-        connect(app, Signals.itemActivated, self.createTab)
-        connect(app, Signals.openUrl, self.createTab)
-        connect(app, Signals.tickerClicked, self.createTab)
+        app, connect, createTab = instance(), self.connect, self.createTab
+        connect(app, Signals.itemActivated, createTab)
+        connect(app, Signals.openUrl, createTab)
+        connect(app, Signals.tickerClicked, createTab)
         self.requestSession()
 
     def createTab(self, value):
@@ -49,7 +50,8 @@ class CentralTabs(LocalTabWidget, BasicHandler):
                 if handler(value):
                     break
             except (Exception, ), exc:
-                logging.debug("Exception (debug): %r:%s (h:%s)", exc, exc, handler, )
+                msg = 'Exception (debug): %r:%s (h:%s)'
+                logging.debug(msg, exc, exc, handler, )
 
     def createBrowserTab(self, item):
         """ Creates a new web browser tab.
@@ -73,6 +75,36 @@ class CentralTabs(LocalTabWidget, BasicHandler):
             loadHandler = partial(self.resetBrowserTab, browser=widget)
             self.connect(widget, Signals.loadFinished, loadHandler)
             return True
+
+    def createTickerPlotFromView(self, data):
+        """
+
+        """
+        from profit.workbench.tickerplotdisplay import TickerPlotDisplay
+        try:
+            tid, sym = data[0:2]
+        except (TypeError, ValueError, ):
+            return
+        sym = sym or self.symbolName(tid)
+        icon = symbolIcon(sym) if sym else QIcon(':/images/icons/kchart.png')
+        sym = sym or '%s' % tid
+        widget = TickerPlotDisplay(self)
+        session = self.session
+        widget.setSessionPlot(session, session.maps.ticker, tid)
+        index = self.addTab(widget, sym)
+        self.setTextIconCurrentTab(index, sym, icon)
+        return True
+
+    def symbolName(self, tickerId):
+        """ Returns the symbol name given a ticker id.
+
+        This should reference self.session.models.contracts instead.
+        """
+        symbols = self.session.strategy.symbols()
+        try:
+            return dict([(b, a) for a, b in symbols.items()])[tickerId] or ''
+        except (KeyError, ):
+            return ''
 
     def createTickerPlotTab(self, item):
         """ Creates or displays a ticker plot tab.
@@ -112,13 +144,6 @@ class CentralTabs(LocalTabWidget, BasicHandler):
             self.setTextIconCurrentTab(index, text, icon)
             return True
 
-    def pageMap(self):
-        """ Makes a mapping like {'connection':1, 'account':3, ...}
-
-        @return mapping of tab name to tab index
-        """
-        return dict([(str(self.tabText(i)), i) for i in range(self.count())])
-
     def resetBrowserTab(self, okay, browser=None):
         """ Reconfigures a tab based on a web browser widget state.
 
@@ -134,26 +159,3 @@ class CentralTabs(LocalTabWidget, BasicHandler):
             title = title[0:13] + '...'
         self.setTabText(index, title)
         self.setTabToolTip(index, tooltip)
-
-    def setTextIconCurrentTab(self, index, text, icon):
-        """ Sets tab text and icon, and makes tab current.
-
-        @param index index of tab to modify and display
-        @param text text for tab
-        @param icon icon for tab
-        @return None
-        """
-        self.setTabText(index, text)
-        self.setTabIcon(index, icon)
-        self.setCurrentIndex(index)
-
-    def setCurrentLabel(self, label):
-        """ Sets current tab by name if possible.
-
-        @param label text of tab to make current
-        @return True if successful, otherwise None
-        """
-        index = self.pageMap().get(label)
-        if index is not None:
-            self.setCurrentIndex(index)
-            return True

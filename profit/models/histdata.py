@@ -12,18 +12,28 @@ from profit.models import BasicItem, BasicItemModel
 ## TODO: add the incoming requests to the parent session's extra
 ## object list.
 
+## Note: these classes have intentionally simple names.  Clients
+## should use the alias HistDataRequestModel instead of RequestModel.
 
-##
-## First is the parent model and it's items.
-##
+## This is what the hist data request looks like, as returned from
+## the request dialog:
+#
+#    params = {'endDateTime': '20080707 08:00:00',
+#              'durationStr': '2 D',
+#              'whatToShow': 'TRADES',
+#              'contract': <ib.ext.Contract.Contract object at 0x8dd8f0c>,
+#              'barSizeSetting': '1 min',
+#              'formatDate': 1,
+#              'tickerId': 1146,
+#              'useRTH': 1}
 
-class HistDataRequestModel(BasicItemModel):
-    """ HistDataRequestModel -> logical parent of individual hist data models
+
+class RequestModel(BasicItemModel):
+    """ RequestModel -> models historical data requests
 
     This class receives, queues, and submits historical data requests.
     As new requests are received (or when un-requested historical data
-    messages are received), instances create child models of type HistDataModel.
-
+    messages are received), instances create child models of type SubModel.
     """
     def __init__(self, session=None, parent=None):
         """ Initializer.
@@ -31,11 +41,12 @@ class HistDataRequestModel(BasicItemModel):
         @param session=None session reference or None
         @param parent=None ancestor of this object or None
         """
-        BasicItemModel.__init__(self, RootHistDataRequestItem(), parent)
+        BasicItemModel.__init__(self, RootRequestItem(), parent)
         self.session = session
         if session is not None:
             session.registerMeta(self)
-        self.startTimer(1000)
+        self.busy = False
+        self.startTimer(1500)
 
     def data(self, index, role):
         """ Framework hook to retreive data stored at index for given role.
@@ -49,9 +60,234 @@ class HistDataRequestModel(BasicItemModel):
         item = index.internalPointer()
         data = QVariant()
         column = index.column()
-        if role == Qt.DecorationRole and column==2:
+        if role == Qt.DecorationRole and column==item.symbolColumnolumn:
             data = QVariant(self.symbolIcon(item.symbol()))
         elif role in (Qt.DisplayRole, Qt.ToolTipRole):
+            data = QVariant(item[column])
+        return data
+
+    def findItem(self, requestId):
+        """ Returns the item for the given hist data message, or None.
+
+        @param requestId historical data request id
+        @return item or None
+        """
+        for item in iter(self.invisibleRootItem.children):
+            if item.requestId==requestId:
+                return item
+
+    def iterrows(self, *requestIds):
+        children = self.invisibleRootItem.children
+        for sub in [c for c in children if c.requestId in requestIds]:
+            for item in sub.model.invisibleRootItem.children:
+                yield item.data
+
+    def on_session_Error(self, message):
+        """ Matches error messages to the requests in this model.
+
+        @param message ib.opt.message instance
+        """
+        item = self.findItem(message.id)
+        if item:
+            item[item.statusColumn] = 'Error: %s' % message.errorMsg
+            index = QModelIndex()
+            col = item.statusColumn
+            row = item.row()
+            index = self.index(row, col, QModelIndex())
+            self.emit(Signals.dataChanged, index, index)
+
+    def on_session_HistoricalData(self, message):
+        """ Called when the session receives a HistoricalData message.
+
+        @param message ib.opt.message instance
+        @return None
+        """
+        requestId = message.reqId
+        item = self.findItem(requestId)
+        if item:
+            row, col = item.row(), item.statusColumn
+            if message.date.startswith('finished-'):
+                item[col] = 'Finished'
+            else:
+                item[col] = 'Receiving'
+            index = self.index(row, col, QModelIndex())
+            self.emit(Signals.dataChanged, index, index)
+        else:
+            root = self.invisibleRootItem
+            row = root.childCount()
+            self.beginInsertRows(QModelIndex(), row, row)
+            root.append(RequestItem.fromMessage(message, self.session, root))
+            self.endInsertRows()
+
+    def on_session_historicalDataRequest(self, params):
+        """ Called when a request for historical data is made.
+
+        @param params historical data request parameters
+        @return None
+        """
+        requestId = params['tickerId']
+        root = self.invisibleRootItem
+        requests = [r.requestId for r in root.children]
+        if requestId in requests:
+            logging.warn('Ignoring duplicate hist data request %s', requestId)
+            return
+        row = root.childCount()
+        self.beginInsertRows(QModelIndex(), row, row)
+        root.append(RequestItem.fromRequest(params, self.session, root))
+        self.endInsertRows()
+
+    def subModel(self, requestId):
+        """ Returns the submodel for the given request id or None
+
+        @param requestId historical data request id
+        @return submodel associated with request id or None
+        """
+        item = self.findItem(requestId)
+        return item.model if item else None
+
+    def next(self):
+        for item in iter(self.invisibleRootItem.children):
+            if item.queued:
+                return item
+
+    def timerEvent(self, event):
+        if not self.session.isConnected():
+            return
+        next = self.next()
+        if next:
+            self.session.connection.reqHistoricalData(**next.request)
+            next[next.statusColumn] = 'Requested'
+            next.queued = False
+            index = self.index(next.row(), next.statusColumn, QModelIndex())
+            self.emit(Signals.dataChanged, index, index)
+
+
+class RequestItem(BasicItem):
+    """ RequestItem -> items for the hist data request model.
+
+    """
+    columnLabels = [
+        'Request Id', 'Status', 'Symbol', 'Sec Type', 'Expiry', 'Right'
+    ]
+    columnLookups = (
+        (requestColumn, requestLabel),
+        (statusColumn, statusLabel),
+        (symbolColumnolumn, symbolLabel),
+        (securityColumn, securityLabel),
+        (expireColumn, expireLabel),
+        (rightColumn, rightLabel)
+    ) = list(enumerate(columnLabels))
+
+    def __init__(self, values, requestId=None, request={}, model=None,
+                 parent=None):
+        """ Initializer.
+
+        @param values sequence of values for this item
+        @param requestId=None historical data request id as int
+        @param request={} request parameters as dictionary
+        @param model=None data model with messages for this request
+        @param parent=None parent of this item
+        """
+        BasicItem.__init__(self, values, parent)
+        self.requestId = requestId
+        self.request = request
+        self.model = model
+        self.queued = False
+
+    @classmethod
+    def fromMessage(cls, message, session, parent):
+        """ New instance from a historical data message.
+
+        @param cls class object
+        @param message ib.opt.message object
+        @param session session instance
+        @param parent parent of this item
+        @return new instance of cls
+        """
+        requestId = message.reqId
+        request = {}
+        values = [None for i in cls.columnLookups]
+        values[0] = requestId
+        values[1] = 'Loading'
+        ## without a request the other values can't be filled.
+        ## TODO:  try to find a matching request in the session
+        submodel = SubModel(requestId, request, session)
+        item = cls(values, requestId, request, submodel, parent)
+        return item
+
+    @classmethod
+    def fromRequest(cls, request, session, parent):
+        """ New instance from a historical data request.
+
+        @param cls class object
+        @param request dictionary of request parameters
+        @param session session instance
+        @param parent parent of this item
+        @return new instance of cls
+        """
+        requestId = request['tickerId']
+        contract = request['contract']
+        values = [None for i in cls.columnLookups]
+        values[0] = requestId
+        values[1] = 'Queued'
+        values[2] = contract.m_symbol
+        values[3] = contract.m_secType
+        ## the other values aren't set in the contract -- dialog is incomplete
+        ## TODO:  complete the dialog
+        submodel = SubModel(requestId, request, session)
+        item = cls(values, requestId, request, submodel, parent)
+        item.queued = True
+        return item
+
+    def symbol(self):
+        """ Returns the symbol for this item or ''
+
+        """
+        contract = self.request.get('contract')
+        return contract.m_symbol if contract else ''
+
+
+class RootRequestItem(RequestItem):
+    """ RootRequestItem -> an item class for the root of the request view.
+
+    """
+    def __init__(self):
+        """ Initializer.
+
+        """
+        RequestItem.__init__(self, map(QVariant, self.columnLabels))
+
+
+class SubModel(BasicItemModel):
+    """ SubModel -> model of hist data requests and responses
+
+    """
+    def __init__(self, requestId, request, session=None, parent=None):
+        """ Initializer.
+
+        @param session=None session reference or None
+        @param parent=None ancestor of this object or None
+        """
+        BasicItemModel.__init__(self, RootSubItem(), parent)
+        self.requestId = requestId
+        self.request = request
+        self.session = session
+        if session is not None:
+            session.registerMeta(self)
+
+    def data(self, index, role):
+        """ Framework hook to retreive data stored at index for given role.
+
+        @param index QModelIndex instance
+        @param role Qt.DisplayRole flags
+        @return QVariant instance
+        """
+        if not index.isValid():
+            return QVariant()
+        item = index.internalPointer()
+        data = QVariant()
+        column = index.column()
+        if role in (Qt.DisplayRole, Qt.ToolTipRole):
             data = QVariant(item[column])
         elif role in (Qt.TextAlignmentRole, ):
             try:
@@ -61,236 +297,30 @@ class HistDataRequestModel(BasicItemModel):
                 pass
         return data
 
-    def findHistDataRequest(self, reqId):
-        """ Returns the item for the given hist data message, or None.
-
-        """
-        items = self.invisibleRootItem.children
-        try:
-            return [i for i in items if i.reqId==reqId][0]
-        except (IndexError, ):
-            pass
-
     def on_session_HistoricalData(self, message):
         """ Called when the session receives a HistoricalData message.
 
         @param message ib.opt.message instance
         """
-        reqId = message.reqId
-        item = self.findHistDataRequest(reqId)
-        if item:
-            if message.date.startswith('finished-'):
-                item[1] = 'Finished'
-                self.reset()
-        else:
-            root = self.invisibleRootItem
-            root.append(HistDataRequestItem.fromMessage(reqId, message, root, {}))
-            ## cheater
-            self.reset()
-
-    def on_session_historicalDataRequest(self, params):
-        """ Called when a request for historical data is made.
-
-        """
-        reqId = params['tickerId']
-        requests = self.requests
-        if reqId in requests:
-            logging.warn('Ignoring duplicate hist data request %s', reqId)
+        requestId = message.reqId
+        if requestId != self.requestId:
             return
-        requests[reqId] = params.copy()
+        request = self.request
         root = self.invisibleRootItem
-        root.append(HistDataRequestItem.fromRequest(reqId, params, root))
-        self.reset()
+        if message.date.startswith('finished'):
+            self.emit(Signals.histdata.finish, requestId)
+        row = root.childCount()
+        self.beginInsertRows(QModelIndex(), row, row)
+        root.append(SubItem.fromMessage(requestId, request, message, root))
+        self.endInsertRows()
 
 
-class HistDataRequestItem(BasicItem):
-    columnLookups = [
-        ('Request Id', None),
-        ('Status', None),
-        ('Symbol', None),
-        ('Security Type', None),
-        ('Expiry', None),
-        ('Right', None),
-    ]
-
-    def __init__(self, values, parent=None):
-        BasicItem.__init__(self, values, parent)
-
-    @classmethod
-    def fromRequest(cls, reqId, req, parent):
-        values = [None for i in cls.columnLookups]
-        values[0] = reqId
-        values[1] = 'Queued'
-        item = cls(values, parent)
-        item.reqId = reqId
-        item.req = req
-        return item
-
-    @classmethod
-    def fromMessage(cls, reqId, message, parent, req):
-        values = [None for i in cls.columnLookups]
-        values[0] = reqId
-        values[1] = 'Queued'
-        item = cls(values, parent)
-        item.reqId = reqId
-        item.req = req
-        return item
-
-    def symbol(self):
-        """ Returns the symbol for this item or ''
-
-        """
-        try:
-            return self.message.contract.m_symbol
-        except (AttributeError, ):
-            return ''
-
-class RootHistDataRequestItem(HistDataRequestItem):
-    def __init__(self):
-        HistDataRequestItem.__init__(self, self.horizontalLabels())
-
-    def horizontalLabels(self):
-        """ Generates list of horizontal header values.
-
-        """
-        return map(QVariant, [label for label, lookup in self.columnLookups])
-
-
-##
-## Next is the model and items for an individual request and it's messages.
-##
-
-class HistDataModel(BasicItemModel):
-    """ HistDataModel -> model of hist data requests and responses
-
-    This model supports online and offline processing of messages.  In
-    the case of missing requests (as in when messages are read from
-    disk), the model simply fills in what it can.  In the case where
-    the model is given a request, it enqueues the request with the
-    session and then associates the responses accordingly.
-    """
-    def __init__(self, session=None, parent=None):
-        """ Initializer.
-
-        @param session=None session reference or None
-        @param parent=None ancestor of this object or None
-        """
-        BasicItemModel.__init__(self, RootHistDataItem(), parent)
-        self.requests = {}
-        self.session = session
-        if session is not None:
-            session.registerMeta(self)
-        self.startTimer(1000)
-
-    def data(self, index, role):
-        """ Framework hook to retreive data stored at index for given role.
-
-        @param index QModelIndex instance
-        @param role Qt.DisplayRole flags
-        @return QVariant instance
-        """
-        if not index.isValid():
-            return QVariant()
-        item = index.internalPointer()
-        data = QVariant()
-        column = index.column()
-        amChild = index.parent().isValid()
-        if role == Qt.DecorationRole and column==2:
-            if not amChild:
-                data = QVariant(self.symbolIcon(item.symbol()))
-        elif role in (Qt.DisplayRole, Qt.ToolTipRole):
-            if amChild and (column==0):
-                data = QVariant(item.row())
-            else:
-                data = QVariant(item[column])
-        elif role in (Qt.TextAlignmentRole, ):
-            try:
-                float(item[column])
-                data = QVariant(valueAlign)
-            except (TypeError, ValueError, ):
-                pass
-        return data
-
-    def findHistDataItem(self, reqId):
-        """ Returns the item for the given hist data message, or None.
-
-        """
-        items = self.invisibleRootItem.children
-        try:
-            return [i for i in items if i.reqId==reqId][0]
-        except (IndexError, ):
-            pass
-
-    def on_session_HistoricalData(self, message):
-        """ Called when the session receives a HistoricalData message.
-
-        @param message ib.opt.message instance
-        """
-        reqId = message.reqId
-        req = self.requests.get(reqId, {})
-        item = self.findHistDataItem(reqId)
-        if item:
-            item.append(HistDataItem.fromMessage(reqId, message, item, req))
-            if message.date.startswith('finished'):
-                item.setStatus('Finished')
-                self.emit(Signals.histdata.finish, reqId)
-        else:
-            root = self.invisibleRootItem
-            root.append(HistDataItem.fromMessage(reqId, message, root, req))
-            self.emit(Signals.histdata.start, reqId)
-        ## cheater
-        self.reset()
-
-    def on_session_historicalDataRequest(self, params):
-        """ Called when a request for historical data is made.
-
-        """
-        reqId = params['tickerId']
-        requests = self.requests
-        if reqId in requests:
-            logging.warn('Ignoring duplicate hist data request %s', reqId)
-            return
-        requests[reqId] = params.copy()
-        root = self.invisibleRootItem
-        root.append(HistDataItem.fromRequest(reqId, params, root))
-        self.reset()
-
-    def busy(self):
-        for item in iter(self.invisibleRootItem.children):
-            if item[1] == States.active:
-                return True
-
-    def next(self):
-        for item in iter(self.invisibleRootItem.children):
-            if item[1] == States.unsubmitted and item.req:
-                return item
-
-    def timerEvent(self, event):
-        if not self.session.isConnected() or self.busy():
-            return
-        next = self.next()
-        if next:
-            self.session.connection.reqHistoricalData(**next.req)
-
-
-class States(object):
-    unsubmitted, active, finished, errored = range(4)
-    labelMap = {
-        unsubmitted:'Unsubmitted',
-        active:'Active',
-        finished:'Finished',
-        errored:'Errored',
-    }
-
-
-class HistDataItem(BasicItem):
+class SubItem(BasicItem):
     """ Base class for items in the portfolio model.
 
     """
     columnLookups = [
         ('Request Id', lambda x:x.reqId),
-        ('Status', lambda x:x.request.status),
-        ('Symbol', lambda x:x.request.contract.symbol),
         ('Date', lambda x:x.date),
         ('Open', lambda x:x.open),
         ('High', lambda x:x.high),
@@ -302,35 +332,22 @@ class HistDataItem(BasicItem):
         ('Has Gaps', lambda x:x.hasGaps),
     ]
 
-    def __init__(self, data, parent=None, message=None,
-                 reqId=None,
-                 req={},
-                 state=States.unsubmitted):
-        BasicItem.__init__(self, data, parent)
-        self.message = message
-        self.reqId = reqId
-        self.req = req
-        self.state = state
+    def __init__(self, values, requestId, request, message, parent=None):
+        """ Initializer.
 
-    def setStatus(self, text):
-        self.data[1] = text
-
-    @classmethod
-    def fromRequest(cls, requestId, params, parent):
-        """ New instance from a request
-
-        @param cls class object
-        @param requestId client identifier for request as int
-        @param params request parameter as dictionary
-        @param parent parent of this item
-        @return new instance of cls
+        @param values sequence of data for this item
+        @param requestId historical data request id as int
+        @param request request parameters as dictionary
+        @param message ib.opt.message object
+        @param parent=None parent of this item
         """
-        values = [None for item in cls.columnLookups]
-        values[0] = requestId
-        return cls(values, parent, None, requestId, params.copy())
+        BasicItem.__init__(self, values, parent)
+        self.requestId = requestId
+        self.request = request
+        self.message = message
 
     @classmethod
-    def fromMessage(cls, requestId, message, parent, request):
+    def fromMessage(cls, requestId, request, message, parent):
         """ New instance from message values
 
         @param cls class object
@@ -346,53 +363,24 @@ class HistDataItem(BasicItem):
             except (AttributeError, ):
                 value = None
             values.append(value)
-        item = cls(values, parent, message, requestId, request)
+        item = cls(values, requestId, request, message, parent)
         if message.date.startswith('finished-'):
-            parent.data[1] = item.data[1] = States.labelMap[States.finished]
-            item[2:] = [None for i in item[2:]]
+            item[1] = item[1][len('finished-'):]
         return item
 
-    def symbol(self):
-        """ Returns the symbol for this item or ''
 
-        """
-        try:
-            return self.message.contract.m_symbol
-        except (AttributeError, ):
-            return ''
-
-    def update(self, message):
-        """ Update the item with values from a message.
-
-        @param message ib.opt.message object
-        @return None
-        """
-        for column, (label, lookup) in enumerate(self.columnLookups):
-            try:
-                self[column] = lookup(message)
-            except (AttributeError, ):
-                pass
-
-
-class RootHistDataItem(HistDataItem):
+class RootSubItem(SubItem):
     """ HistData model item with automatic values (for horizontal headers).
 
     """
     def __init__(self):
-        HistDataItem.__init__(self, self.horizontalLabels())
-
-    def horizontalLabels(self):
-        """ Generates list of horizontal header values.
+        """ Initializer.
 
         """
-        return map(QVariant, [label for label, lookup in self.columnLookups])
+        labels = map(QVariant, [i[0] for i in self.columnLookups])
+        SubItem.__init__(self, labels, None, None, None)
 
 
-## params = {'endDateTime': '20080707 08:00:00',
-##  'durationStr': '2 D',
-##  'whatToShow': 'TRADES',
-##  'contract': <ib.ext.Contract.Contract object at 0x8dd8f0c>,
-##  'barSizeSetting': '1 min',
-##  'formatDate': 1,
-##  'tickerId': 1146,
-##  'useRTH': 1}
+## clients should use this alias
+#
+HistDataRequestModel = RequestModel

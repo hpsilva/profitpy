@@ -25,10 +25,6 @@ class ExtendedPythonShell(QFrame, Ui_ExtendedShell, BasicHandler):
         """ Make our widgets like we like.
 
         """
-        self.tb = QToolBar(self.editorFrame)
-        self.tb.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        self.verticalLayout.insertWidget(0, self.tb)
-        self.tb.addAction(self.actionExecute)
         settings = self.settings
         settings.beginGroup(self.__class__.__name__)
         defaultState = defaults.leftSplitterState()
@@ -49,7 +45,7 @@ class ExtendedPythonShell(QFrame, Ui_ExtendedShell, BasicHandler):
         settings.endGroup()
 
     @pyqtSignature('')
-    def on_actionExecute_triggered(self):
+    def on_executeButton_clicked(self):
         """ Execute the source code in the shell.
 
         """

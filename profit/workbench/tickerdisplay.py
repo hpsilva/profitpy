@@ -45,9 +45,13 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         defaultFields = defaults.tickerDisplayFields()
         userFields = settings.valueLoad('selectedFields', defaultFields)
         #self.tickFieldSelect.setCheckedFields(userFields)
+        #self.infoBar.barHelp.setText('Right click column headers to select some.')
         settings.endGroup()
-        self.reflectSignal(Signals.openUrl)
-        self.reflectSignal(Signals.tickerClicked)
+        self.reflectSignals(Signals.openUrl, Signals.tickerClicked)
+
+    def on_tickersView_doubleClick(self, index):
+        item = index.internalPointer()
+        self.emit(Signals.tickerClicked, item)
 
     def setSession(self, session):
         """ Configures this instance for a session.
@@ -62,6 +66,8 @@ class TickerDisplay(QFrame, Ui_TickerDisplay, BasicHandler, UrlRequestor):
         model.valueBrushMap = ValueColorItem.compMap
         view = self.tickersView
         view.setModel(model)
+        connect(view, Signals.modelDoubleClicked,
+                self.on_tickersView_doubleClick)
         header = view.header()
         header.setContextMenuPolicy(Qt.ActionsContextMenu)
         def makeActions():
