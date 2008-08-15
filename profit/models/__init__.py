@@ -40,6 +40,9 @@ class BasicItem(object):
             return self.parent.children.index(self)
         return 0
 
+    def sort(self, cmp=None, key=None, reverse=False):
+        self.children.sort(cmp=cmp, key=key, reverse=reverse)
+
 
 class BasicItemModel(QAbstractItemModel):
     """
