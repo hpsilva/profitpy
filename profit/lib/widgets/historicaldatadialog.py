@@ -63,6 +63,7 @@ class HistoricalDataDialog(QDialog, Ui_HistoricalDataDialog):
         contract.m_symbol = str(symbol)
         contract.m_secType = str(security)
         contract.m_exchange = str(exchange)
+        contract.m_currency = 'USD'
         return contract
 
     def endDateTime(self):
